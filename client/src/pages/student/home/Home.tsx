@@ -1,23 +1,30 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Heading,
   Text,
   Tabs,
+  Td,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
   Flex,
+  Select,
+  useToast,
   Table,
-  createListCollection,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
 } from "@chakra-ui/react";
-import Chart from "chart.js/auto";
-import Loader from "@/components/Loader";
+import Chart, { ChartItem } from "chart.js/auto";
+import Loader from "../../../components/Loader";
 import IntroModal from "./IntroModal";
 import useUser from "@/config/user";
-import { toaster } from "@/components/ui/toaster";
 import { House } from "@shared-types/House";
 import { Certificate } from "@shared-types/Certificate";
 import { User } from "@shared-types/User";
-import { SelectContent, SelectItem, SelectRoot } from "@/components/ui/select";
-import useAxios from "@/config/axios";
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
@@ -25,10 +32,11 @@ const Home = () => {
   const [houses, setHouses] = useState<House[]>();
   const [userHouse, setUserHouse] = useState<House>();
   const [certifications, setCertifications] = useState<Certificate[]>();
-  const [selectedMonth, setSelectedMonth] = useState(["all"]);
+  const [selectedMonth, setSelectedMonth] = useState("all");
   const [firstTime, setFirstTime] = useState(false);
-
   const localUser = useUser();
+
+  const toast = useToast();
 
   function calculateTotalPoints(data: House) {
     if (!loading) {
@@ -39,12 +47,12 @@ const Home = () => {
       let totalExternalPoints = 0;
       let totalEventsPoints = 0;
 
-      if (data && data?.points && data?.points[currentYear]) {
-        const monthlyPoints = data?.points[currentYear];
+      if (data && data?.points && data?.points[Number(currentYear)]) {
+        const monthlyPoints = data?.points[Number(currentYear)];
         for (const month in monthlyPoints) {
           if (monthlyPoints?.hasOwnProperty(month)) {
             // Separate internal, external, and events points
-            const { internal, external, events } = monthlyPoints[month] || {};
+            const { internal, external, events } = monthlyPoints[month];
 
             // Add them to their respective totals
             if (internal) {
@@ -76,39 +84,46 @@ const Home = () => {
     }
   }
 
-  useEffect(() => {
-    const axios = useAxios();
+  const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedMonth(event?.target?.value);
+  };
 
-    axios
-      .post("/student", { mid: localUser?.mid })
-      .then((res) => {
-        console.log(res.data.data);
-        setUser(res.data.data.user);
-        setHouses(res.data.data.allHouses);
-        setUserHouse(res.data.data.userHouse);
-        setCertifications(res.data.data.certifications);
-        setFirstTime(res.data.data.user.firstTime);
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/student/dashboard`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ mid: localUser?.mid?.toString() }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data?.user);
+        setHouses(data?.allHouses);
+        setUserHouse(data?.userHouse);
+        setCertifications(data?.certifications);
+        setFirstTime(data?.user?.firstTime);
+        setLoading(false);
       })
       .catch((err) => {
         console.log(err);
-        toaster.error({
+        toast({
           title: "Error",
           description: "Error fetching dashboard data",
+          status: "error",
+          duration: 2000,
+          isClosable: true,
         });
-      })
-      .finally(() => {
-        setLoading(false);
       });
   }, []);
 
   useEffect(() => {
     let hcl: Chart<"bar", any[], any>;
 
-    if (!houses) return;
-
     if (!loading) {
       let house1, house2, house3, house4;
-      if (selectedMonth[0] === "all") {
+      if (selectedMonth === "all" && houses) {
         house1 = calculateTotalPoints(houses[0]);
         house2 = calculateTotalPoints(houses[1]);
         house3 = calculateTotalPoints(houses[2]);
@@ -130,55 +145,47 @@ const Home = () => {
           (house4?.totalInternal ?? 0) +
           (house4?.totalExternal ?? 0) +
           (house4?.totalEvents ?? 0);
-      } else {
+
+        console.log(house1);
+      } else if (houses) {
         const currentDate = new Date();
-        const currentYear = currentDate?.getFullYear()?.toString();
+        let currentYear = currentDate?.getFullYear().toString();
 
         house1 = houses[0]?.points[Number(currentYear)]
-          ? houses[0]?.points[Number(currentYear)][selectedMonth[0]] ?? 0
+          ? houses[0]?.points[Number(currentYear)][selectedMonth] ?? 0
           : 0;
         house2 = houses[1]?.points[Number(currentYear)]
-          ? houses[1]?.points[Number(currentYear)][selectedMonth[0]] ?? 0
+          ? houses[1]?.points[Number(currentYear)][selectedMonth] ?? 0
           : 0;
         house3 = houses[2]?.points[Number(currentYear)]
-          ? houses[2]?.points[Number(currentYear)][selectedMonth[0]] ?? 0
+          ? houses[2]?.points[Number(currentYear)][selectedMonth] ?? 0
           : 0;
         house4 = houses[3]?.points[Number(currentYear)]
-          ? houses[3]?.points[Number(currentYear)][selectedMonth[0]] ?? 0
+          ? houses[3]?.points[Number(currentYear)][selectedMonth] ?? 0
           : 0;
 
-        house1 =
-          typeof house1 === "number"
-            ? house1
-            : (house1?.internal ?? 0) +
-              (house1?.external ?? 0) +
-              (house1?.events ?? 0);
-        house2 =
-          typeof house2 === "number"
-            ? house2
-            : (house2?.internal ?? 0) +
-              (house2?.external ?? 0) +
-              (house2?.events ?? 0);
-        house3 =
-          typeof house3 === "number"
-            ? house3
-            : (house3?.internal ?? 0) +
-              (house3?.external ?? 0) +
-              (house3?.events ?? 0);
-        house4 =
-          typeof house4 === "number"
-            ? house4
-            : (house4?.internal ?? 0) +
-              (house4?.external ?? 0) +
-              (house4?.events ?? 0);
+        house1 = typeof house1 === 'number' ? house1 :
+          (house1?.internal ?? 0) +
+          (house1?.external ?? 0) +
+          (house1?.events ?? 0);
+        house2 = typeof house2 === 'number' ? house2 :
+          (house2?.internal ?? 0) +
+          (house2?.external ?? 0) +
+          (house2?.events ?? 0);
+        house3 = typeof house3 === 'number' ? house3 :
+          (house3?.internal ?? 0) +
+          (house3?.external ?? 0) +
+          (house3?.events ?? 0);
+        house4 = typeof house4 === 'number' ? house4 :
+          (house4?.internal ?? 0) +
+          (house4?.external ?? 0) +
+          (house4?.events ?? 0);
       }
 
       const houseLeaderboard = document?.getElementById(
         "houseLeaderboard"
       ) as HTMLCanvasElement;
-
-      if (!houseLeaderboard) return;
-
+      if (!houses) return;
       hcl = new Chart(houseLeaderboard, {
         type: "bar",
         data: {
@@ -266,31 +273,70 @@ const Home = () => {
     const currentDate = new Date();
     let currentYear = currentDate?.getFullYear().toString();
 
-    let myHouseChart: Chart<"line", any[], string>;
+    let myHouseChart: Chart<"line", number[], string>;
     let myHouse;
 
     if (!loading && userHouse) {
-      const pointsForMonth = (month: string) => {
-        const monthData = userHouse?.points[Number(currentYear)]?.[month];
-        return (
-          (monthData?.internal ?? 0) +
-          (monthData?.external ?? 0) +
-          (monthData?.events ?? 0)
-        );
-      };
-
-      const jan = pointsForMonth("january");
-      const feb = pointsForMonth("february");
-      const mar = pointsForMonth("march");
-      const apr = pointsForMonth("april");
-      const may = pointsForMonth("may");
-      const jun = pointsForMonth("june");
-      const jul = pointsForMonth("july");
-      const aug = pointsForMonth("august");
-      const sep = pointsForMonth("september");
-      const oct = pointsForMonth("october");
-      const nov = pointsForMonth("november");
-      const dec = pointsForMonth("december");
+      const jan =
+        userHouse?.points[Number(currentYear)]?.january?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.january?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.january?.events ??
+        0;
+      const feb =
+        userHouse?.points[Number(currentYear)]?.february?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.february?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.february?.events ??
+        0;
+      const mar =
+        userHouse?.points[Number(currentYear)]?.march?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.march?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.march?.events ??
+        0;
+      const apr =
+        userHouse?.points[Number(currentYear)]?.april?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.april?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.april?.events ??
+        0;
+      const may =
+        userHouse?.points[Number(currentYear)]?.may?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.may?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.may?.events ??
+        0;
+      const jun =
+        userHouse?.points[Number(currentYear)]?.june?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.june?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.june?.events ??
+        0;
+      const jul =
+        userHouse?.points[Number(currentYear)]?.july?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.july?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.july?.events ??
+        0;
+      const aug =
+        userHouse?.points[Number(currentYear)]?.august?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.august?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.august?.events ??
+        0;
+      const sep =
+        userHouse?.points[Number(currentYear)]?.september?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.september?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.september?.events ??
+        0;
+      const oct =
+        userHouse?.points[Number(currentYear)]?.october?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.october?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.october?.events ??
+        0;
+      const nov =
+        userHouse?.points[Number(currentYear)]?.november?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.november?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.november?.events ??
+        0;
+      const dec =
+        userHouse?.points[Number(currentYear)]?.december?.internal ??
+        0 + userHouse?.points[Number(currentYear)]?.december?.external ??
+        0 + userHouse?.points[Number(currentYear)]?.december?.events ??
+        0;
 
       myHouse = document?.getElementById("myHouse") as HTMLCanvasElement;
       myHouseChart = new Chart(myHouse, {
@@ -328,12 +374,9 @@ const Home = () => {
                 dec,
               ],
               tension: 0.3,
-              borderColor: houses ? houses[0]?.color : "#3e95cd",
+              borderColor: houses?.[0]?.color ?? "#000000",
               fill: true, // Enable the fill area
-              backgroundColor: hexToRgba(
-                houses ? houses[1]?.color : "#3e95cd",
-                0.25
-              ), // Fill color
+              backgroundColor: hexToRgba(houses?.[1]?.color ?? "#000000", 0.25), // Fill color
             },
           ],
         },
@@ -345,6 +388,7 @@ const Home = () => {
               display: false,
             },
           },
+
           scales: {
             x: {
               grid: { color: "#f2f2f2", display: false },
@@ -371,22 +415,27 @@ const Home = () => {
   }, [loading, userHouse]);
 
   useEffect(() => {
-    let cont: HTMLCanvasElement;
+    let cont: ChartItem;
+    const currentDate = new Date();
+    let currentYear = currentDate?.getFullYear();
+    currentYear = Number(currentYear);
 
     if (!loading) {
-      const sepPoints = calculateTotalPoints(userHouse!);
+      const sepPoints = user?.house
+        ? calculateTotalPoints(userHouse!)
+        : undefined;
       const totalPoints =
-        sepPoints?.totalInternal ??
-        0 + (sepPoints?.totalExternal || 0) + (sepPoints?.totalEvents || 0);
+        (sepPoints?.totalInternal ?? 0) +
+        (sepPoints?.totalExternal ?? 0) +
+        (sepPoints?.totalEvents ?? 0);
 
       const sephousePoints = calculateTotalPoints(userHouse!);
       const housePoints =
-        (sephousePoints?.totalInternal || 0) +
-        (sephousePoints?.totalExternal || 0) +
-        (sephousePoints?.totalEvents || 0);
+        (sephousePoints?.totalInternal ?? 0) +
+        (sephousePoints?.totalExternal ?? 0) +
+        (sephousePoints?.totalEvents ?? 0);
 
       cont = document?.getElementById("contribution") as HTMLCanvasElement;
-
       const contrChart = new Chart(cont, {
         type: "doughnut",
         data: {
@@ -428,7 +477,7 @@ const Home = () => {
         }
       };
     }
-  }, [loading]);
+  }, [loading, userHouse, user]);
 
   const months = [
     "Jan",
@@ -445,23 +494,6 @@ const Home = () => {
     "Dec",
   ];
 
-  const monthsList = createListCollection({
-    items: [
-      { value: "january", label: "January" },
-      { value: "february", label: "February" },
-      { value: "march", label: "March" },
-      { value: "april", label: "April" },
-      { value: "may", label: "May" },
-      { value: "june", label: "June" },
-      { value: "july", label: "July" },
-      { value: "august", label: "August" },
-      { value: "september", label: "September" },
-      { value: "october", label: "October" },
-      { value: "november", label: "November" },
-      { value: "december", label: "December" },
-    ],
-  });
-
   if (!loading) {
     return (
       <>
@@ -476,159 +508,154 @@ const Home = () => {
                   </Text>
                 </Box>
                 {/* Step 4: Add onChange event to select */}
-                <SelectRoot
+                <Select
                   width="150px"
                   value={selectedMonth}
-                  onValueChange={(e) => setSelectedMonth(e.value)}
-                  collection={monthsList}
+                  onChange={handleMonthChange}
                 >
-                  <SelectContent>
-                    {monthsList.items.map((month) => (
-                      <SelectItem item={month} key={month.value}>
-                        {month.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectRoot>
+                  <option value="all">All</option>
+                  <option value="january">January</option>
+                  <option value="february">February</option>
+                  <option value="march">March</option>
+                  <option value="april">April</option>
+                  <option value="may">May</option>
+                  <option value="june">June</option>
+                  <option value="july">July</option>
+                  <option value="august">August</option>
+                  <option value="september">September</option>
+                  <option value="october">October</option>
+                  <option value="november">November</option>
+                  <option value="december">December</option>
+                </Select>
               </Flex>
               <canvas id="houseLeaderboard"></canvas>
             </Box>
             <Box className="certifications">
-              <Tabs.Root>
-                <Tabs.List>
-                  <Tabs.Trigger value="internal">Internal</Tabs.Trigger>
-                  <Tabs.Trigger value="events">Events</Tabs.Trigger>
-                  <Tabs.Trigger value="external">External</Tabs.Trigger>
-                </Tabs.List>
+              <Tabs>
+                <TabList>
+                  <Tab>Internal</Tab>
+                  <Tab>Events</Tab>
+                  <Tab>External</Tab>
+                </TabList>
 
-                <Tabs.Content value="internal">
-                  <Table.Root>
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeader>
-                          Certification Details
-                        </Table.ColumnHeader>
-                        <Table.ColumnHeader className="hideOnPhone">
-                          Points
-                        </Table.ColumnHeader>
-                        <Table.ColumnHeader className="hideOnPhone">
-                          Submitted On
-                        </Table.ColumnHeader>
-                        <Table.ColumnHeader>Status</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {certifications
+                <TabPanels>
+                  <TabPanel>
+                    <Table>
+                      <Thead>
+                        <Tr>
+                          <Th>Certification Details</Th>
+                          <Th className="hideOnPhone">Points</Th>
+                          <Th className="hideOnPhone">Submitted On</Th>
+                          <Th>Status</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {certifications
 
-                        ?.filter((cert) => cert?.certificateType === "internal")
-                        ?.slice(0, 3)
-                        ?.map((cert) => (
-                          <Table.Row key={cert?._id}>
-                            <Table.Cell>
-                              <Text>{cert?.certificateName}</Text>
-                              <Text fontSize="12px">{cert?.issuingOrg}</Text>
-                            </Table.Cell>
-                            <Table.Cell className="hideOnPhone">
-                              {cert?.xp || "0"}
-                            </Table.Cell>
-                            <Table.Cell className="hideOnPhone">
-                              {" "}
-                              {/* @ts-ignore */}
-                              {months[cert?.submittedMonth]}{" "}
-                              {cert?.submittedYear}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {cert?.status
-                                ? cert.status.slice(0, 1).toUpperCase() +
-                                  cert.status.slice(1)
-                                : ""}
-                            </Table.Cell>
-                          </Table.Row>
-                        ))}
-                    </Table.Body>
-                  </Table.Root>
-                </Tabs.Content>
-                <Tabs.Content value="events">
-                  <Table.Root>
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeader>
-                          Certification Details
-                        </Table.ColumnHeader>
-                        <Table.ColumnHeader>Points</Table.ColumnHeader>
-                        <Table.ColumnHeader>Submitted On</Table.ColumnHeader>
-                        <Table.ColumnHeader>Status</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {certifications
+                          ?.filter(
+                            (cert) => cert?.certificateType === "internal"
+                          )
+                          ?.slice(0, 3)
+                          ?.map((cert) => (
+                            <Tr key={cert?._id}>
+                              <Td>
+                                <Text>{cert?.certificateName}</Text>
+                                <Text fontSize="12px">{cert?.issuingOrg}</Text>
+                              </Td>
+                              <Td className="hideOnPhone">{cert?.xp || "0"}</Td>
+                              <Td className="hideOnPhone">
+                                {" "}
+                                {/* @ts-expect-error */}
+                                {months[cert?.submittedMonth]}{" "}
+                                {cert?.submittedYear}
+                              </Td>
+                              <Td>
+                                {(cert?.status ?? "pending")
+                                  .slice(0, 1)
+                                  .toUpperCase() +
+                                  (cert?.status ?? "pending").slice(1)}
+                              </Td>
+                            </Tr>
+                          ))}
+                      </Tbody>
+                    </Table>
+                  </TabPanel>
+                  <TabPanel>
+                    <Table>
+                      <Thead>
+                        <Tr>
+                          <Th>Certification Details</Th>
+                          <Th>Points</Th>
+                          <Th>Submitted On</Th>
+                          <Th>Status</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {certifications
 
-                        ?.filter((cert) => cert?.certificateType === "event")
-                        ?.slice(0, 3)
-                        ?.map((cert) => (
-                          <Table.Row key={cert?._id}>
-                            <Table.Cell>
-                              <Text>{cert?.certificateName}</Text>
-                              <Text fontSize="12px">{cert?.issuingOrg}</Text>
-                            </Table.Cell>
-                            <Table.Cell>{cert?.points || "0"}</Table.Cell>
-                            <Table.Cell>
-                              {" "}
-                              {/* @ts-ignore */}
-                              {months[cert?.submittedMonth]}{" "}
-                              {cert?.submittedYear}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {(cert?.status ?? "").slice(0, 1).toUpperCase() +
-                                (cert?.status ?? "").slice(1)}
-                            </Table.Cell>
-                          </Table.Row>
-                        ))}
-                    </Table.Body>
-                  </Table.Root>
-                </Tabs.Content>
-                <Tabs.Content value="external">
-                  <Table.Root>
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeader>
-                          Certification Details
-                        </Table.ColumnHeader>
-                        <Table.ColumnHeader>Points</Table.ColumnHeader>
-                        <Table.ColumnHeader>Submitted On</Table.ColumnHeader>
-                        <Table.ColumnHeader>Status</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      {certifications
+                          ?.filter((cert) => cert?.certificateType === "event")
+                          ?.slice(0, 3)
+                          ?.map((cert) => (
+                            <Tr key={cert?._id}>
+                              <Td>
+                                <Text>{cert?.certificateName}</Text>
+                                <Text fontSize="12px">{cert?.issuingOrg}</Text>
+                              </Td>
+                              <Td>{cert?.points || "0"}</Td>
+                              <Td>
+                                {" "}
+                                {/* @ts-expect-error */}
+                                {months[cert?.submittedMonth]}{" "}
+                                {cert?.submittedYear}
+                              </Td>
+                              <Td>
+                                {(cert?.status ?? "pending").slice(0, 1).toUpperCase() +
+                                  (cert?.status ?? "pending").slice(1)}
+                              </Td>
+                            </Tr>
+                          ))}
+                      </Tbody>
+                    </Table>
+                  </TabPanel>
+                  <TabPanel>
+                    <Table>
+                      <Thead>
+                        <Tr>
+                          <Th>Certification Details</Th>
+                          <Th>Points</Th>
+                          <Th>Submitted On</Th>
+                          <Th>Status</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {certifications
 
-                        ?.filter((cert) => cert?.certificateType === "external")
-                        ?.slice(0, 3)
-                        ?.map((cert) => (
-                          <Table.Row key={cert._id}>
-                            <Table.Cell>
-                              <Text>{cert?.certificateName}</Text>
-                              <Text fontSize="12px">{cert?.issuingOrg}</Text>
-                            </Table.Cell>
-                            <Table.Cell>{cert?.points || "0"}</Table.Cell>
-                            <Table.Cell>
-                              {" "}
-                              {/* @ts-ignore */}
-                              {months[cert?.submittedMonth]}{" "}
-                              {cert?.submittedYear}
-                            </Table.Cell>
-                            <Table.Cell>
-                              {cert?.status
-                                ? cert.status.slice(0, 1).toUpperCase() +
-                                  cert.status.slice(1)
-                                : ""}
-                            </Table.Cell>
-                          </Table.Row>
-                        ))}
-                    </Table.Body>
-                  </Table.Root>
-                </Tabs.Content>
-              </Tabs.Root>
+                          ?.filter(
+                            (cert) => cert?.certificateType === "external"
+                          )
+                          ?.slice(0, 3)
+                          ?.map((cert) => (
+                            <Tr key={cert._id}>
+                              <Td>
+                                <Text>{cert?.certificateName}</Text>
+                                <Text fontSize="12px">{cert?.issuingOrg}</Text>
+                              </Td>
+                              <Td>{cert?.points || "0"}</Td>
+                              <Td> {/* @ts-expect-error */}
+                                {months[cert?.submittedMonth]}{" "}
+                                {cert?.submittedYear}
+                              </Td>
+                              <Td>
+                                {(cert?.status ?? "pending").slice(0, 1).toUpperCase() +
+                                  (cert?.status ?? "pending").slice(1)}
+                              </Td>
+                            </Tr>
+                          ))}
+                      </Tbody>
+                    </Table>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
             </Box>
           </Box>
           <Box className="right">

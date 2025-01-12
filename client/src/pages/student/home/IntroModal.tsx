@@ -1,38 +1,66 @@
-import { useState } from "react";
+import React, { useEffect } from "react";
 import {
-  Box,
-  Heading,
+  Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  useDisclosure,
+  Alert,
+  AlertIcon,
   Text,
-  Table,
   Image,
-  Textarea,
+  Heading,
+  Td,
+  Box,
+  Table,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
   Input,
+  useToast,
+  Textarea,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
-import {
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-} from "@/components/ui/dialog";
+
 import Intro1 from "../../../assets/img/logo-icon.png";
-import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import Cookies from "js-cookie";
-import { toaster } from "@/components/ui/toaster";
 import useUser from "@/config/user";
 
 const IntroModal = () => {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [about, setAbout] = useState("");
-  const [technical, setTechnical] = useState("");
-  const [projects, setProjects] = useState("");
-  const [cgpa, setCgpa] = useState("");
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [page, setPage] = React.useState(1);
 
-  const [isOpenAlert, setIsOpenAlert] = useState(false);
+  const {
+    isOpen: isOpenAlert,
+    onOpen: onOpenAlert,
+    onClose: onCloseAlert,
+  } = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   const user = useUser();
+
+  const [about, setAbout] = React.useState("");
+  const [technical, setTechnical] = React.useState("");
+  const [projects, setProjects] = React.useState("");
+  const [cgpa, setCgpa] = React.useState("");
+
+  const [close, setClose] = React.useState(false);
+  useEffect(() => {
+    if (!close) {
+      onOpen();
+      setClose(true);
+    }
+  });
 
   const incrementPage = () => {
     // ! TODO: CHANGE PAGE NUMBERS
@@ -44,41 +72,53 @@ const IntroModal = () => {
     } else if (page === 3) {
       setPage(4);
     } else if (page === 4) {
-      const about = (document.getElementById("about") as HTMLInputElement)
-        .value;
-      const technical = (
-        document.getElementById("technical") as HTMLInputElement
-      ).value;
+      const aboutElement = document.getElementById(
+        "about"
+      ) as HTMLTextAreaElement;
+      const technicalElement = document.getElementById(
+        "technical"
+      ) as HTMLTextAreaElement;
+      if (!aboutElement || !technicalElement) return;
+      const about = aboutElement.value;
+      const technical = technicalElement.value;
       if (about === "" || technical === "") {
-        toaster.error({
+        toast({
           title: "Please fill all the fields",
+          status: "error",
+          isClosable: true,
         });
         return;
       }
       setPage(5);
     } else if (page === 5) {
-      const projects = (document.getElementById("projects") as HTMLInputElement)
-        .value;
-      const cgpa = (document.getElementById("cgpa") as HTMLInputElement).value;
+      const projectsElement = document.getElementById(
+        "projects"
+      ) as HTMLTextAreaElement;
+      const cgpaElement = document.getElementById("cgpa") as HTMLInputElement;
+      if (!projectsElement || !cgpaElement) return;
+      const projects = projectsElement.value;
+      const cgpa = cgpaElement.value;
       if (projects === "" || cgpa === "") {
-        toaster.error({
+        toast({
           title: "Please fill all the fields",
+          status: "error",
+          isClosable: true,
         });
         return;
       }
 
       if (Number(cgpa) > 10 || Number(cgpa) < 0) {
-        toaster.error({
+        toast({
           title: "Please enter a valid CGPA",
+          status: "error",
+          isClosable: true,
         });
         return;
       }
 
-      setDialogOpen(false);
-
-      (
-        document.getElementById("IntroModal") as HTMLInputElement
-      ).style.display = "none";
+      onClose();
+      const modalElement = document.getElementById("IntroModal");
+      if (modalElement) modalElement.style.display = "none";
       sendData();
     }
   };
@@ -119,25 +159,29 @@ const IntroModal = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          setIsOpenAlert(true);
+          onOpenAlert();
         } else {
-          toaster.error({
+          toast({
             title: "An Error Occured. Please Try Again After Some Time",
+            status: "error",
+            isClosable: true,
           });
           setPage(1);
-          setIsOpenAlert(true);
+          onOpen();
         }
       })
       .catch((err) => {
         console.log(err);
-        toaster.error({
+        toast({
           title: "Error",
+          status: "error",
+          isClosable: true,
         });
       });
   };
 
   const logoutAndSave = () => {
-    setIsOpenAlert(false);
+    onCloseAlert();
     Cookies.remove("token", {
       path: "/",
       domain: import.meta.env.VITE_COOKIE_DOMAIN,
@@ -150,233 +194,245 @@ const IntroModal = () => {
   };
 
   return (
-    <Box className="InTable.RowoModal" id="InTable.RowoModal">
-      <DialogRoot
-        open={dialogOpen}
-        onOpenChange={(e) => setDialogOpen(e.open)}
+    <Box className="IntroModal" id="IntroModal">
+      <Modal
+        closeOnOverlayClick={false}
+        isOpen={isOpen}
+        onClose={onClose}
         size="sm"
         scrollBehavior="inside"
+        closeOnEsc={false}
       >
-        <DialogContent className="min-h-[80%] max-h-[80%] w-[80%] max-w-[80%]">
-          <DialogHeader>Hello!</DialogHeader>
+        <ModalOverlay
+          bg="none"
+          backdropFilter="blur(10px) hue-rotate(90deg)/"
+          backdropInvert="80%"
+          backdropBlur="2px"
+        />
+        <ModalContent
+          minH="80%"
+          maxH="80%"
+          maxW="80%" // Set the maximum width for the modal content
+          w="80%"
+        >
+          <ModalHeader>Hello!</ModalHeader>
 
           {page === 1 ? (
-            <DialogBody className="flex flex-col items-center justify-center gap-12 p-8">
-              <Heading>Welcome to Scriptopia Connect!</Heading>
-              <Box className="flex items-center justify-center w-full gap-12">
-                <Image src={Intro1} className="w-20" />
-              </Box>
-              <Text className="leading-7 text-center">
-                Our innovative house system, certificate uploads, and exciting
-                events empower you to excel academically and personally. Join a
-                house, showcase your achievements, participate in events, and
-                earn XP to make your college experience Table.Rowuly
-                unforgetTable.Root. Welcome to a community Table.ColumnHeaderat
-                celebrates your journey and encourages you to reach new heights.
-                <span className="font-bold text-black">
+            <ModalBody className="IntroModal">
+              <Box className="sec1">
+                <Heading>Welcome to Scriptopia Connect!</Heading>
+                <Box className="Images">
                   {" "}
-                  Click Next to See How
-                </span>
-              </Text>
-            </DialogBody>
+                  <Image src={Intro1} />
+                </Box>
+                <Text>
+                  Our innovative house system, certificate uploads, and exciting
+                  events empower you to excel academically and personally. Join
+                  a house, showcase your achievements, participate in events,
+                  and earn XP to make your college experience truly
+                  unforgettable. Welcome to a community that celebrates your
+                  journey and encourages you to reach new heights.{" "}
+                  <span>Click Next to See How</span>
+                </Text>
+              </Box>
+            </ModalBody>
           ) : page === 2 ? (
-            <DialogBody className="flex flex-col items-center justify-center gap-12 p-8">
-              <Heading className="text-center">
-                Your PaTable.ColumnHeaderway to Coding Excellence and
-                Collaboration
-              </Heading>
-              <Box>
-                <Text>
-                  <span className="font-bold">Houses:</span> Join dynamic
-                  Houses, engage in coding events, and test teamwork. Accumulate
-                  House Points (HP) and XP for an exciting journey of
-                  growTable.ColumnHeader.
-                </Text>
-                <Text>
-                  <span className="font-bold">Events:</span> Ignite Curiosity
-                  Access real-world event and challenges Table.ColumnHeaderat
-                  align wiTable.ColumnHeader your studies. Participate to Win
-                  XP.
-                </Text>
-                <Text>
-                  <span className="font-bold">Certificates:</span> Hone your
-                  coding mastery Table.ColumnHeaderrough Table.ColumnHeadere
-                  certifications you've received.
-                </Text>
+            <ModalBody className="IntroModal">
+              <Box className="sec2">
+                <Heading>
+                  Your Pathway to Coding Excellence and Collaboration
+                </Heading>
+                <Box>
+                  {" "}
+                  <Text>
+                    <span>Houses</span> Join dynamic Houses, engage in coding
+                    events, and test teamwork. Accumulate House Points (HP) and
+                    XP for an exciting journey of growth.
+                  </Text>
+                  <Text>
+                    <span>Events:</span> Ignite Curiosity Access real-world
+                    event and challenges that align with your studies.
+                    Participate to Win XP.
+                  </Text>
+                  <Text>
+                    <span>Certificates: </span> Hone your coding mastery through
+                    the certifications you've received.
+                  </Text>
+                </Box>
               </Box>
-            </DialogBody>
+            </ModalBody>
           ) : page === 3 ? (
-            <DialogBody className="flex flex-col items-center justify-center gap-12 p-8">
-              <Heading>Points MaTable.Rowix</Heading>
-              <Box className="flex flex-wrap items-center justify-center gap-8">
-                <Box className="w-80 text-sm">
-                  <Text>Solving Practice Problems</Text>
-                  <Table.Root variant="line">
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeader>Activity</Table.ColumnHeader>
-                        <Table.ColumnHeader>Points</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      <Table.Row>
-                        <Table.Cell>Easy</Table.Cell>
-                        <Table.Cell>+10 XP</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>Medium</Table.Cell>
-                        <Table.Cell>+20 XP</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>Hard</Table.Cell>
-                        <Table.Cell>+30 XP</Table.Cell>
-                      </Table.Row>
-                    </Table.Body>
-                  </Table.Root>
-                </Box>
-                <Box className="w-80 text-sm">
-                  <Text>Uploading Certifications</Text>
-                  <Table.Root variant="line">
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeader>Activity</Table.ColumnHeader>
-                        <Table.ColumnHeader>Points</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      <Table.Row>
-                        <Table.Cell>Beginner</Table.Cell>
-                        <Table.Cell>+50 XP, +10 HP </Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>Intermediate</Table.Cell>
-                        <Table.Cell>+75 XP, +25 HP</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>Expert</Table.Cell>
-                        <Table.Cell>+150 XP, +50 HP </Table.Cell>
-                      </Table.Row>
-                    </Table.Body>
-                  </Table.Root>
-                </Box>
-                <Box className="w-80 text-sm">
-                  <Text> Participation in House Events</Text>
-                  <Table.Root variant="line">
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeader>Activity</Table.ColumnHeader>
-                        <Table.ColumnHeader>Points</Table.ColumnHeader>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      <Table.Row>
-                        <Table.Cell>1st Place</Table.Cell>
-                        <Table.Cell>+500 HP, +150 XP</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>2nd Place</Table.Cell>
-                        <Table.Cell>+300 HP, +80 XP </Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>3rd Place</Table.Cell>
-                        <Table.Cell>+150 HP, +70 XP</Table.Cell>
-                      </Table.Row>
-                    </Table.Body>
-                  </Table.Root>
+            <ModalBody className="IntroModal">
+              <Box className="sec2">
+                <Heading>Points Matrix</Heading>
+                <Box className="table-group">
+                  <Box className="table">
+                    <Text>Solving Practice Problems</Text>
+                    <Table variant="striped">
+                      <Thead>
+                        <Tr>
+                          <Th>Activity</Th>
+                          <Th>Points</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        <Tr>
+                          <Td>Easy</Td>
+                          <Td>+10 XP</Td>
+                        </Tr>
+                        <Tr>
+                          <Td>Medium</Td>
+                          <Td>+20 XP</Td>
+                        </Tr>
+                        <Tr>
+                          <Td>Hard</Td>
+                          <Td>+30 XP</Td>
+                        </Tr>
+                      </Tbody>
+                    </Table>
+                  </Box>
+
+                  <Box className="table">
+                    <Text>Uploading Certifications</Text>
+                    <Table variant="striped">
+                      <Thead>
+                        <Tr>
+                          <Th>Activity</Th>
+                          <Th>Points</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        <Tr>
+                          <Td>Beginner</Td>
+                          <Td>+50 XP, +10 HP </Td>
+                        </Tr>
+                        <Tr>
+                          <Td>Intermediate</Td>
+                          <Td>+75 XP, +25 HP</Td>
+                        </Tr>
+                        <Tr>
+                          <Td>Expert</Td>
+                          <Td>+150 XP, +50 HP </Td>
+                        </Tr>
+                      </Tbody>
+                    </Table>
+                  </Box>
+
+                  <Box className="table">
+                    <Text> Participation in House Events</Text>
+                    <Table variant="striped">
+                      <Thead>
+                        <Tr>
+                          <Th>Activity</Th>
+                          <Th>Points</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        <Tr>
+                          <Td>1st Place</Td>
+                          <Td>+500 HP, +150 XP</Td>
+                        </Tr>
+                        <Tr>
+                          <Td>2nd Place</Td>
+                          <Td>+300 HP, +80 XP </Td>
+                        </Tr>
+                        <Tr>
+                          <Td>3rd Place</Td>
+                          <Td>+150 HP, +70 XP</Td>
+                        </Tr>
+                      </Tbody>
+                    </Table>
+                  </Box>
                 </Box>
               </Box>
-            </DialogBody>
+            </ModalBody>
           ) : page === 4 ? (
-            <DialogBody className="flex flex-col items-center justify-center gap-6 p-8">
-              <Heading className="text-center">
-                A Few Table.ColumnHeaderings Before we Get Started
-              </Heading>
-              <Alert status="warning" className="mb-4">
-                Note Table.ColumnHeaderat you must fill certifications and
-                Technical details correctly as Table.ColumnHeaderey will be
-                verified by Table.ColumnHeadere admin. Your house allotment will
-                be based on Table.ColumnHeaderis data.
-              </Alert>
-              <Textarea
-                placeholder="Write a Few Table.ColumnHeaderings About Yourself. (Please do not mention anyTable.ColumnHeadering Table.ColumnHeaderat could identify you. Ex. Name, Moodle ID)"
-                resize="none"
-                id="about"
-                onChange={(e) => setAbout(e?.target?.value)}
-                value={about}
-                className="w-full border rounded p-2"
-              ></Textarea>
-              <Textarea
-                placeholder="Write About Your Technical Skills."
-                resize="none"
-                id="technical"
-                onChange={(e) => setTechnical(e?.target?.value)}
-                value={technical}
-                className="w-full border rounded p-2"
-              ></Textarea>
-            </DialogBody>
+            <ModalBody className="IntroModal">
+              <Box className="sec3">
+                <Heading>A Few Things Before we Get Started</Heading>
+                <Alert status="warning">
+                  <AlertIcon />
+                  Note that you must fill certifications and Technical details
+                  correctly as they will be verified by the admin. Your house
+                  allotment will be based on this data.
+                </Alert>
+                <Textarea
+                  placeholder="Write a Few Things About Yourself. (Please do not mention anything that could identify you. Ex. Name, Moodle ID)"
+                  resize="none"
+                  id="about"
+                  onChange={(e) => setAbout(e?.target?.value)}
+                  value={about}
+                ></Textarea>
+                <Textarea
+                  placeholder="Write About Your Technical Skills."
+                  resize="none"
+                  id="technical"
+                  onChange={(e) => setTechnical(e?.target?.value)}
+                  value={technical}
+                ></Textarea>
+              </Box>
+            </ModalBody>
           ) : (
-            <DialogBody className="flex flex-col items-center justify-center gap-6 p-8">
-              <Heading className="text-center">
-                A Few Table.ColumnHeaderings Before we Get Started
-              </Heading>
-              <Textarea
-                placeholder="List your Project, wiTable.ColumnHeader a short description of each project seperated by a comma (,)"
-                resize="none"
-                id="projects"
-                rows={10}
-                onChange={(e) => setProjects(e?.target?.value)}
-                value={projects}
-                className="w-full border rounded p-2"
-              ></Textarea>
+            <ModalBody className="IntroModal">
+              <Box className="sec3">
+                <Heading>A Few Things Before we Get Started</Heading>
+                <Textarea
+                  placeholder="List your Project, with a short description of each project seperated by a comma (,)"
+                  resize="none"
+                  id="projects"
+                  rows={10}
+                  onChange={(e) => setProjects(e?.target?.value)}
+                  value={projects}
+                ></Textarea>
 
-              <Input
-                type="number"
-                placeholder="Enter your Average CGPA"
-                id="cgpa"
-                onChange={(e) => setCgpa(e?.target?.value)}
-                value={cgpa}
-                className="w-full border rounded p-2"
-              />
-            </DialogBody>
+                <Input
+                  type="number"
+                  placeholder="Enter your Average CGPA"
+                  id="cgpa"
+                  onChange={(e) => setCgpa(e?.target?.value)}
+                  value={cgpa}
+                />
+              </Box>
+            </ModalBody>
           )}
 
-          <DialogFooter className="flex justify-between">
-            <Button variant="ghost" onClick={decrementPage} className="mr-4">
+          <ModalFooter>
+            <Button variant="ghost" onClick={decrementPage}>
               Back
             </Button>
-            <Button variant="ghost" onClick={incrementPage} className="ml-4">
+            <Button variant="ghost" onClick={incrementPage}>
               Next
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </DialogRoot>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-      <DialogRoot
-        open={isOpenAlert}
-        onOpenChange={(e) => setIsOpenAlert(e.open)}
+      <AlertDialog
+        isOpen={isOpenAlert}
+        leastDestructiveRef={cancelRef}
+        onClose={onCloseAlert}
+        closeOnEsc={false}
+        closeOnOverlayClick={false}
       >
-        <DialogContent>
-          <DialogHeader fontSize="lg" fontWeight="bold">
-            Table.ColumnHeaderankyou
-          </DialogHeader>
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Thankyou
+            </AlertDialogHeader>
 
-          <DialogBody>
-            You will be logged out of Table.ColumnHeadere Portal Now. You can
-            Login once Table.ColumnHeadere admin verifies your details and you
-            have been alloted a House.
-          </DialogBody>
+            <AlertDialogBody>
+              You will be logged out of the Portal Now. You can Login once the
+              admin verifies your details and you have been alloted a House.
+            </AlertDialogBody>
 
-          <DialogFooter>
-            <Button
-              colorScheme="green"
-              onClick={logoutAndSave}
-              className="ml-3"
-            >
-              Okay
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </DialogRoot>
+            <AlertDialogFooter>
+              <Button colorScheme="green" onClick={logoutAndSave} ml={3}>
+                Okay
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };

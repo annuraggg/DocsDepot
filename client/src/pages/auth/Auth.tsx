@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Box, Heading, Image, Input, Text } from "@chakra-ui/react";
-import { Button } from "@/components/ui/button";
+import {
+  Box,
+  Button,
+  Heading,
+  Image,
+  Input,
+  InputGroup,
+  InputRightAddon,
+  Text,
+  useDisclosure,
+  useToast,
+} from "@chakra-ui/react";
 import APSIT from "./../../assets/img/apsit-logo.png";
 import Cookie from "js-cookie";
 import { useNavigate } from "react-router";
-import { toaster } from "@/components/ui/toaster";
-import { InputGroup } from "@/components/ui/input-group";
 import useAxios from "@/config/axios";
 import CreatePW from "./CreatePW";
 
@@ -13,7 +21,6 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [show, setShow] = React.useState(false);
   const handleClick = () => setShow(!show);
-  const [open, setOpen] = useState(false);
   const [mid, setMid] = useState("");
   const [fact, setFact] = useState("");
 
@@ -21,6 +28,9 @@ const Auth = () => {
   const [attempts, setAttempts] = useState(0);
   const [disabled, setDisabled] = useState(false);
   const navigate = useNavigate();
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toaster = useToast();
 
   const redirectURL =
     new URLSearchParams(window.location.search).get("redirect") || "/";
@@ -42,9 +52,10 @@ const Auth = () => {
       document.cookie =
         "blocked=true; expires=" + expirationTime.toUTCString() + "; path=/";
 
-      toaster.error({
+      toaster({
         title: "Too many attempts",
         description: "Please try again after some time.",
+        status: "error",
       });
       setTimeout(() => {
         setDisabled(false);
@@ -192,14 +203,14 @@ const Auth = () => {
               Cookie.set("token", response.token, { expires: 1 / 6 });
             } else if (response.role === "F") {
               if (response.firstTime) {
-                setOpen(true);
+                onOpen();
               } else {
                 Cookie.set("token", response.token, { expires: 1 / 6 });
                 window.location.href = "/faculty";
               }
             } else if (response.role === "S") {
               if (response.firstTime) {
-                setOpen(true);
+                onOpen();
               } else {
                 Cookie.set("token", response.token, { expires: 1 / 6 });
                 window.location.href = "/student";
@@ -249,19 +260,19 @@ const Auth = () => {
               >
                 Password
               </label>
-              <InputGroup
-                endElement={
+              <InputGroup>
+                <Input id="pw" type={show ? "text" : "password"} required />
+                <InputRightAddon>
+                  {" "}
                   <Button size="sm" onClick={handleClick}>
                     {show ? "Hide" : "Show"}
                   </Button>
-                }
-              >
-                <Input id="pw" type={show ? "text" : "password"} required />
+                </InputRightAddon>
               </InputGroup>
             </div>
             <Button
               type="submit"
-              loading={isLoading}
+              isLoading={isLoading}
               loadingText="Logging in..."
               colorScheme="purple"
               width="full"
@@ -275,7 +286,7 @@ const Auth = () => {
         </div>
       </div>
 
-      <CreatePW open={open} setOpen={setOpen} mid={mid} />
+      <CreatePW isOpen={isOpen} onClose={onClose} onOpen={onOpen} mid={mid} />
     </div>
   );
 };

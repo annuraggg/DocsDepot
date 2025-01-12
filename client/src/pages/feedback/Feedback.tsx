@@ -1,8 +1,6 @@
-import { Flex, Heading, Textarea } from "@chakra-ui/react";
+import { Button, Flex, Heading, Textarea, useToast } from "@chakra-ui/react";
 import React, { useState } from "react";
 import axios from "axios";
-import { toaster } from "@/components/ui/toaster";
-import { Button } from "@/components/ui/button";
 
 const Feedback = () => {
   const [rating, setRating] = useState(0);
@@ -13,6 +11,8 @@ const Feedback = () => {
     console.log(e.target.value);
   };
 
+  const toaster = useToast();
+
   const sendFeedback = async () => {
     try {
       const response = await axios.post(
@@ -22,18 +22,20 @@ const Feedback = () => {
       );
 
       if (response.status === 200) {
-        toaster.create({
+        toaster({
           title: "Feedback Submitted",
           description: "Your feedback has been submitted successfully",
+          status: "success",
         });
       } else {
         throw new Error("Unexpected response status");
       }
     } catch (err) {
       console.error(err);
-      toaster.create({
+      toaster({
         title: "Error",
         description: "Something went wrong",
+        status: "error",
       });
     }
   };

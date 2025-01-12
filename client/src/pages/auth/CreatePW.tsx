@@ -1,26 +1,28 @@
 import React from "react";
-import { Input, Text, Box } from "@chakra-ui/react";
-import { InputGroup } from "@/components/ui/input-group";
-import { toaster } from "@/components/ui/toaster";
-import useAxios from "@/config/axios";
-
-import { Button } from "@/components/ui/button";
-
 import {
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-} from "@/components/ui/dialog";
+  Input,
+  Text,
+  Box,
+  InputGroup,
+  Button,
+  useToast,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  InputRightAddon,
+  ModalFooter,
+} from "@chakra-ui/react";
+import useAxios from "@/config/axios";
 
 interface CreatePWProps {
   mid: string;
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isOpen: boolean;
+  onClose: () => void;
+  onOpen: () => void;
 }
 
-const CreatePW = ({ open, setOpen, mid }: CreatePWProps) => {
+const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
   const [show, setShow] = React.useState(false);
   const handleClick = () => setShow(!show);
 
@@ -50,24 +52,27 @@ const CreatePW = ({ open, setOpen, mid }: CreatePWProps) => {
   }
 
   const [loading, setLoading] = React.useState(false);
+  const toaster = useToast();
 
   const submitPW = () => {
     setLoading(true);
 
     if (!isPasswordValid(pw)) {
-      toaster.error({
+      toaster({
         title: "Error",
         description:
           "Password must be at least 9 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+        status: "error",
       });
       setLoading(false);
       return;
     }
 
     if (pw !== pw2) {
-      toaster.error({
+      toaster({
         title: "Error",
         description: "Passwords do not match.",
+        status: "error",
       });
       return;
     }
@@ -82,14 +87,17 @@ const CreatePW = ({ open, setOpen, mid }: CreatePWProps) => {
       .then((res) => {
         setLoading(false);
         if (res.status === 200) {
-          toaster.success({
+          toaster({
             title: "Password Created",
             description: "You may now log in!",
+            status: "success",
           });
-          setOpen(false);
+          onOpen();
         } else {
-          toaster.error({
+          toaster({
             title: "Error",
+            description: "An error occurred. Please try again later.",
+            status: "error",
           });
         }
       });
@@ -97,69 +105,71 @@ const CreatePW = ({ open, setOpen, mid }: CreatePWProps) => {
 
   return (
     <>
-      <DialogRoot open={open} onOpenChange={(e) => setOpen(e.open)}>
-        <DialogContent>
-          <DialogHeader
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalContent>
+          <ModalHeader
             fontSize="lg"
             fontWeight="bold"
             className="CreatePWHeader"
           >
             Create a New, Secure Password
-          </DialogHeader>
+          </ModalHeader>
 
-          <DialogBody className="">
+          <ModalBody className="">
             <Box className="flex flex-col">
               <Text className="mb-5">
                 As You Are Logging In For the First Time, You Need To Create a
                 New Password
               </Text>
 
-              <InputGroup
-                endElement={
-                  <Button h="1.75rem" size="sm" onClick={handleClick}>
-                    {show ? "Hide" : "Show"}
-                  </Button>
-                }
-                className="mb-3"
-              >
+              <InputGroup className="mb-3">
                 <Input
                   pr="4.5rem"
                   type={show ? "text" : "password"}
                   placeholder="Enter Your New, Secure Password"
                   onChange={(e) => setPW(e.target.value)}
                 />
+                <InputRightAddon>
+                  {" "}
+                  <Button h="1.75rem" size="sm" onClick={handleClick}>
+                    {show ? "Hide" : "Show"}
+                  </Button>
+                </InputRightAddon>
               </InputGroup>
 
-              <InputGroup
-                endElement={
-                  <Button h="1.75rem" size="sm" onClick={handleClick2}>
-                    {show2 ? "Hide" : "Show"}
-                  </Button>
-                }
-              >
+              <InputGroup>
                 <Input
                   pr="4.5rem"
                   type={show2 ? "text" : "password"}
                   placeholder="Confirm Your Password"
                   onChange={(e) => setPW2(e.target.value)}
                 />
+                <InputRightAddon>
+                  {" "}
+                  endElement=
+                  {
+                    <Button h="1.75rem" size="sm" onClick={handleClick2}>
+                      {show2 ? "Hide" : "Show"}
+                    </Button>
+                  }
+                </InputRightAddon>
               </InputGroup>
             </Box>
-          </DialogBody>
+          </ModalBody>
 
-          <DialogFooter>
-            <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <ModalFooter>
+            <Button onClick={onOpen}>Cancel</Button>
             <Button
               colorScheme="green"
               onClick={submitPW}
               ml={3}
-              loading={loading}
+              isLoading={loading}
             >
               Create Password
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </DialogRoot>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };

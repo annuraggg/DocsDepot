@@ -8,12 +8,14 @@ import Auth from "./pages/auth/Auth";
 import StudentLayout from "./components/layouts/StudentLayout";
 import useAxios from "./config/axios";
 import StudentHome from "./pages/student/home/Home";
+import StudentCertificates from "./pages/student/certificates/Certificates";
+import StudentProfile from "./pages/student/profile/Profile";
 
 function App() {
   const studentRoutes = [
     { path: "", element: <StudentHome /> },
-    // { path: "/profile", element: <StudentProfile /> },
-    // { path: "/certificates", element: <StudentCertificates /> },
+    { path: "/profile", element: <StudentProfile /> },
+    { path: "/certificates", element: <StudentCertificates /> },
     // { path: "/settings", element: <StudentSettings /> },
     // { path: "/houses", element: <StudentHouses /> },
     // { path: "/houses/:id", element: <StudentHouse /> },

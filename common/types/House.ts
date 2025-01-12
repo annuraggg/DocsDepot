@@ -5,6 +5,7 @@ interface Certificates {
 }
 
 interface House {
+  _id: string;
   name: string;
   logo: string;
   points: {

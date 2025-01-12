@@ -5,7 +5,15 @@ interface Points {
 
 interface House {
   id: string;
-  points: Map<string, Points>;
+  points: {
+    [key: number]: {
+      [key: string]: {
+        internal: number;
+        external: number;
+        events: number;
+      };
+    };
+  };
 }
 
 interface Certificates {

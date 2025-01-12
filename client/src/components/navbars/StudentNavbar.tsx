@@ -1,28 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import Logo from "../../assets/img/logo-icon.png";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
-import { Box, Text } from "@chakra-ui/react";
-import { Avatar } from "@/components/ui/avatar";
 import {
-  MenuItem,
-  MenuRoot,
-  MenuTrigger,
-  MenuItemGroup,
-  MenuContent,
-} from "@/components/ui/menu";
-import {
-  DrawerBody,
-  DrawerRoot,
+  Box,
+  Text,
   DrawerContent,
   DrawerHeader,
-  DrawerBackdrop,
-  DrawerCloseTrigger,
-} from "@/components/ui/drawer";
-
-import { Alert } from "@/components/ui/alert";
-import { toaster } from "../ui/toaster";
+  DrawerBody,
+  MenuItem,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuDivider,
+  Alert,
+  Drawer,
+  DrawerOverlay,
+  DrawerCloseButton,
+  useDisclosure,
+  Avatar,
+  useToast,
+} from "@chakra-ui/react";
 import { IconBellFilled } from "@tabler/icons-react";
 import { Notification } from "@shared-types/Notification";
 import { Token } from "@shared-types/Token";
@@ -33,8 +32,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
   const [fname, setFname] = React.useState("");
   const [lname, setLname] = React.useState("");
   const navigate = useNavigate();
-
-  const [open, setOpen] = useState(false);
+  const toaster = useToast();
 
   useEffect(() => {
     let dec: Token;
@@ -45,9 +43,10 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
       setPicture(dec.picture);
     } catch (error) {
       console.error(error);
-      toaster.create({
+      toaster({
         title: "An error occurred.",
         description: "Please try again later.",
+        status: "error",
       });
       setFname("John");
       setLname("Doe");
@@ -67,6 +66,8 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
     window.location.href = "/auth";
   };
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
   return (
     <div className="flex items-center justify-between px-12 py-3 bg-bg text-gray-600">
       <div className="flex items-center gap-5">
@@ -79,9 +80,9 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
           <img src={Logo} className="w-8" alt="Logo" />
         </div>
         <div className="hidden sm:block md:hidden">
-          <MenuRoot>
-            <MenuTrigger>Pages</MenuTrigger>
-            <MenuContent>
+          <Menu>
+            <MenuButton>Pages</MenuButton>
+            <MenuList>
               <Link to="/certificates">
                 <MenuItem value="certificates">Certificates</MenuItem>
               </Link>
@@ -91,8 +92,8 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
               <Link to="/events">
                 <MenuItem value="events">Events</MenuItem>
               </Link>
-            </MenuContent>
-          </MenuRoot>
+            </MenuList>
+          </Menu>
         </div>
         <div className="hidden sm:flex gap-5">
           <a
@@ -116,57 +117,47 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
         </div>
       </div>
 
-      <MenuRoot>
+      <Menu>
         <Box className="flex items-center gap-5">
-          <IconBellFilled
-            className="cursor-pointer"
-            onClick={() => setOpen(true)}
-          />
+          <IconBellFilled className="cursor-pointer" onClick={() => onOpen()} />
 
           <Box className="flex items-center justify-end bg-gray-200 rounded-xl rounded-r-2xl">
             <Text className=" text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
               {fname + " " + lname}
             </Text>
             {picture ? (
-              <MenuTrigger value="profile">
-                <Avatar
-                  src={picture}
-                  size="sm"
-                  className="border border-gray-300"
-                />
-              </MenuTrigger>
+              <MenuButton value="profile">
+                <Avatar src={picture} className="border border-gray-300" />
+              </MenuButton>
             ) : (
-              <MenuTrigger value="profile">
-                <Avatar size="sm" className="border-l border-gray-300" />
-              </MenuTrigger>
+              <MenuButton value="profile">
+                <Avatar className="border-l border-gray-300" />
+              </MenuButton>
             )}
           </Box>
         </Box>
 
-        <MenuContent>
-          <MenuItemGroup>
-            <Link to="/settings">
-              <MenuItem value="settings">Settings</MenuItem>
-            </Link>
-            <Link to="/profile">
-              <MenuItem value="profile">Profile</MenuItem>
-            </Link>
-            <Link to="/feedback">
-              <MenuItem value="feedback">Feedback</MenuItem>
-            </Link>
-          </MenuItemGroup>
-          <MenuItemGroup>
-            <MenuItem value="logout" onClick={logout}>
-              Logout
-            </MenuItem>
-          </MenuItemGroup>
-        </MenuContent>
-      </MenuRoot>
+        <MenuList>
+          <Link to="/settings">
+            <MenuItem value="settings">Settings</MenuItem>
+          </Link>
+          <Link to="/profile">
+            <MenuItem value="profile">Profile</MenuItem>
+          </Link>
+          <Link to="/feedback">
+            <MenuItem value="feedback">Feedback</MenuItem>
+          </Link>
+          <MenuDivider />
+          <MenuItem value="logout" onClick={logout}>
+            Logout
+          </MenuItem>
+        </MenuList>
+      </Menu>
 
-      <DrawerRoot open={open} onOpenChange={(e) => setOpen(e.open)}>
-        <DrawerBackdrop />
+      <Drawer isOpen={isOpen} onClose={onClose}>
+        <DrawerOverlay />
         <DrawerContent>
-          <DrawerCloseTrigger />
+          <DrawerCloseButton />
           <DrawerHeader>Notifications</DrawerHeader>
 
           <DrawerBody>
@@ -185,7 +176,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
             )}
           </DrawerBody>
         </DrawerContent>
-      </DrawerRoot>
+      </Drawer>
     </div>
   );
 };
