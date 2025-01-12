@@ -6,10 +6,11 @@ import type { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse.js";
 
 const login = async (c: Context) => {
-  const { mid, password } = await c.req.json();
+  const { mid, password } = await c.req.json();;
   try {
     const findUser = await User.findOne({ mid: mid.toString() });
     if (!findUser) {
+      console.log("User not found");
       return sendError(c, 401, "Invalid Credentials");
     }
 
@@ -89,6 +90,7 @@ const login = async (c: Context) => {
       mid,
       colorMode: findUser.colorMode,
       token,
+      firstTime: findUser.defaultPW,
     });
   } catch (err) {
     sendError(c, 500, "Something went wrong");
