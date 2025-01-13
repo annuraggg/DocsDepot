@@ -25,6 +25,7 @@ import useUser from "@/config/user";
 import { House } from "@shared-types/House";
 import { Certificate } from "@shared-types/Certificate";
 import { User } from "@shared-types/User";
+import useAxios from "@/config/axios";
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
@@ -89,16 +90,14 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/student/dashboard`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mid: localUser?.mid?.toString() }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    const axios = useAxios();
+
+    axios
+      .post("/student", {
+        mid: localUser?.mid?.toString(),
+      })
+      .then(async (res) => {
+        const data = await res.data.data
         setUser(data?.user);
         setHouses(data?.allHouses);
         setUserHouse(data?.userHouse);
@@ -164,22 +163,30 @@ const Home = () => {
           ? houses[3]?.points[Number(currentYear)][selectedMonth] ?? 0
           : 0;
 
-        house1 = typeof house1 === 'number' ? house1 :
-          (house1?.internal ?? 0) +
-          (house1?.external ?? 0) +
-          (house1?.events ?? 0);
-        house2 = typeof house2 === 'number' ? house2 :
-          (house2?.internal ?? 0) +
-          (house2?.external ?? 0) +
-          (house2?.events ?? 0);
-        house3 = typeof house3 === 'number' ? house3 :
-          (house3?.internal ?? 0) +
-          (house3?.external ?? 0) +
-          (house3?.events ?? 0);
-        house4 = typeof house4 === 'number' ? house4 :
-          (house4?.internal ?? 0) +
-          (house4?.external ?? 0) +
-          (house4?.events ?? 0);
+        house1 =
+          typeof house1 === "number"
+            ? house1
+            : (house1?.internal ?? 0) +
+              (house1?.external ?? 0) +
+              (house1?.events ?? 0);
+        house2 =
+          typeof house2 === "number"
+            ? house2
+            : (house2?.internal ?? 0) +
+              (house2?.external ?? 0) +
+              (house2?.events ?? 0);
+        house3 =
+          typeof house3 === "number"
+            ? house3
+            : (house3?.internal ?? 0) +
+              (house3?.external ?? 0) +
+              (house3?.events ?? 0);
+        house4 =
+          typeof house4 === "number"
+            ? house4
+            : (house4?.internal ?? 0) +
+              (house4?.external ?? 0) +
+              (house4?.events ?? 0);
       }
 
       const houseLeaderboard = document?.getElementById(
@@ -609,7 +616,9 @@ const Home = () => {
                                 {cert?.submittedYear}
                               </Td>
                               <Td>
-                                {(cert?.status ?? "pending").slice(0, 1).toUpperCase() +
+                                {(cert?.status ?? "pending")
+                                  .slice(0, 1)
+                                  .toUpperCase() +
                                   (cert?.status ?? "pending").slice(1)}
                               </Td>
                             </Tr>
@@ -641,12 +650,16 @@ const Home = () => {
                                 <Text fontSize="12px">{cert?.issuingOrg}</Text>
                               </Td>
                               <Td>{cert?.points || "0"}</Td>
-                              <Td> {/* @ts-expect-error */}
+                              <Td>
+                                {" "}
+                                {/* @ts-expect-error */}
                                 {months[cert?.submittedMonth]}{" "}
                                 {cert?.submittedYear}
                               </Td>
                               <Td>
-                                {(cert?.status ?? "pending").slice(0, 1).toUpperCase() +
+                                {(cert?.status ?? "pending")
+                                  .slice(0, 1)
+                                  .toUpperCase() +
                                   (cert?.status ?? "pending").slice(1)}
                               </Td>
                             </Tr>
