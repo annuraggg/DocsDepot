@@ -224,10 +224,69 @@ const updateProfilePicture = async (c: Context) => {
   }
 };
 
+const updatePassword = async (c: Context) => {
+  const { mid } = (await c.get("user")) as Token;
+  const { oldPass, newPass } = await c.req.json();
+
+  try {
+    const user = await User.findOne({ mid: mid.toString() });
+    if (!user) {
+      return sendError(c, 500, "User not found");
+    }
+
+    const verify = await bcrypt.compare(oldPass, user.password);
+    if (!verify) {
+      return sendError(c, 401, "Old password is incorrect");
+    }
+
+    await User.updateOne(
+      { mid: mid.toString() },
+      {
+        $set: {
+          password: await bcrypt.hash(newPass, 10),
+        },
+      }
+    );
+
+    return sendSuccess(c, 200, "Password updated successfully");
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Error updating password");
+  }
+};
+
+const updateTheme = async (c: Context) => {
+  const { mid } = (await c.get("user")) as Token;
+  const { colorMode } = await c.req.json();
+
+  try {
+    const user = await User.findOne({ mid: mid.toString() });
+    if (!user) {
+      return sendError(c, 500, "User not found");
+    }
+
+    await User.updateOne(
+      { mid: mid.toString() },
+      {
+        $set: {
+          colorMode,
+        },
+      }
+    );
+
+    return sendSuccess(c, 200, "Theme updated successfully");
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Error updating theme");
+  }
+}
+
 export default {
   login,
   firstTimePassword,
   getProfile,
   updateProfile,
   updateProfilePicture,
+  updatePassword,
+  updateTheme,
 };

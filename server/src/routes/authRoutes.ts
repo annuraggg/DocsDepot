@@ -9,5 +9,7 @@ app.post("/firsttime", authController.firstTimePassword);
 app.get("/profile", authController.getProfile);
 app.post("/profile", authController.updateProfile);
 app.post("/profile/picture", authController.updateProfilePicture);
+app.post("/profile/password", authController.updatePassword);
+app.post("/profile/theme", authController.updateTheme);
 
 export default app;

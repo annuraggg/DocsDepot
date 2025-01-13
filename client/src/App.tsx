@@ -13,13 +13,14 @@ import StudentProfile from "./pages/student/profile/Profile";
 import Certificate from "./pages/certificate/Certificate";
 import Events from "./pages/events/Events";
 import Event from "./pages/events/event/Event";
+import StudentSettings from "./pages/student/settings/Settings";
 
 function App() {
   const studentRoutes = [
     { path: "", element: <StudentHome /> },
     { path: "profile", element: <StudentProfile /> },
     { path: "certificates", element: <StudentCertificates /> },
-    // { path: "/settings", element: <StudentSettings /> },
+    { path: "settings", element: <StudentSettings /> },
     // { path: "/houses", element: <StudentHouses /> },
     // { path: "/houses/:id", element: <StudentHouse /> },
     {
@@ -36,7 +37,7 @@ function App() {
     { path: "/certificates/:id", element: <Certificate /> },
     { path: "/events", element: <Events /> },
     { path: "/events/:id", element: <Event /> },
-    // { path: "/profile/:id", element: <Profile /> },
+    { path: "/profile/:id", element: <StudentProfile /> },
     // { path: "/profile/:id/generate/report", element: <Report /> },
     // { path: "/profile/faculty/:id", element },
   ]);
