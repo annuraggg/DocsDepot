@@ -19,7 +19,7 @@ const certificateSchema = new mongoose.Schema({
     enum: ["beginner", "intermediate", "advanced", "Department"],
     required: true,
   },
-  uploadType: { type: String, enum: ["url", "print"], required: true },
+  uploadType: { type: String, enum: ["url", "print", "file"], required: true },
   certificateURL: { type: String, default: null },
   status: { type: String, enum: ["approved", "rejected", null], default: null },
   house: { type: String, default: null },
