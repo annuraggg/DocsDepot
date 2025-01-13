@@ -207,7 +207,7 @@ const updateCertificate = async (c: Context) => {
     }
 
     // Validate upload type
-    if (!isUploadType(formData.uploadType)) {
+    if (!isUploadType(certificate.uploadType)) {
       return sendError(c, 400, "Invalid upload type", null);
     }
 
@@ -235,9 +235,8 @@ const updateCertificate = async (c: Context) => {
     certificate.certificateType = formData.certificateType as CertificateType;
     certificate.certificateLevel =
       formData.certificateLevel as CertificateLevel;
-    certificate.uploadType = formData.uploadType as UploadType;
 
-    if (formData.uploadType === "file" && certificateFile) {
+    if (certificate.uploadType === "file" && certificateFile) {
       // Validate file type
       if (!ALLOWED_TYPES.includes(certificateFile.type)) {
         return sendError(
@@ -263,7 +262,7 @@ const updateCertificate = async (c: Context) => {
 
       // Update certificate URL
       certificate.certificateURL = `/certificates/${newFileName}`;
-    } else if (formData.uploadType === "url") {
+    } else if (certificate.uploadType === "url") {
       certificate.certificateURL = formData.certificateUrl || "";
     }
 
@@ -310,7 +309,12 @@ const downloadCertificate = async (c: Context) => {
     }
 
     if (!certificate.certificateURL || certificate.uploadType !== "file") {
-      return sendError(c, 400, "No file available for download", null);
+      return sendError(
+        c,
+        400,
+        "NoInvalid certificate type file available for download",
+        null
+      );
     }
 
     const filePath = path.join(__dirname, "..", certificate.certificateURL);

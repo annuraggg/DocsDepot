@@ -145,65 +145,24 @@ const Certificate = () => {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/certificates/download`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: certificate._id,
-      }),
-    })
-      .then((res) => res.blob())
-      .then((blob) => {
-        // Assuming 'blob' contains the raw PDF data
-
-        // Create a Blob from the raw PDF data
-        let pdfBlob;
-        if (certificate?.ext === "pdf") {
-          pdfBlob = new Blob([blob], { type: "application/pdf" });
-        } else {
-          pdfBlob = new Blob([blob]);
-        }
-
-        // Generate a URL for the Blob
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-
-        // Create an anchor element to download the PDF
-        const link = document.createElement("a");
-        link.href = pdfUrl;
-        if (certificate?.ext === "pdf") {
-          link.setAttribute(
-            "inline",
-            `${certificate?.certificateName}.${certificate?.ext}`
-          );
-        } else {
-          link.setAttribute(
-            "download",
-            `${certificate?.certificateName}.${certificate?.ext}`
-          );
-        }
-
-        // Trigger a click event to initiate the download
-        link.click();
-
-        // Clean up by removing the anchor element and revoking the URL
-        link.remove();
-        URL.revokeObjectURL(pdfUrl);
-
+    axios
+      .get(`/certificates/download/${certificate._id}`)
+      .then((res) => {
+        const blob = new Blob([res.data], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
         setLoader3(false);
       })
       .catch((err) => {
         setLoader3(false);
         console.error(err);
-        /* toast({
+        toast({
           title: "Error",
           description: "Something went wrong",
           status: "error",
           duration: 5000,
           isClosable: true,
-        });*/
+        });
       });
   };
 
@@ -240,34 +199,17 @@ const Certificate = () => {
 
   const handleUpdate = () => {
     setLoader2(true);
-    let url;
-    if (certificate?.role === "F") {
-      url = `${
-        import.meta.env.VITE_BACKEND_ADDRESS
-      }/faculty/certifications/update`;
-    } else {
-      url = `${
-        import.meta.env.VITE_BACKEND_ADDRESS
-      }/student/certificates/update`;
-    }
 
-    fetch(url, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        certificateName,
-        issuingOrg,
-        issueMonth,
-        issueYear,
-        certificateType,
-        certificateLevel,
-        id: certificate._id,
-      }),
-    })
-      .then((res) => res.json())
+    const formData = new FormData();
+    formData.append("title", certificateName);
+    formData.append("issuingOrg", issuingOrg);
+    formData.append("issueMonth", issueMonth);
+    formData.append("issueYear", issueYear.toString());
+    formData.append("certificateType", certificateType);
+    formData.append("certificateLevel", certificateLevel);
+
+    axios
+      .put(`certificates/${certificate._id}`, formData)
       .then(() => {
         setLoader2(false);
         onEditClose();
@@ -288,55 +230,18 @@ const Certificate = () => {
 
   const handleDelete = () => {
     setLoader1(true);
-    let url;
-    if (certificate?.role === "F") {
-      url = `${
-        import.meta.env.VITE_BACKEND_ADDRESS
-      }/faculty/certifications/delete`;
-    } else {
-      url = `${
-        import.meta.env.VITE_BACKEND_ADDRESS
-      }/student/certificates/delete`;
-    }
 
-    fetch(url, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: certificate._id,
-      }),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setLoader1(false);
-        toast({
-          title: "Success",
-          description: "Certificate Deleted Successfully",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        onClose();
-        if (certificate.role === "F") {
-          navigate("/faculty/certifications");
-        } else {
-          navigate("/certificates");
-        }
-      })
-      .catch((err) => {
-        setLoader1(false);
-        console.error(err);
-        toast({
-          title: "Error",
-          description: "Something went wrong",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+    axios.delete(`certificates/${certificate._id}`).then(() => {
+      setLoader1(false);
+      toast({
+        title: "Success",
+        description: "Certificate Deleted Successfully",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
       });
+      onClose();
+    });
   };
 
   const copyText = (text: string) => {
@@ -386,7 +291,7 @@ const Certificate = () => {
   };
 
   if (!loading) {
-    if (certificate.role === "F") {
+    if (user?.role === "F") {
       return (
         <>
           <Box className="StudentCertificate">
@@ -408,7 +313,7 @@ const Certificate = () => {
                 Level
               </Text>
               <Text textAlign="center" mt="-17px">
-                Uploaded By {certificate.name}
+                Uploaded By {certificate?.mid}
               </Text>
               {certificate?.expires ? (
                 !calculateExpiry() ? (
@@ -737,7 +642,7 @@ const Certificate = () => {
                   Level
                 </Text>
                 <Text textAlign="center" mt="-17px">
-                  Uploaded By {certificate.name}
+                  Uploaded By {certificate.mid}
                 </Text>
                 {certificate?.expires ? (
                   !calculateExpiry() ? (
@@ -867,7 +772,7 @@ const Certificate = () => {
                 ) : (
                   <>
                     <Text color="green" fontWeight="500">
-                      {certificate.name} Earned{" "}
+                      {certificate.mid} Earned{" "}
                       {certificate?.xp ? certificate?.xp + " XP" : "0 XP"} from
                       this Certificate
                     </Text>

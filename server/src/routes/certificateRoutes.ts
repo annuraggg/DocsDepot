@@ -7,7 +7,7 @@ app.get("/", certificationController.getCertificates);
 app.get("/user", certificationController.getCertificatesByUserId);
 app.get("/user/:id", certificationController.getCertificatesByUserId);
 app.get("/:id", certificationController.getCertificateById);
-app.post("/download", certificationController.downloadCertificate);
+app.get("/download/:id", certificationController.downloadCertificate);
 
 app.post("/", certificationController.createCertificate);
 
