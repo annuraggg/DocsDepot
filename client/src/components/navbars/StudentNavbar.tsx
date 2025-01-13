@@ -40,7 +40,6 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
       dec = jwtDecode(token);
       setFname(dec.fname);
       setLname(dec.lname);
-      setPicture(dec.picture);
     } catch (error) {
       console.error(error);
       toaster({
