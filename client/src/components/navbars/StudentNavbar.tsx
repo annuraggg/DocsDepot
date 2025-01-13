@@ -97,7 +97,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
         </div>
         <div className="hidden sm:flex gap-5">
           <a
-            onClick={() => navigate("/certificates")}
+            onClick={() => navigate("student/certificates")}
             className="transition-colors duration-200 hover:text-accent-color cursor-pointer"
           >
             Certificates
