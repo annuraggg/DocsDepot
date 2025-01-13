@@ -22,7 +22,7 @@ import {
   Avatar,
   useToast,
 } from "@chakra-ui/react";
-import { IconBellFilled } from "@tabler/icons-react";
+import { Bell } from "lucide-react"
 import { Notification } from "@shared-types/Notification";
 import { Token } from "@shared-types/Token";
 
@@ -119,7 +119,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
 
       <Menu>
         <Box className="flex items-center gap-5">
-          <IconBellFilled className="cursor-pointer" onClick={() => onOpen()} />
+          <Bell className="cursor-pointer" onClick={() => onOpen()} />
 
           <Box className="flex items-center justify-end bg-gray-200 rounded-xl rounded-r-2xl">
             <Text className=" text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
