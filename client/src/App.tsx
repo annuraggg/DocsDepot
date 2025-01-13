@@ -11,6 +11,8 @@ import StudentHome from "./pages/student/home/Home";
 import StudentCertificates from "./pages/student/certificates/Certificates";
 import StudentProfile from "./pages/student/profile/Profile";
 import Certificate from "./pages/certificate/Certificate";
+import Events from "./pages/events/Events";
+import Event from "./pages/events/event/Event";
 
 function App() {
   const studentRoutes = [
@@ -32,8 +34,8 @@ function App() {
     { path: "/auth", element: <Auth /> },
     { path: "/student", element: <StudentLayout />, children: studentRoutes },
     { path: "/certificates/:id", element: <Certificate /> },
-    // { path: "/events", element: <Events /> },
-    // { path: "/events/:id", element: <Event /> },
+    { path: "/events", element: <Events /> },
+    { path: "/events/:id", element: <Event /> },
     // { path: "/profile/:id", element: <Profile /> },
     // { path: "/profile/:id/generate/report", element: <Report /> },
     // { path: "/profile/faculty/:id", element },

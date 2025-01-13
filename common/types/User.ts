@@ -22,6 +22,8 @@ interface Certificates {
   event: number;
 }
 
+type Role = "A" | "S" | "F";
+
 interface User {
   mid: string;
   password: string;
@@ -30,7 +32,7 @@ interface User {
   profilePicture: string;
   email: string;
   gender: "M" | "F" | "Male" | "Female";
-  role: "A" | "S" | "F";
+  role: Role;
   XP: number;
   AY?: number;
   dse: boolean;
@@ -48,4 +50,4 @@ interface User {
   perms: any[];
 }
 
-export type { House, Certificates, User, Points };
+export type { House, Certificates, User, Points, Role };

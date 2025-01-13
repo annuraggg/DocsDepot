@@ -11,9 +11,9 @@ import type { Context } from "hono";
 const getAllEvents = async (c: Context) => {
   try {
     const events = await Event.find();
-    sendSuccess(c, 200, "Events fetched successfully", events);
+    return sendSuccess(c, 200, "Events fetched successfully", events);
   } catch (err) {
-    sendError(c, 500, "Error in getting events");
+    return sendError(c, 500, "Error in getting events");
   }
 };
 
@@ -24,26 +24,9 @@ const getEventById = async (c: Context) => {
     const event = await Event.findOne({ _id: id });
     if (!event) return sendError(c, 404, "Event not found");
 
-    const registered = event.registered || [];
-    const participants = await Promise.all(
-      registered.map(async (mid) => {
-        const user = await User.findOne({ mid });
-        return user
-          ? {
-              fname: user.fname,
-              lname: user.lname,
-              mid: user.mid,
-              id: user._id,
-            }
-          : null;
-      })
-    );
-
-    // ! Fix All
-    // event.participants = participants.filter(Boolean);
-    sendSuccess(c, 200, "Event fetched successfully");
+    return sendSuccess(c, 200, "Event fetched successfully", event);
   } catch (err) {
-    sendError(c, 500, "Error in getting event");
+    return sendError(c, 500, "Error in getting event");
   }
 };
 
@@ -84,9 +67,9 @@ const updateEvent = async (c: Context) => {
         },
       }
     );
-    sendSuccess(c, 200, "Event updated successfully");
+    return sendSuccess(c, 200, "Event updated successfully");
   } catch (err) {
-    sendError(c, 500, "Error in updating event");
+    return sendError(c, 500, "Error in updating event");
   }
 };
 
@@ -95,9 +78,9 @@ const deleteEvent = async (c: Context) => {
 
   try {
     await Event.deleteOne({ _id: id });
-    sendSuccess(c, 200, "Event deleted successfully");
+    return sendSuccess(c, 200, "Event deleted successfully");
   } catch (err) {
-    sendError(c, 500, "Error in deleting event");
+    return sendError(c, 500, "Error in deleting event");
   }
 };
 
@@ -139,9 +122,9 @@ const createEvent = async (c: Context) => {
     };
 
     await Event.create(eventDocument);
-    sendSuccess(c, 200, "Event created successfully");
+    return sendSuccess(c, 200, "Event created successfully");
   } catch (err) {
-    sendError(c, 500, "Error in creating event");
+    return sendError(c, 500, "Error in creating event");
   }
 };
 
@@ -155,9 +138,9 @@ const registerForEvent = async (c: Context) => {
       { $addToSet: { registered: mid } }
     );
     await User.updateOne({ mid }, { $addToSet: { registeredEvents: id } });
-    sendSuccess(c, 200, "Registered for event successfully");
+    return sendSuccess(c, 200, "Registered for event successfully");
   } catch (err) {
-    sendError(c, 500, "Error in registering for event");
+    return sendError(c, 500, "Error in registering for event");
   }
 };
 
@@ -171,9 +154,9 @@ const deregisterForEvent = async (c: Context) => {
       { $pull: { registered: mid } }
     );
     await User.updateOne({ mid }, { $pull: { registeredEvents: id } });
-    sendSuccess(c, 200, "Deregistered for event successfully");
+    return sendSuccess(c, 200, "Deregistered for event successfully");
   } catch (err) {
-    sendError(c, 500, "Error in deregistering for event");
+    return sendError(c, 500, "Error in deregistering for event");
   }
 };
 
