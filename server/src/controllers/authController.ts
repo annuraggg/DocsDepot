@@ -4,9 +4,12 @@ import User from "../models/User.js";
 import logger from "../utils/logger.js";
 import type { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse.js";
+import { Token } from "scriptopia-types/Token.js";
+import House from "../models/House.js";
+import Certificate from "../models/Certificate.js";
 
 const login = async (c: Context) => {
-  const { mid, password } = await c.req.json();;
+  const { mid, password } = await c.req.json();
   try {
     const findUser = await User.findOne({ mid: mid.toString() });
     if (!findUser) {
@@ -21,23 +24,24 @@ const login = async (c: Context) => {
 
     let token;
     if (findUser.role === "A") {
-      token = jwt.sign(
-        {
+      const data: Token = {
+          _id: findUser._id.toString(),
+          house: findUser.house.id.toString(),
           mid,
           fname: findUser.fname,
           lname: findUser.lname,
           picture: findUser.profilePicture,
           role: "A",
         },
-        process.env.JWT_SECRET!
-      );
+        token = jwt.sign(data, process.env.JWT_SECRET!);
     } else if (findUser.role === "F") {
       const firstTime = findUser.defaultPW;
       if (firstTime) {
         token = "Invalid";
       } else {
-        token = jwt.sign(
-          {
+        const data: Token = {
+            _id: findUser._id.toString(),
+            house: findUser.house.id.toString(),
             mid,
             fname: findUser.fname,
             lname: findUser.lname,
@@ -45,8 +49,7 @@ const login = async (c: Context) => {
             role: "F",
             perms: findUser.perms,
           },
-          process.env.JWT_SECRET!
-        );
+          token = jwt.sign(data, process.env.JWT_SECRET!);
       }
     } else if (findUser.role === "S") {
       const firstTime = findUser.defaultPW;
@@ -60,18 +63,18 @@ const login = async (c: Context) => {
       if (firstTime) {
         token = "Invalid";
       } else {
-        token = jwt.sign(
-          {
+        const data: Token = {
+            _id: findUser._id.toString(),
+            house: findUser.house.id.toString(),
             mid,
             fname: findUser.fname,
             lname: findUser.lname,
-            ay: findUser.AY,
+            ay: findUser.AY ? findUser.AY : undefined,
             branch: findUser.branch,
             picture: findUser.profilePicture,
             role: "S",
           },
-          process.env.JWT_SECRET!
-        );
+          token = jwt.sign(data, process.env.JWT_SECRET!);
       }
     }
 
@@ -113,18 +116,18 @@ const firstTimePassword = async (c: Context) => {
           }
         );
 
-        const token = jwt.sign(
-          {
-            mid,
-            fname: user.fname,
-            lname: user.lname,
-            ay: user.AY,
-            branch: user.branch,
-            picture: user.profilePicture,
-            role: user.role,
-          },
-          process.env.JWT_SECRET!
-        );
+        const data: Token = {
+          _id: user._id.toString(),
+          house: user.house.id.toString(),
+          mid,
+          fname: user.fname,
+          lname: user.lname,
+          ay: user.AY ? user.AY : undefined,
+          branch: user.branch,
+          picture: user.profilePicture,
+          role: user.role,
+        };
+        const token = jwt.sign(data, process.env.JWT_SECRET!);
         const expirationTime = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
         const expirationDate = new Date(Date.now() + expirationTime);
 
@@ -145,7 +148,88 @@ const firstTimePassword = async (c: Context) => {
   }
 };
 
+const getProfile = async (c: Context) => {
+  // give the following data back: allHouses, user, certifications for the user
+  const { mid } = (await c.get("user")) as Token;
+  try {
+    const allHouses = await House.find({});
+    const user = await User.findOne({ mid: mid.toString() });
+
+    if (!user) {
+      return sendError(c, 500, "User not found");
+    }
+
+    const certifications = await Certificate.find({ mid });
+
+    return sendSuccess(c, 200, "Profile data fetched successfully", {
+      allHouses,
+      user,
+      certifications,
+    });
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Error fetching profile data");
+  }
+};
+
+const updateProfile = async (c: Context) => {
+  const { mid } = (await c.get("user")) as Token;
+  const { linkedin, github, email } = await c.req.json();
+
+  try {
+    const user = await User.findOne({ mid: mid.toString() });
+    if (!user) {
+      return sendError(c, 500, "User not found");
+    }
+
+    await User.updateOne(
+      { mid: mid.toString() },
+      {
+        $set: {
+          linkedin,
+          github,
+          email,
+        },
+      }
+    );
+
+    return sendSuccess(c, 200, "Profile updated successfully");
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Error updating profile");
+  }
+};
+
+const updateProfilePicture = async (c: Context) => {
+  const { mid } = (await c.get("user")) as Token;
+  const { image } = await c.req.json();
+
+  try {
+    const user = await User.findOne({ mid: mid.toString() });
+    if (!user) {
+      return sendError(c, 500, "User not found");
+    }
+
+    await User.updateOne(
+      { mid: mid.toString() },
+      {
+        $set: {
+          profilePicture: image,
+        },
+      }
+    );
+
+    return sendSuccess(c, 200, "Profile picture updated successfully");
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Error updating profile picture");
+  }
+};
+
 export default {
   login,
   firstTimePassword,
+  getProfile,
+  updateProfile,
+  updateProfilePicture,
 };

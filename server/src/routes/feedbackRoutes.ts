@@ -1,8 +1,9 @@
 import { Hono } from "hono";
-import { submitFeedback } from "../controllers/feedbackController.js";
+import feedbackController from "../controllers/feedbackController.js";
 
 const feedbackRouter = new Hono();
 
-feedbackRouter.post("/", submitFeedback);
+feedbackRouter.post("/", feedbackController.submitFeedback);
+feedbackRouter.get("/", feedbackController.getFeedbacks);
 
 export default feedbackRouter;

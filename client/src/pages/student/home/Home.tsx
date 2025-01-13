@@ -21,7 +21,6 @@ import {
 import Chart, { ChartItem } from "chart.js/auto";
 import Loader from "../../../components/Loader";
 import IntroModal from "./IntroModal";
-import useUser from "@/config/user";
 import { House } from "@shared-types/House";
 import { Certificate } from "@shared-types/Certificate";
 import { User } from "@shared-types/User";
@@ -35,7 +34,6 @@ const Home = () => {
   const [certifications, setCertifications] = useState<Certificate[]>();
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [firstTime, setFirstTime] = useState(false);
-  const localUser = useUser();
 
   const toast = useToast();
 
@@ -93,11 +91,9 @@ const Home = () => {
     const axios = useAxios();
 
     axios
-      .post("/student", {
-        mid: localUser?.mid?.toString(),
-      })
+      .get("/dashboard/student")
       .then(async (res) => {
-        const data = await res.data.data
+        const data = await res.data.data;
         setUser(data?.user);
         setHouses(data?.allHouses);
         setUserHouse(data?.userHouse);

@@ -7,11 +7,21 @@ const submitFeedback = async (c: Context) => {
 
   try {
     await Feedback.create({ rating, review });
-    sendSuccess(c, 200, "Feedback submitted successfully");
+    return sendSuccess(c, 200, "Feedback submitted successfully");
   } catch (err) {
     console.log(err);
-    sendError(c, 500, "Internal server error");
+    return sendError(c, 500, "Internal server error");
   }
 };
 
-export { submitFeedback };
+const getFeedbacks = async (c: Context) => {
+  try {
+    const feedbacks = await Feedback.find();
+    return sendSuccess(c, 200, "Feedbacks fetched successfully", feedbacks);
+  } catch (err) {
+    console.log(err);
+    return sendError(c, 500, "Internal server error");
+  }
+};
+
+export default { submitFeedback, getFeedbacks };

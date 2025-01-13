@@ -30,6 +30,7 @@ import {
 import Loader from "../../../components/Loader";
 import { Link } from "react-router";
 import { Certificate } from "@shared-types/Certificate";
+import useAxios from "@/config/axios";
 
 const Certificates = () => {
   const [certificates, setCertificates] = React.useState<Certificate[]>([]);
@@ -55,18 +56,15 @@ const Certificates = () => {
   const [file, setFile] = React.useState<File | null>(null);
   const [fileName, setFileName] = React.useState("No File Selected");
 
+  const axios = useAxios();
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/student/certificates`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(async (res) => {
+    axios
+      .get("/certificates/user")
+      .then((res) => {
         setLoading(false);
         if (res.status === 200) {
-          const data = await res.json();
+          const data = res.data.data;
           setCertificates(data);
         } else {
           toast({
@@ -130,7 +128,7 @@ const Certificates = () => {
         certificateType &&
         certificateLevel
       ) {
-        formData.append("certificateName", certificateName);
+        formData.append("title", certificateName);
         formData.append("issuingOrg", issuingOrg);
         formData.append("issueMonth", issueMonth);
         formData.append("issueYear", issueYear);
@@ -141,15 +139,10 @@ const Certificates = () => {
         formData.append("certificateLevel", certificateLevel);
         formData.append("certificateURL", certificateUrl);
         formData.append("certificate", file!);
+        formData.append("uploadType", certificateUrl ? "url" : "file");
 
-        fetch(
-          `${import.meta.env.VITE_BACKEND_ADDRESS}/student/certificates/upload`,
-          {
-            method: "POST",
-            credentials: "include",
-            body: formData, // Use the FormData object as the body
-          }
-        )
+        axios
+          .post("/certificates", formData)
           .then(async (res) => {
             setBtnLoading(false);
             if (res.status === 200) {
@@ -182,6 +175,8 @@ const Certificates = () => {
               duration: 5000,
               isClosable: true,
             });
+          }).finally(() => {
+            setBtnLoading(false);
           });
       }
     } else {
@@ -292,7 +287,9 @@ const Certificates = () => {
                         certificate?.certificateLevel?.slice(1)}
                     </Td>
                     <Td>
-                      {(certificate.status ?? "pending").charAt(0).toUpperCase() +
+                      {(certificate.status ?? "pending")
+                        .charAt(0)
+                        .toUpperCase() +
                         (certificate.status ?? "pending").slice(1)}
                     </Td>
                     <Td>

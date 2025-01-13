@@ -21,15 +21,19 @@ const certificateSchema = new mongoose.Schema({
   },
   uploadType: { type: String, enum: ["url", "print", "file"], required: true },
   certificateURL: { type: String, default: null },
-  status: { type: String, enum: ["approved", "rejected", null], default: null },
+  status: {
+    type: String,
+    enum: ["approved", "rejected", "pending"],
+    default: null,
+  },
   house: { type: String, default: null },
-  name: { type: String, required: true },
-  submittedYear: { type: Number, required: true },
-  submittedMonth: { type: String, required: true },
-  comments: { type: String, default: null },
+  comments: { type: [String], default: null },
   xp: { type: Number, default: 0 },
   role: { type: String, enum: ["F", "M"], default: "F" },
-  date: { type: Date, default: Date.now },
+  createdOn: { type: Date, default: Date.now },
+  ext: { type: String, required: false },
+  sha256: { type: String, required: false },
+  md5: { type: String, required: false },
 });
 
 const Certificate = mongoose.model("Certificate", certificateSchema);

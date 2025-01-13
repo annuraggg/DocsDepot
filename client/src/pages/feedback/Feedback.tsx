@@ -1,6 +1,6 @@
 import { Button, Flex, Heading, Textarea, useToast } from "@chakra-ui/react";
 import React, { useState } from "react";
-import axios from "axios";
+import useAxios from "@/config/axios";
 
 const Feedback = () => {
   const [rating, setRating] = useState(0);
@@ -8,18 +8,17 @@ const Feedback = () => {
 
   const handleRating = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRating(parseInt(e.target.value));
-    console.log(e.target.value);
   };
 
   const toaster = useToast();
 
   const sendFeedback = async () => {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_ADDRESS}/feedback`,
-        { rating, review: feedback },
-        { withCredentials: true }
-      );
+      const axios = useAxios();
+      const response = await axios.post("feedback", {
+        rating,
+        review: feedback,
+      });
 
       if (response.status === 200) {
         toaster({
@@ -54,17 +53,17 @@ const Feedback = () => {
           <React.Fragment key={i + 1}>
             <input
               type="radio"
-              id={`star${5 - i}`}
+              id={`star${i + 1}`}
               name="rate"
-              value={5 - i}
+              value={i + 1}
               onChange={handleRating}
               className="hidden"
             />
             <label
-              htmlFor={`star${5 - i}`}
-              title={`${5 - i} stars`}
+              htmlFor={`star${i + 1}`}
+              title={`${i + 1} stars`}
               className={`cursor-pointer text-4xl ${
-                rating >= 5 - i ? "text-yellow-400" : "text-gray-300"
+                rating >= i + 1 ? "text-yellow-400" : "text-gray-300"
               } hover:text-yellow-300`}
             >
               ★
@@ -75,7 +74,7 @@ const Feedback = () => {
 
       <Textarea
         placeholder="Describe Your Issue / Problem / Feedback in this space"
-        className="w-[40vw] bg-gray-100 focus:ring-2 focus:ring-teal-500 rounded-lg resize-none p-3"
+        className="max-w-[40vw] bg-gray-100 focus:ring-2 focus:ring-teal-500 rounded-lg resize-none p-3"
         onChange={(e) => setFeedback(e.target.value)}
         value={feedback}
       ></Textarea>

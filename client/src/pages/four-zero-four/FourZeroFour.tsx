@@ -27,7 +27,7 @@ const FourZeroFour = () => {
         colorScheme="blue"
         variant="solid"
         size="lg"
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/auth")}
       >
         Go To Home
       </Button>

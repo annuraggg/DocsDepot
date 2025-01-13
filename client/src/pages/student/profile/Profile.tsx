@@ -38,6 +38,7 @@ import { House } from "@shared-types/House";
 import { Certificate } from "@shared-types/Certificate";
 import { User } from "@shared-types/User";
 import Loader from "@/components/Loader";
+import useAxios from "@/config/axios";
 
 const Profile = () => {
   const [privilege, setPrivilege] = useState(false);
@@ -64,6 +65,8 @@ const Profile = () => {
   const [exportPrivilege, setExportPrivilege] = useState(false);
 
   const [btnLoading, setBtnLoading] = useState(false);
+
+  const axios = useAxios();
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -144,18 +147,24 @@ const Profile = () => {
       }
     }
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/profile/${id}`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mid: id }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    axios
+      .get("/auth/profile")
+      .then((res) => {
+        interface ResponseType {
+          user: User;
+          allHouses: House[];
+          certifications: Certificate[];
+        }
+
+        const data: ResponseType = res.data.data;
+
+        if (!data.user || !data.allHouses || !data.certifications) return;
+
         setHouses(data.allHouses);
-        setUserHouse(data.userHouse);
+        const userH = data.allHouses.find(
+          (house: House) => house._id === data?.user?.house?.id
+        );
+        setUserHouse(userH);
         setUser(data.user);
         setCertifications(data.certifications);
         setLoading(false);
@@ -410,14 +419,9 @@ const Profile = () => {
         });
         return;
       }
-      fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/profile/${mid}/update`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, linkedin, github }),
-      })
+
+      axios
+        .post("/auth/profile", { email, linkedin, github })
         .then((res) => {
           if (res.status === 200) {
             toast({
@@ -489,14 +493,9 @@ const Profile = () => {
         });
         return;
       }
-      fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/profile/${mid}/update`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, linkedin, github }),
-      })
+
+      axios
+        .post("/auth/profile", { email, linkedin, github })
         .then((res) => {
           if (res.status === 200) {
             toast({
@@ -553,14 +552,8 @@ const Profile = () => {
         return;
       }
 
-      fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/profile/${mid}/update`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, linkedin, github }),
-      })
+      axios
+        .post("/auth/profile", { email, linkedin, github })
         .then((res) => {
           if (res.status === 200) {
             toast({
@@ -625,11 +618,8 @@ const Profile = () => {
       .getImageScaledToCanvas()
       .toDataURL("image/png");
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/profile/${mid}/updatepfp`, {
-      method: "POST",
-      credentials: "include",
-      body: image,
-    })
+    axios
+      .post(`auth/profile/picture`, { image })
       .then((res) => {
         setBtnLoading(false);
         if (res.status === 200) {
@@ -714,7 +704,7 @@ const Profile = () => {
               <Input
                 type="file"
                 id="file"
-                style={{ display: "none" }}
+             
                 accept="image/*"
                 onChange={openInAvatarEditor}
               />

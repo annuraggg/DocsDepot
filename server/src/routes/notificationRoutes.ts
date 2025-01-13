@@ -1,12 +1,9 @@
 import { Hono } from "hono";
-import notificationController from "../controllers/notificationController.js";
+import NotifController from "../controllers/notificationController.js";
 
 const notificationRoutes = new Hono();
 
-notificationRoutes.post(
-  "/receive",
-  notificationController.receiveNotifications
-);
-notificationRoutes.post("/clear", notificationController.clearNotifications);
+notificationRoutes.get("/", NotifController.receiveNotifications);
+notificationRoutes.delete("/", NotifController.clearNotifications);
 
 export default notificationRoutes;

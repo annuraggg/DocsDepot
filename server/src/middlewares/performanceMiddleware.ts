@@ -7,11 +7,18 @@ const performanceLogger = createMiddleware(async (c, next) => {
 
   return next().then(() => {
     const end = hrtime.bigint();
-    const cached = c.get("cached") || false;
-    const durationInMs = Number((end - start) / BigInt(1000000)).toFixed(2);
+    const durationMs = Number((end - start) / BigInt(1_000_000)).toFixed(2);
+    const isAuthenticated = !!c.get("user")?.mid;
 
-    const logMessage = `${c.req.method} ${c.req.path} - Time: ${durationInMs}ms (Cached: ${cached}) - Status: ${c.res.status}`;
-    logger.warn(logMessage);
+    const logMessage = [
+      `MT: ${c.req.method}`,
+      `PA: ${c.req.path}`,
+      `AU: ${isAuthenticated ? "Authenticated" : "Unauthenticated"}`,
+      `ST: ${c.res.status}`,
+      `RT: ${durationMs} ms`,
+    ].join(" | ");
+
+    logger.info(logMessage);
   });
 });
 

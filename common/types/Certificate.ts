@@ -10,9 +10,9 @@ interface Certificate {
   expiryYear: number | null;
   certificateType: "external" | "internal" | "event";
   certificateLevel: "beginner" | "intermediate" | "advanced" | "Department";
-  uploadType: "url" | "print";
+  uploadType: "url" | "file" | "print";
   certificateURL: string | null;
-  status: "approved" | "rejected" | null;
+  status: "approved" | "rejected" | "pending";
   house: string | null;
   name: string;
   submittedYear: number;
@@ -22,6 +22,9 @@ interface Certificate {
   role: "F" | "M";
   points: number;
   date: Date;
+  ext: string;
+  sha256: string;
+  md5: string;
 }
 
 export type { Certificate };

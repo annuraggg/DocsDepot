@@ -5,10 +5,16 @@
     "strict": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "jsx": "react-jsx",
+    "moduleDetection": "force" /* Linting */,
+    "isolatedModules": true,
+    "baseUrl": ".",
+
     "jsxImportSource": "hono/jsx",
-  }
+    "paths": {
+      "@shared-types/*": ["../common/types/*"]
+    }
+  },
+  "include": ["../common/types/*"]
 }

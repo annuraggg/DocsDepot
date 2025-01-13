@@ -1,12 +1,18 @@
 import { Hono } from "hono";
 import certificationController from "../controllers/certificateController.js";
 
-const certificationRoutes = new Hono();
+const app = new Hono();
 
-certificationRoutes.post("/get", certificationController.getCertificate);
-certificationRoutes.post(
-  "/download",
-  certificationController.downloadCertificate
-);
+app.get("/", certificationController.getCertificates);
+app.get("/user", certificationController.getCertificatesByUserId);
+app.get("/user/:id", certificationController.getCertificatesByUserId);
+app.get("/:id", certificationController.getCertificateById);
+app.post("/download", certificationController.downloadCertificate);
 
-export default certificationRoutes;
+app.post("/", certificationController.createCertificate);
+
+app.put("/:id", certificationController.updateCertificate);
+
+app.delete("/:id", certificationController.deleteCertificate);
+
+export default app;
