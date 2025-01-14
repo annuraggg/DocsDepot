@@ -14,6 +14,8 @@ import Certificate from "./pages/certificate/Certificate";
 import Events from "./pages/events/Events";
 import Event from "./pages/events/event/Event";
 import StudentSettings from "./pages/student/settings/Settings";
+import Houses from "./pages/houses/Houses";
+import House from "./pages/houses/house/House";
 
 function App() {
   const studentRoutes = [
@@ -21,8 +23,7 @@ function App() {
     { path: "profile", element: <StudentProfile /> },
     { path: "certificates", element: <StudentCertificates /> },
     { path: "settings", element: <StudentSettings /> },
-    // { path: "/houses", element: <StudentHouses /> },
-    // { path: "/houses/:id", element: <StudentHouse /> },
+
     {
       path: "*",
       element: <div> Not Found or You do not have permission.</div>,
@@ -38,6 +39,8 @@ function App() {
     { path: "/events", element: <Events /> },
     { path: "/events/:id", element: <Event /> },
     { path: "/profile/:id", element: <StudentProfile /> },
+    { path: "/houses", element: <Houses /> },
+    { path: "/houses/:id", element: <House /> },
     // { path: "/profile/:id/generate/report", element: <Report /> },
     // { path: "/profile/faculty/:id", element },
   ]);

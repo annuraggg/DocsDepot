@@ -22,7 +22,7 @@ interface Certificates {
   event: number;
 }
 
-type Role = "A" | "S" | "F";
+type Role = "A" | "S" | "F" | "G";
 
 interface User {
   mid: string;
