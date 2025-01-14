@@ -9,85 +9,99 @@ interface FilterState {
     issueYears: string[];
     expiryYears: string[];
 }
-
-export const useCertificates = () => {
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<FilterState>({
+const initialFilterState: FilterState = {
     types: [],
     levels: [],
     status: [],
     issueYears: [],
     expiryYears: [],
-  });
+};
 
-  const axios = useAxios();
+export const useCertificates = () => {
+    const [certificates, setCertificates] = useState<Certificate[]>([]);
+    const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filters, setFilters] = useState<FilterState>(initialFilterState);
+  
+    const axios = useAxios();
 
-  const fetchCertificates = async () => {
-    try {
-      const res = await axios.get("/certificates/user");
-      if (res.status === 200) {
-        setCertificates(res.data.data);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchCertificates = async () => {
+        setLoading(true);
+        try {
+            const res = await axios.get("/certificates/user");
+            if (res.status === 200) {
+                setCertificates(res.data.data);
+            }
+        } catch (err) {
+            console.error('Error fetching certificates:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  useEffect(() => {
-    fetchCertificates();
-  }, []);
+    const resetFilters = () => {
+        setFilters(initialFilterState);
+        setSearchTerm('');
+    };
 
-  useEffect(() => {
-    let filtered = [...certificates];
+    const hasActiveFilters = () => {
+        return Object.values(filters).some(filter => 
+            Array.isArray(filter) ? filter.length > 0 : !!filter
+        );
+    };
+    useEffect(() => {
+        fetchCertificates();
+    }, []);
+    useEffect(() => {
+        let filtered = [...certificates];
 
-    // search filter
-    if (searchTerm) {
-      filtered = filtered.filter(cert =>
-        cert.certificateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cert.issuingOrg.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+        if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            filtered = filtered.filter(cert =>
+                cert.certificateName.toLowerCase().includes(searchLower) ||
+                cert.issuingOrg.toLowerCase().includes(searchLower)
+            );
+        }
+        if (filters.types.length > 0) {
+            filtered = filtered.filter(cert => 
+                filters.types.includes(cert.certificateType)
+            );
+        }
+        if (filters.levels.length > 0) {
+            filtered = filtered.filter(cert => 
+                filters.levels.includes(cert.certificateLevel)
+            );
+        }
+        if (filters.status.length > 0) {
+            filtered = filtered.filter(cert => 
+                filters.status.includes(cert.status)
+            );
+        }
+        if (filters.issueYears.length > 0) {
+            filtered = filtered.filter(cert => 
+                filters.issueYears.includes(cert.issueYear.toString())
+            );
+        }
+        if (filters.expiryYears.length > 0) {
+            filtered = filtered.filter(cert => 
+                cert.expires && 
+                filters.expiryYears.includes((cert.expiryYear || '').toString())
+            );
+        }
+        setFilteredCertificates(filtered);
+    }, [certificates, searchTerm, filters]);
 
-    // type filter
-    if (filters.types.length > 0) {
-      filtered = filtered.filter(cert => filters.types.includes(cert.certificateType));
-    }
-
-    // level filter
-    if (filters.levels.length > 0) {
-      filtered = filtered.filter(cert => filters.levels.includes(cert.certificateLevel));
-    }
-
-    // status filter
-    if (filters.status.length > 0) {
-      filtered = filtered.filter(cert => filters.status.includes(cert.status));
-    }
-
-    // issue year filter
-    if (filters.issueYears.length > 0) {
-      filtered = filtered.filter(cert => filters.issueYears.includes(cert.issueYear.toString()));
-    }
-
-    // expiry year filter
-    if (filters.expiryYears.length > 0) {
-      filtered = filtered.filter(cert => cert.expires && filters.expiryYears.includes((cert.expiryYear || '').toString()));
-    }
-
-    setFilteredCertificates(filtered);
-  }, [certificates, searchTerm, filters]);
-
-  return {
-    certificates: filteredCertificates,
-    loading,
-    searchTerm,
-    setSearchTerm,
-    filters,
-    setFilters,
-    refreshCertificates: fetchCertificates,
-  };
+    return {
+        certificates: filteredCertificates,
+        allCertificates: certificates,
+        loading,
+        searchTerm,
+        setSearchTerm,
+        filters,
+        setFilters,
+        resetFilters,
+        hasActiveFilters,
+        refreshCertificates: fetchCertificates,
+    };
 };
