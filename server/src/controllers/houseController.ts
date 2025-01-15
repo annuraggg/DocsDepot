@@ -23,7 +23,6 @@ export const getHouse = async (c: Context) => {
             fname: memInfo?.fname,
             lname: memInfo?.lname,
             pfp: memInfo?.profilePicture,
-            contr: memInfo?.house.points,
           };
         })
       );
@@ -36,13 +35,7 @@ export const getHouse = async (c: Context) => {
           if (!facCord)
             return sendSuccess(c, 404, "Faculty Coordinator not found");
 
-          facCordInfo.push({
-            id: facCord._id,
-            fname: facCord.fname,
-            lname: facCord.lname,
-            pfp: facCord.profilePicture,
-            mid: facCord.mid,
-          });
+          facCordInfo.push(facCord._id);
         }
       }
 

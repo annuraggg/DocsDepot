@@ -27,7 +27,7 @@ const login = async (c: Context) => {
     if (findUser.role === "A") {
       const data: Token = {
         _id: findUser._id.toString(),
-        house: findUser.house.id.toString(),
+        house: findUser?.house?.toString(),
         profilePicture: findUser.profilePicture,
         mid,
         fname: findUser.fname,
@@ -36,25 +36,25 @@ const login = async (c: Context) => {
       };
       token = jwt.sign(data, process.env.JWT_SECRET!);
     } else if (findUser.role === "F") {
-      const firstTime = findUser.defaultPW;
+      const firstTime = findUser.onboarding?.defaultPW;
       if (firstTime) {
         token = "Invalid";
       } else {
         const data: Token = {
           _id: findUser._id.toString(),
-          house: findUser.house.id.toString(),
+          house: findUser.house.toString(),
           profilePicture: findUser.profilePicture,
           mid,
           fname: findUser.fname,
           lname: findUser.lname,
           role: "F",
-          perms: findUser.perms,
+          perms: findUser.permissions,
         };
         token = jwt.sign(data, process.env.JWT_SECRET!);
       }
     } else if (findUser.role === "S") {
-      const firstTime = findUser.defaultPW;
-      if (findUser.approved === false) {
+      const firstTime = findUser.onboarding?.defaultPW;
+      if (findUser.onboarding?.approved === false) {
         return sendError(
           c,
           403,
@@ -66,13 +66,15 @@ const login = async (c: Context) => {
       } else {
         const data: Token = {
           _id: findUser._id.toString(),
-          house: findUser.house.id.toString(),
+          house: findUser.house.toString(),
           profilePicture: findUser.profilePicture,
           mid,
           fname: findUser.fname,
           lname: findUser.lname,
-          ay: findUser.AY ? findUser.AY : undefined,
-          branch: findUser.branch,
+          ay: findUser.academicDetails?.academicYear
+            ? findUser.academicDetails?.academicYear
+            : undefined,
+          branch: findUser.academicDetails?.branch,
           role: "S",
         };
         token = jwt.sign(data, process.env.JWT_SECRET!);
@@ -92,9 +94,9 @@ const login = async (c: Context) => {
     return sendSuccess(c, 200, "Logged In", {
       role: findUser.role,
       mid,
-      colorMode: findUser.colorMode,
+      colorMode: findUser?.settings?.colorMode,
       token,
-      firstTime: findUser.defaultPW,
+      firstTime: findUser.onboarding?.defaultPW,
     });
   } catch (err) {
     console.error(err);
@@ -120,13 +122,13 @@ const firstTimePassword = async (c: Context) => {
 
         const data: Token = {
           _id: user._id.toString(),
-          house: user.house.id.toString(),
+          house: user.house.toString(),
           profilePicture: user.profilePicture,
           mid,
           fname: user.fname,
           lname: user.lname,
-          ay: user.AY ? user.AY : undefined,
-          branch: user.branch,
+          ay: user.academicDetails?.academicYear ? user.academicDetails?.academicYear : undefined,
+          branch: user?.academicDetails?.branch,
           role: user.role,
         };
         const token = jwt.sign(data, process.env.JWT_SECRET!);
@@ -135,7 +137,7 @@ const firstTimePassword = async (c: Context) => {
         return sendSuccess(c, 200, "Password Set Successfully", {
           role: user.role,
           mid,
-          colorMode: user.colorMode,
+          colorMode: user?.settings?.colorMode,
           token,
         });
       } else {

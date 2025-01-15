@@ -22,16 +22,10 @@ const receiveNotifications = async (c: Context) => {
 
     const houseNotification = await Notification.find({
       expiry: { $gte: dateToday },
-      "scope.houses": user.house.id,
+      "scope.houses": user.house,
     });
 
     let eventNotification: any = [];
-    if (user.registeredEvents) {
-      eventNotification = await Notification.find({
-        expiry: { $gte: dateToday },
-        "scope.events": { $in: [user.registeredEvents] },
-      });
-    }
 
     const notificationsArr = [
       ...notifications,

@@ -17,30 +17,52 @@ import StudentSettings from "./pages/student/settings/Settings";
 import Houses from "./pages/houses/Houses";
 import House from "./pages/houses/house/House";
 
+import AdminHome from "./pages/admin/home/Home.js";
+import AdminStudents from "./pages/admin/student/Students";
+import AdminStudentsImport from "./pages/admin/student/import/StudentImport";
+import AdminFacultyImport from "./pages/admin/faculty/import/FacultyImport";
+import AdminFaculty from "./pages/admin/faculty/Faculty";
+import AdminSettings from "./pages/admin/settings/Settings";
+import AdminLogs from "./pages/admin/logs/Logs";
+import AdminStudentCertificates from "./pages/admin/student/certificates/Certificates";
+import AdminFeedback from "./pages/admin/feedback/Feedback";
+import AdminFacultyCertificates from "./pages/admin/faculty/certificates/Certificates";
+import AdminLayout from "./components/layouts/AdminLayout.js";
+
 function App() {
   const studentRoutes = [
     { path: "", element: <StudentHome /> },
     { path: "profile", element: <StudentProfile /> },
     { path: "certificates", element: <StudentCertificates /> },
     { path: "settings", element: <StudentSettings /> },
+  ];
 
-    {
-      path: "*",
-      element: <div> Not Found or You do not have permission.</div>,
-    },
+  const adminRoutes = [
+    { path: "", element: <AdminHome /> },
+    { path: "students", element: <AdminStudents /> },
+    // { path: "students/add", element: <AdminStudentsImport /> },
+    // { path: "faculty/add", element: <AdminFacultyImport /> },
+    // { path: "faculty", element: <AdminFaculty /> },
+    // { path: "settings", element: <AdminSettings /> },
+    // { path: "logs", element: <AdminLogs /> },
+    // { path: "certificates", element: <AdminStudentCertificates /> },
+    // { path: "feedback", element: <AdminFeedback /> },
+    // { path: "faculty/certificates", element: <AdminFacultyCertificates /> },
   ];
 
   const router = createBrowserRouter([
     { path: "*", element: <FourZeroFour /> },
     { path: "/feedback", element: <Feedback /> },
     { path: "/auth", element: <Auth /> },
-    { path: "/student", element: <StudentLayout />, children: studentRoutes },
     { path: "/certificates/:id", element: <Certificate /> },
     { path: "/events", element: <Events /> },
     { path: "/events/:id", element: <Event /> },
     { path: "/profile/:id", element: <StudentProfile /> },
     { path: "/houses", element: <Houses /> },
     { path: "/houses/:id", element: <House /> },
+
+    { path: "/student", element: <StudentLayout />, children: studentRoutes },
+    { path: "/admin", element: <AdminLayout />, children: adminRoutes },
     // { path: "/profile/:id/generate/report", element: <Report /> },
     // { path: "/profile/faculty/:id", element },
   ]);

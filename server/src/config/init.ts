@@ -18,6 +18,7 @@ import certificateRoutes from "../routes/certificateRoutes.js";
 import notificationRoutes from "../routes/notificationRoutes.js";
 import feedbackRoutes from "../routes/feedbackRoutes.js";
 import dashboardRoutes from "../routes/dashboardRoutes.js";
+import userRoutes from "../routes/userRoute.js";
 
 const app = new Hono();
 const port = parseInt(process.env.PORT!);
@@ -49,6 +50,7 @@ app.route("/certificates", certificateRoutes);
 app.route("/notifications", notificationRoutes);
 app.route("/feedback", feedbackRoutes);
 app.route("/dashboard", dashboardRoutes);
+app.route("/user", userRoutes)
 
 app.use('/static/*', serveStatic({ root: './src/' }))
 

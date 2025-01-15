@@ -19,8 +19,8 @@ const getStudentDashboard = async (c: Context) => {
     }
 
     let userHouse = null;
-    if (user.house.id) {
-      userHouse = await House.findOne({ _id: new ObjectId(user.house.id) });
+    if (user.house) {
+      userHouse = await House.findOne({ _id: user.house });
     }
 
     const certifications = await Certificate.find({ mid });

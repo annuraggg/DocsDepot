@@ -84,7 +84,9 @@ const getCertificatesByUserId = async (c: Context) => {
   try {
     const { _id } = (await c.get("user")) as Token;
     const { id } = c.req.param();
-    const certificates = await Certificate.find({ _id: id ? id : _id }).populate("user").lean();
+    const certificates = await Certificate.find({ _id: id ? id : _id })
+      .populate("user")
+      .lean();
 
     if (!certificates) {
       return sendSuccess(c, 200, "No certificates found", []);
@@ -173,10 +175,10 @@ const createCertificate = async (c: Context) => {
 
       // Update certificate URL
       certificateURL = `/certificates/${newFileName}`;
-      certificate.ext = fileExt;
+      certificate.extension = fileExt;
     }
 
-    certificate.certificateURL = certificateURL || "";
+    certificate.url = certificateURL || "";
     await certificate.save();
 
     return sendSuccess(c, 200, "Certificate created successfully", certificate);
@@ -217,29 +219,33 @@ const updateCertificate = async (c: Context) => {
     }
 
     // If there's an existing file and we're uploading a new one, delete the old file
-    if (certificate.uploadType === "file" && certificate.certificateURL) {
-      const oldFilePath = path.join(
-        __dirname,
-        "..",
-        certificate.certificateURL
-      );
+    if (certificate.uploadType === "file" && certificate.url) {
+      const oldFilePath = path.join(__dirname, "..", certificate.url);
       if (fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath);
       }
     }
 
     // Update certificate fields
-    certificate.certificateName = formData.title || certificate.certificateName;
-    certificate.issuingOrg = formData.issuingOrg || certificate.issuingOrg;
-    certificate.issueMonth = formData.issueMonth || certificate.issueMonth;
-    certificate.issueYear =
-      parseInt(formData.issueYear) || certificate.issueYear;
+    certificate.name = formData.title || certificate.name;
+    certificate.issuingOrganization =
+      formData.issuingOrg || certificate.issuingOrganization;
+    if (!certificate.issueDate) {
+      certificate.issueDate = { month: "", year: new Date().getFullYear() };
+    }
+    certificate.issueDate.month = formData.issueMonth || "";
+    certificate.issueDate.year =
+      parseInt(formData.issueYear) || certificate.issueDate.year;
     certificate.expires = formData.expires === "true";
-    certificate.expiryYear =
-      parseInt(formData.expiryYear) || certificate.expiryYear;
-    certificate.certificateType = formData.certificateType as CertificateType;
-    certificate.certificateLevel =
-      formData.certificateLevel as CertificateLevel;
+    if (!certificate.expirationDate) {
+      certificate.expirationDate = { month: "", year: new Date().getFullYear() };
+    }
+    certificate.expirationDate.year =
+      parseInt(formData.expiryYear) || certificate.expirationDate.year;
+    certificate.expirationDate.month =
+      formData.expiryMonth || certificate.expirationDate.month;
+    certificate.type = formData.certificateType as CertificateType;
+    certificate.level = formData.certificateLevel as CertificateLevel;
 
     if (certificate.uploadType === "file" && certificateFile) {
       // Validate file type
@@ -266,7 +272,7 @@ const updateCertificate = async (c: Context) => {
       fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
       // Update certificate URL
-      certificate.certificateURL = `/certificates/${newFileName}`;
+      certificate.url = `/certificates/${newFileName}`;
     }
 
     await certificate.save();
@@ -287,8 +293,8 @@ const deleteCertificate = async (c: Context) => {
     }
 
     // Delete the associated file if it exists
-    if (certificate.uploadType === "file" && certificate.certificateURL) {
-      const filePath = path.join(__dirname, "..", certificate.certificateURL);
+    if (certificate.uploadType === "file" && certificate.url) {
+      const filePath = path.join(__dirname, "..", certificate.url);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -311,7 +317,7 @@ const downloadCertificate = async (c: Context) => {
       return sendError(c, 404, "Certificate not found", null);
     }
 
-    if (!certificate.certificateURL || certificate.uploadType !== "file") {
+    if (!certificate.url || certificate.uploadType !== "file") {
       return sendError(
         c,
         400,
@@ -320,7 +326,7 @@ const downloadCertificate = async (c: Context) => {
       );
     }
 
-    const filePath = path.join(__dirname, "..", certificate.certificateURL);
+    const filePath = path.join(__dirname, "..", certificate.url);
 
     if (!fs.existsSync(filePath)) {
       return sendError(c, 404, "File not found", null);

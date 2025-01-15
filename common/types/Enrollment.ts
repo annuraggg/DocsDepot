@@ -1,5 +1,5 @@
 interface Enrollment {
-  mid: string;
+  userid: string;
   about: string;
   technical: string;
   projects: string;

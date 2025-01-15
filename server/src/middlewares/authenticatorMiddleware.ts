@@ -8,7 +8,7 @@ const DEFAULT_USER: Token = {
   mid: "",
   fname: "",
   lname: "",
-  picture: "",
+  profilePicture: "",
   role: "",
   perms: [],
   ay: 0,

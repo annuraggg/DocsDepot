@@ -1,23 +1,44 @@
-interface Event {
-  _id: string;
-  name: string;
-  image: string;
-  desc: string;
-  location: string;
-  mode: "online" | "offline";
-  link?: string;
+interface Contact {
   email: string;
   phone: string;
-  eventStarts: Date;
-  eventEnds: Date;
-  registerationStarts: Date;
-  registerationEnds: Date;
-  createdAt: Date;
-  registerationType: "internal" | "external";
-  pointsAllocated: boolean;
-  registered: string[];
-  points: number;
-  participants: string[]; // Assuming ObjectId is used for references
 }
 
-export type { Event };
+interface RegistrationTimeline {
+  start: Date;
+  end: Date;
+}
+
+interface EventTimeline {
+  start: Date;
+  end: Date;
+}
+
+type Mode = "online" | "offline";
+type RegistrationType = "internal" | "external";
+
+interface Event {
+  name: string;
+  desc: string;
+  image: string;
+  location: string;
+  mode: Mode;
+  link?: string;
+  contact: Contact;
+  registeration: RegistrationTimeline;
+  eventTimeline: EventTimeline;
+  registerationType: RegistrationType;
+  pointsAllocated: boolean;
+  points: number;
+  participants: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type {
+  Event,
+  Contact,
+  RegistrationTimeline,
+  EventTimeline,
+  Mode,
+  RegistrationType,
+};

@@ -3,26 +3,32 @@ interface Points {
   external: number;
 }
 
-interface House {
-  id: string;
-  points: {
-    [key: number]: {
-      [key: string]: {
-        internal: number;
-        external: number;
-        events: number;
-      };
-    };
-  };
+type Role = "A" | "S" | "F";
+interface Social {
+  email: string;
+  github: string;
+  linkedin: string;
 }
 
-interface Certificates {
-  external: number;
-  internal: number;
-  event: number;
+interface Settings {
+  colorMode: "light" | "dark";
+  certificateLayout: "green" | "classic";
 }
 
-type Role = "A" | "S" | "F" | "G";
+interface Onboarding {
+  firstTime: boolean;
+  approved: boolean;
+  defaultPW: boolean;
+}
+
+interface AcademicDetails {
+  academicYear?: number;
+  isDSE?: boolean;
+  branch: string;
+  admissionYear: number;
+}
+
+type Gender = "M" | "F";
 
 interface User {
   mid: string;
@@ -30,24 +36,25 @@ interface User {
   fname: string;
   lname: string;
   profilePicture: string;
-  email: string;
-  gender: "M" | "F" | "Male" | "Female";
+  gender: Gender;
   role: Role;
-  XP: number;
-  AY?: number;
-  dse: boolean;
-  createdOn: Date;
-  branch: string;
-  house: House | null;
-  firstTime: boolean;
-  approved: boolean;
-  defaultPW: boolean;
-  registeredEvents: string[];
-  certificates: Certificates;
-  github: string;
-  linkedin: string;
-  colorMode: "light" | "dark";
-  perms: any[];
+  house: string;
+  academicDetails: AcademicDetails;
+  social: Social;
+  settings: Settings;
+  onboarding: Onboarding;
+  permissions: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type { House, Certificates, User, Points, Role };
+export type {
+  User,
+  Points,
+  Role,
+  Gender,
+  AcademicDetails,
+  Social,
+  Settings,
+  Onboarding,
+};

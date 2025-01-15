@@ -1,35 +1,23 @@
-interface Certificates {
-  internal: number;
-  external: number;
-  events: number;
+interface Social {
+  instagram?: string | null;
+  linkedin?: string | null;
+  twitter?: string | null;
 }
 
 interface House {
   _id: string;
   name: string;
-  logo: string;
-  points: {
-    [key: number]: {
-      [key: string]: {
-        internal: number;
-        external: number;
-        events: number;
-      };
-    };
-  };
-  color: string;
-  fc: string[];
-  sc: string;
-  members: string[];
-  ig: string;
-  lk: string;
-  tw: string;
   abstract: string;
   desc: string;
-  certificates: Certificates;
-  no: number;
+  logo: string;
   banner: string;
+  color: string;
+  facultyCordinator: string;
+  studentCordinator?: string | null;
+  members: string[];
+  social: Social;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-export type { House, Certificates };
+export type { House, Social };
