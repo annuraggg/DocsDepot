@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -21,9 +21,9 @@ import {
   Alert,
   AlertIcon,
   useToast,
-} from '@chakra-ui/react';
-import { Upload, Check } from 'lucide-react';
-import { months, getYearRange } from '../../../utils/dateUtils';
+} from "@chakra-ui/react";
+import { Upload, Check } from "lucide-react";
+import { months, getYearRange } from "../../../utils/dateUtils";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -75,15 +75,21 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   const validateForm = (): boolean => {
-    if (!certificateName || !issuingOrg || !issueMonth || !issueYear ||
-      !certificateType || !certificateLevel) {
+    if (
+      !certificateName ||
+      !issuingOrg ||
+      !issueMonth ||
+      !issueYear ||
+      !certificateType ||
+      !certificateLevel
+    ) {
       toast({
         title: "Error",
         description: "Please fill all required fields",
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top-right"
+        position: "top-right",
       });
       return false;
     }
@@ -95,7 +101,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top-right"
+        position: "top-right",
       });
       return false;
     }
@@ -107,7 +113,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top-right"
+        position: "top-right",
       });
       return false;
     }
@@ -119,7 +125,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top-right"
+        position: "top-right",
       });
       return false;
     }
@@ -159,9 +165,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         status: "success",
         duration: 5000,
         isClosable: true,
-        position: "top-right"
+        position: "top-right",
       });
-      handleClose();
+      
     } catch (error) {
       toast({
         title: "Error",
@@ -169,7 +175,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "top-right"
+        position: "top-right",
       });
     } finally {
       setBtnLoading(false);
@@ -184,7 +190,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
   return (
     <Modal
-      isOpen={isOpen}   
+      isOpen={isOpen}
       onClose={handleClose}
       size="6xl"
       motionPreset="slideInBottom"
@@ -201,14 +207,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
         <ModalBody>
           <VStack spacing={6}>
-            <Alert
-              status="info"
-              variant="left-accent"
-              borderRadius="md"
-            >
+            <Alert status="info" variant="left-accent" borderRadius="md">
               <AlertIcon />
               <Text>
-                Your certificate will be verified and approved by the house coordinator.
+                Your certificate will be verified and approved by the house
+                coordinator.
               </Text>
             </Alert>
 
@@ -244,7 +247,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     placeholder="Select Month"
                   >
                     {months.map((month) => (
-                      <option key={month.toLowerCase().slice(0, 3)} value={month.toLowerCase().slice(0, 3)}>
+                      <option
+                        key={month.toLowerCase().slice(0, 3)}
+                        value={month.toLowerCase().slice(0, 3)}
+                      >
                         {month}
                       </option>
                     ))}
@@ -289,7 +295,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                       placeholder="Expiry Month"
                     >
                       {months.map((month) => (
-                        <option key={month.toLowerCase().slice(0, 3)} value={month.toLowerCase().slice(0, 3)}>
+                        <option
+                          key={month.toLowerCase().slice(0, 3)}
+                          value={month.toLowerCase().slice(0, 3)}
+                        >
                           {month}
                         </option>
                       ))}
@@ -321,7 +330,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 >
                   <option value="internal">Internal Certification</option>
                   <option value="external">External Certification</option>
-                  <option value="events">Events Certification</option>
                 </Select>
               </FormControl>
 
@@ -353,7 +361,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                 />
               </FormControl>
 
-              <Text fontWeight="medium" alignSelf="center">OR</Text>
+              <Text fontWeight="medium" alignSelf="center">
+                OR
+              </Text>
 
               <FormControl>
                 <FormLabel>Upload Certificate</FormLabel>
@@ -377,12 +387,18 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     }}
                     display="none"
                   />
-                  <label htmlFor="certificate-upload" style={{ cursor: "pointer" }}>
+                  <label
+                    htmlFor="certificate-upload"
+                    style={{ cursor: "pointer" }}
+                  >
                     <VStack spacing={2}>
                       <Icon as={Upload} boxSize={8} color="gray.400" />
                       <Text fontWeight="medium">
                         {fileName === "No File Selected" ? (
-                          <>Drop your file here or <span className="text-blue-500">browse</span></>
+                          <>
+                            Drop your file here or{" "}
+                            <span className="text-blue-500">browse</span>
+                          </>
                         ) : (
                           fileName
                         )}
@@ -399,11 +415,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <Button
-            variant="ghost"
-            mr={3}
-            onClick={handleClose}
-          >
+          <Button variant="ghost" mr={3} onClick={handleClose}>
             Cancel
           </Button>
           <Button

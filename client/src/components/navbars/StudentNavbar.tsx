@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import Logo from "../../assets/img/logo-icon.png";
+import Logo from "../../assets/img/logo.png";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 import {
@@ -22,15 +22,16 @@ import {
   Avatar,
   useToast,
 } from "@chakra-ui/react";
-import { Bell } from "lucide-react"
+import { Bell } from "lucide-react";
 import { Notification } from "@shared-types/Notification";
 import { Token } from "@shared-types/Token";
+import useUser from "@/config/user";
 
 const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
   const token = Cookies.get("token") || "";
-  const [picture, setPicture] = React.useState<string | null>(null);
   const [fname, setFname] = React.useState("");
   const [lname, setLname] = React.useState("");
+  const user = useUser();
   const navigate = useNavigate();
   const toaster = useToast();
 
@@ -76,7 +77,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
             navigate("/student");
           }}
         >
-          <img src={Logo} className="w-8" alt="Logo" />
+          <img src={Logo} className="w-24" alt="Logo" />
         </div>
         <div className="hidden sm:block md:hidden">
           <Menu>
@@ -118,19 +119,29 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
 
       <Menu>
         <Box className="flex items-center gap-5">
-          <Bell className="cursor-pointer" onClick={() => onOpen()} />
+          <Bell size={20} className="cursor-pointer" onClick={() => onOpen()} />
 
-          <Box className="flex items-center justify-end bg-gray-200 rounded-xl rounded-r-2xl">
+          <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
             <Text className=" text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
               {fname + " " + lname}
             </Text>
-            {picture ? (
+            {user?.profilePicture ? (
               <MenuButton value="profile">
-                <Avatar src={picture} className="border border-gray-300" />
+                <Avatar
+                  size="sm"
+                  src={
+                    import.meta.env.VITE_API_URL +
+                    "/static/profile/" +
+                    user?._id +
+                    "." +
+                    user?.profilePicture
+                  }
+                  className="border border-gray-300"
+                />
               </MenuButton>
             ) : (
               <MenuButton value="profile">
-                <Avatar className="border-l border-gray-300" />
+                <Avatar size="sm" className="border border-gray-300"></Avatar>
               </MenuButton>
             )}
           </Box>

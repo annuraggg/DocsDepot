@@ -1,6 +1,7 @@
 interface Token {
   _id: string;
   house?: string;
+  profilePicture?: string;
   mid: string;
   fname: string;
   lname: string;

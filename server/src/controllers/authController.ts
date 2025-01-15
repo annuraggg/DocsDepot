@@ -28,6 +28,7 @@ const login = async (c: Context) => {
       const data: Token = {
         _id: findUser._id.toString(),
         house: findUser.house.id.toString(),
+        profilePicture: findUser.profilePicture,
         mid,
         fname: findUser.fname,
         lname: findUser.lname,
@@ -42,6 +43,7 @@ const login = async (c: Context) => {
         const data: Token = {
           _id: findUser._id.toString(),
           house: findUser.house.id.toString(),
+          profilePicture: findUser.profilePicture,
           mid,
           fname: findUser.fname,
           lname: findUser.lname,
@@ -65,6 +67,7 @@ const login = async (c: Context) => {
         const data: Token = {
           _id: findUser._id.toString(),
           house: findUser.house.id.toString(),
+          profilePicture: findUser.profilePicture,
           mid,
           fname: findUser.fname,
           lname: findUser.lname,
@@ -118,6 +121,7 @@ const firstTimePassword = async (c: Context) => {
         const data: Token = {
           _id: user._id.toString(),
           house: user.house.id.toString(),
+          profilePicture: user.profilePicture,
           mid,
           fname: user.fname,
           lname: user.lname,
@@ -127,7 +131,6 @@ const firstTimePassword = async (c: Context) => {
         };
         const token = jwt.sign(data, process.env.JWT_SECRET!);
         const expirationTime = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
-        const expirationDate = new Date(Date.now() + expirationTime);
 
         return sendSuccess(c, 200, "Password Set Successfully", {
           role: user.role,
@@ -148,16 +151,16 @@ const firstTimePassword = async (c: Context) => {
 
 const getProfile = async (c: Context) => {
   // give the following data back: allHouses, user, certifications for the user
-  const { mid } = (await c.get("user")) as Token;
+  const { _id } = (await c.get("user")) as Token;
   try {
     const allHouses = await House.find({});
-    const user = await User.findOne({ mid: mid.toString() });
+    const user = await User.findOne({ _id: _id });
 
     if (!user) {
       return sendError(c, 500, "User not found");
     }
 
-    const certifications = await Certificate.find({ mid });
+    const certifications = await Certificate.find({ user: _id });
 
     return sendSuccess(c, 200, "Profile data fetched successfully", {
       allHouses,
@@ -171,17 +174,17 @@ const getProfile = async (c: Context) => {
 };
 
 const updateProfile = async (c: Context) => {
-  const { mid } = (await c.get("user")) as Token;
+  const { _id } = (await c.get("user")) as Token;
   const { linkedin, github, email } = await c.req.json();
 
   try {
-    const user = await User.findOne({ mid: mid.toString() });
+    const user = await User.findOne({ _id: _id });
     if (!user) {
       return sendError(c, 500, "User not found");
     }
 
     await User.updateOne(
-      { mid: mid.toString() },
+      { _id: _id },
       {
         $set: {
           linkedin,
@@ -199,17 +202,17 @@ const updateProfile = async (c: Context) => {
 };
 
 const updateProfilePicture = async (c: Context) => {
-  const { mid } = (await c.get("user")) as Token;
+  const { _id } = (await c.get("user")) as Token;
   const { image } = await c.req.json();
 
   try {
-    const user = await User.findOne({ mid: mid.toString() });
+    const user = await User.findOne({ _id: _id });
     if (!user) {
       return sendError(c, 500, "User not found");
     }
 
     await User.updateOne(
-      { mid: mid.toString() },
+      { _id: _id },
       {
         $set: {
           profilePicture: image,
@@ -225,11 +228,11 @@ const updateProfilePicture = async (c: Context) => {
 };
 
 const updatePassword = async (c: Context) => {
-  const { mid } = (await c.get("user")) as Token;
+  const { _id } = (await c.get("user")) as Token;
   const { oldPass, newPass } = await c.req.json();
 
   try {
-    const user = await User.findOne({ mid: mid.toString() });
+    const user = await User.findOne({ _id: _id });
     if (!user) {
       return sendError(c, 500, "User not found");
     }
@@ -240,7 +243,7 @@ const updatePassword = async (c: Context) => {
     }
 
     await User.updateOne(
-      { mid: mid.toString() },
+      { _id: _id },
       {
         $set: {
           password: await bcrypt.hash(newPass, 10),
@@ -256,17 +259,17 @@ const updatePassword = async (c: Context) => {
 };
 
 const updateTheme = async (c: Context) => {
-  const { mid } = (await c.get("user")) as Token;
+  const { _id } = (await c.get("user")) as Token;
   const { colorMode } = await c.req.json();
 
   try {
-    const user = await User.findOne({ mid: mid.toString() });
+    const user = await User.findOne({ _id: _id });
     if (!user) {
       return sendError(c, 500, "User not found");
     }
 
     await User.updateOne(
-      { mid: mid.toString() },
+      { _id: _id },
       {
         $set: {
           colorMode,
@@ -279,7 +282,7 @@ const updateTheme = async (c: Context) => {
     console.log(error);
     return sendError(c, 500, "Error updating theme");
   }
-}
+};
 
 export default {
   login,

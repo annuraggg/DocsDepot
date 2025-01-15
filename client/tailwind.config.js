@@ -11,6 +11,7 @@ export default {
         poppins: ["Poppins", "sans-serif"], // Add the font family
         roboto: ["Roboto", "sans-serif"], // Add the font family
         familjen: ["Familjen Grotesk Variable", "sans-serif"], // Add the font family
+        rouge: ["Rouge Script", "cursive"], // Add the font family
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",

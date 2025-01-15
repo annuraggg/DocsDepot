@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 
 import "./db";
 
@@ -48,6 +49,8 @@ app.route("/certificates", certificateRoutes);
 app.route("/notifications", notificationRoutes);
 app.route("/feedback", feedbackRoutes);
 app.route("/dashboard", dashboardRoutes);
+
+app.use('/static/*', serveStatic({ root: './src/' }))
 
 serve({ fetch: app.fetch, port: port });
 export default app;

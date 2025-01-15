@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
 
+const commentSchema = new mongoose.Schema({
+  user: { type: mongoose.Types.ObjectId, required: true },
+  comment: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const certificateSchema = new mongoose.Schema({
-  mid: { type: String, required: true },
+  user: { type: mongoose.Types.ObjectId, required: true },
   certificateName: { type: String, required: true },
   issuingOrg: { type: String, required: true },
   issueMonth: { type: String, required: true },
@@ -16,7 +22,7 @@ const certificateSchema = new mongoose.Schema({
   },
   certificateLevel: {
     type: String,
-    enum: ["beginner", "intermediate", "advanced", "Department"],
+    enum: ["beginner", "intermediate", "advanced", "department"],
     required: true,
   },
   uploadType: { type: String, enum: ["url", "print", "file"], required: true },
@@ -24,12 +30,10 @@ const certificateSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["approved", "rejected", "pending"],
-    default: null,
+    default: "pending",
   },
-  house: { type: String, default: null },
-  comments: { type: [String], default: null },
+  comments: { type: [commentSchema] },
   xp: { type: Number, default: 0 },
-  role: { type: String, enum: ["F", "M"], default: "F" },
   createdOn: { type: Date, default: Date.now },
   ext: { type: String, required: false },
   sha256: { type: String, required: false },
