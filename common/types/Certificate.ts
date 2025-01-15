@@ -1,6 +1,13 @@
+interface Comment {
+  _id: string;
+  comment: string;
+  user: string;
+  createdAt: string;
+}
+
 interface Certificate {
   _id: string;
-  mid: string;
+  user: string;
   certificateName: string;
   issuingOrg: string;
   issueMonth: string;
@@ -9,18 +16,16 @@ interface Certificate {
   expiryMonth: string | null;
   expiryYear: number | null;
   certificateType: "external" | "internal" | "event";
-  certificateLevel: "beginner" | "intermediate" | "advanced" | "Department";
+  certificateLevel: "beginner" | "intermediate" | "advanced" | "department";
   uploadType: "url" | "file" | "print";
   certificateURL: string | null;
   status: "approved" | "rejected" | "pending";
-  submittedYear: number;
-  submittedMonth: string;
-  comments: [string];
+  comments: Comment[];
   xp: number;
   points: number;
-  ext: string;
-  sha256: string;
-  md5: string;
+  ext?: string;
+  sha256?: string;
+  md5?: string;
 }
 
-export type { Certificate };
+export type { Certificate, Comment };

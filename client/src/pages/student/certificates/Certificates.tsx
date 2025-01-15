@@ -190,15 +190,9 @@ const Certificates: React.FC = () => {
           isOpen={isUploadOpen}
           onClose={onUploadClose}
           onUpload={async (formData) => {
-            try {
-              const axios = useAxios();
-              const res = await axios.post("/certificates", formData);
-              if (res.status === 200) {
-                refreshCertificates();
-                onUploadClose();
-              }
-            } catch (err) {
-              console.error(err);
+            const axios = useAxios();
+            const res = await axios.post("/certificates", formData);
+            if (res.status === 200) {
             }
           }}
         />

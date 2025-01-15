@@ -12,22 +12,23 @@ const __dirname = path.dirname(__filename);
 
 // Type definitions
 type CertificateType = "external" | "internal" | "event";
-type CertificateLevel = "beginner" | "intermediate" | "advanced" | "Department";
+type CertificateLevel = "beginner" | "intermediate" | "advanced" | "department";
 type UploadType = "url" | "print" | "file";
 
 interface CertificateFormData {
-  mid: string;
+  user: string;
   title: string;
   issuingOrg: string;
   issueMonth: string;
   issueYear: string;
   expires: string;
+  expiryMonth: string;
   expiryYear: string;
   certificateType: string;
   certificateLevel: string;
   uploadType: string;
-  certificateUrl?: string;
-  certificateFile?: File;
+  certificateURL?: string;
+  certificate?: File;
 }
 
 // Ensure certificates directory exists
@@ -47,7 +48,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const getCertificates = async (c: Context) => {
   try {
-    const certificates = await Certificate.find({}).lean();
+    const certificates = await Certificate.find({}).populate("user").lean();
 
     if (!certificates) {
       return sendSuccess(c, 200, "No certificates found", []);
@@ -67,7 +68,7 @@ const getCertificates = async (c: Context) => {
 const getCertificateById = async (c: Context) => {
   try {
     const { id } = c.req.param();
-    const certificate = await Certificate.findById(id).lean();
+    const certificate = await Certificate.findById(id).populate("user").lean();
 
     if (!certificate) {
       return sendError(c, 200, "Certificate not found", []);
@@ -81,9 +82,9 @@ const getCertificateById = async (c: Context) => {
 
 const getCertificatesByUserId = async (c: Context) => {
   try {
-    const { mid } = (await c.get("user")) as Token;
+    const { _id } = (await c.get("user")) as Token;
     const { id } = c.req.param();
-    const certificates = await Certificate.find({ mid: id ? id : mid }).lean();
+    const certificates = await Certificate.find({ _id: id ? id : _id }).populate("user").lean();
 
     if (!certificates) {
       return sendSuccess(c, 200, "No certificates found", []);
@@ -109,8 +110,8 @@ const createCertificate = async (c: Context) => {
     console.log(formData);
 
     // Extract file if present
-    const certificateFile = formData.certificateFile;
-    let certificateURL: string | undefined = formData.certificateUrl;
+    const certificateFile = formData.certificate;
+    let certificateURL: string | undefined = formData.certificateURL;
 
     // Validate certificate type
     if (!isCertificateType(formData.certificateType)) {
@@ -128,16 +129,18 @@ const createCertificate = async (c: Context) => {
     }
 
     const certificate = new Certificate({
-      mid: user.mid,
+      user: user._id,
       certificateName: formData.title || "",
       issuingOrg: formData.issuingOrg || "",
       issueMonth: formData.issueMonth || "",
       issueYear: parseInt(formData.issueYear) || new Date().getFullYear(),
       expires: formData.expires === "true",
+      expiryMonth: formData.expiryMonth || "",
       expiryYear: parseInt(formData.expiryYear) || new Date().getFullYear(),
       certificateType: formData.certificateType as CertificateType,
       certificateLevel: formData.certificateLevel as CertificateLevel,
       uploadType: formData.uploadType as UploadType,
+      url: formData.certificateURL || "",
       status: "pending",
       house: user.house,
       comments: [],
@@ -194,7 +197,9 @@ const updateCertificate = async (c: Context) => {
 
     const formData =
       (await c.req.parseBody()) as unknown as CertificateFormData;
-    const certificateFile = formData.certificateFile;
+    const certificateFile = formData.certificate;
+
+    console.log(formData);
 
     // Validate certificate type
     if (!isCertificateType(formData.certificateType)) {
@@ -262,8 +267,6 @@ const updateCertificate = async (c: Context) => {
 
       // Update certificate URL
       certificate.certificateURL = `/certificates/${newFileName}`;
-    } else if (certificate.uploadType === "url") {
-      certificate.certificateURL = formData.certificateUrl || "";
     }
 
     await certificate.save();
@@ -312,7 +315,7 @@ const downloadCertificate = async (c: Context) => {
       return sendError(
         c,
         400,
-        "NoInvalid certificate type file available for download",
+        "Invalid certificate type file available for download",
         null
       );
     }

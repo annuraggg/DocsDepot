@@ -193,26 +193,24 @@ const Auth = () => {
             response?.colorMode ?? "light"
           );
 
+          Cookie.set("token", response.token, { expires: 1 / 6 });
+
           if (redirectURL !== "/") {
             navigate(redirectURL);
             return;
           } else {
             if (response.role === "A") {
               window.location.href = "/admin";
-              Cookie.set("token", response.token, { expires: 1 / 6 });
-              Cookie.set("token", response.token, { expires: 1 / 6 });
             } else if (response.role === "F") {
               if (response.firstTime) {
                 onOpen();
               } else {
-                Cookie.set("token", response.token, { expires: 1 / 6 });
                 window.location.href = "/faculty";
               }
             } else if (response.role === "S") {
               if (response.firstTime) {
                 onOpen();
               } else {
-                Cookie.set("token", response.token, { expires: 1 / 6 });
                 window.location.href = "/student";
               }
             }
