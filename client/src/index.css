@@ -61,3 +61,49 @@
 * {
   font-family: "Familjen Grotesk Variable", sans-serif;
 }
+
+@layer components {
+  .house-page {
+    @apply min-h-screen bg-gray-50;
+  }
+  
+  .house-section {
+    @apply bg-white rounded-xl shadow-lg p-6;
+  }
+  
+  .house-title {
+    @apply text-2xl font-semibold mb-4;
+  }
+  
+  .house-subtitle {
+    @apply text-sm text-gray-500;
+  }
+  
+  .house-card {
+    @apply bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-200;
+  }
+  
+  .house-button {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  }
+  
+  .house-button-primary {
+    @apply house-button bg-blue-600 text-white hover:bg-blue-700;
+  }
+  
+  .house-button-secondary {
+    @apply house-button bg-gray-100 text-gray-700 hover:bg-gray-200;
+  }
+  
+  .house-input {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+  }
+  
+  .house-modal {
+    @apply bg-white rounded-xl shadow-2xl;
+  }
+  
+  .house-modal-overlay {
+    @apply bg-black/40 backdrop-blur-sm;
+  }
+}

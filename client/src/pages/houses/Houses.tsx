@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Box, Card, CardBody, Flex, Text, useToast } from "@chakra-ui/react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
-import Chart from "chart.js/auto";
-import Loader from "../../components/Loader";
-import { House } from "@shared-types/House";
+import { useToast } from "@chakra-ui/react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Trophy, TrendingUp, History, Calendar } from "lucide-react";
 import useAxios from "@/config/axios";
+import { House } from "@shared-types/House";
 
 const Houses = () => {
   const toast = useToast();
@@ -17,436 +18,73 @@ const Houses = () => {
 
   useEffect(() => {
     const monthNames = [
-      "all",
-      "january",
-      "february",
-      "march",
-      "april",
-      "may",
-      "june",
-      "july",
-      "august",
-      "september",
-      "october",
-      "november",
-      "december",
+      "all", "january", "february", "march", "april", "may", "june",
+      "july", "august", "september", "october", "november", "december"
     ];
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     setSelectedMonth(monthNames[currentMonth + 1]);
     setPrevMonth(monthNames[currentMonth]);
-
-    const currentYear = currentDate.getFullYear();
-    setCurrentYear(currentYear);
+    setCurrentYear(currentDate.getFullYear());
   }, []);
 
-  function calculateTotalPoints(data: House) {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear(); // Get the current year
+  const calculateTotalPoints = (data: House) => {
+    const totalInternalPoints = data?.points?.[currentYear]
+      ? Object.values(data.points[currentYear]).reduce((acc, month) => 
+          acc + (typeof month === 'number' ? month : (month?.internal || 0)), 0)
+      : 0;
 
-    let totalInternalPoints = 0;
-    let totalExternalPoints = 0;
-    let totalEventsPoints = 0;
+    const totalExternalPoints = data?.points?.[currentYear]
+      ? Object.values(data.points[currentYear]).reduce((acc, month) => 
+          acc + (typeof month === 'number' ? 0 : (month?.external || 0)), 0)
+      : 0;
 
-    if (data && data.points && data.points[currentYear]) {
-      const monthlyPoints = data.points[currentYear];
-      for (const month in monthlyPoints) {
-        if (monthlyPoints.hasOwnProperty(month)) {
-          // Separate internal, external, and events points
-          const { internal, external, events } = monthlyPoints[month];
-
-          // Add them to their respective totals
-          if (internal) totalInternalPoints += internal;
-          else totalInternalPoints += 0;
-          if (external) totalExternalPoints += external;
-          else totalExternalPoints += 0;
-          if (events) totalEventsPoints += events;
-          else totalEventsPoints += 0;
-        }
-      }
-    }
+    const totalEventsPoints = data?.points?.[currentYear]
+      ? Object.values(data.points[currentYear]).reduce((acc, month) => 
+          acc + (typeof month === 'number' ? 0 : (month?.events || 0)), 0)
+      : 0;
 
     return {
       totalInternal: totalInternalPoints,
       totalExternal: totalExternalPoints,
       totalEvents: totalEventsPoints,
+      total: totalInternalPoints + totalExternalPoints + totalEventsPoints
     };
-  }
+  };
 
-  useEffect(() => {
-    let hcl: Chart<"bar", any[], string>;
+  const prepareChartData = (type: 'monthly' | 'previous' | 'yearly') => {
+    if (!houses.length) return [];
 
-    if (!loading) {
-      let house1, house2, house3, house4;
-      if (selectedMonth === "all") {
-        house1 = calculateTotalPoints(houses[0]);
-        house2 = calculateTotalPoints(houses[1]);
-        house3 = calculateTotalPoints(houses[2]);
-        house4 = calculateTotalPoints(houses[3]);
-
-        house1 =
-          house1?.totalInternal ??
-          0 + house1?.totalExternal ??
-          0 + house1?.totalEvents ??
-          0;
-        house2 =
-          house2?.totalInternal ??
-          0 + house2?.totalExternal ??
-          0 + house2?.totalEvents ??
-          0;
-        house3 =
-          house3?.totalInternal ??
-          0 + house3?.totalExternal ??
-          0 + house3?.totalEvents ??
-          0;
-        house4 =
-          house4?.totalInternal ??
-          0 + house4?.totalExternal ??
-          0 + house4?.totalEvents ??
-          0;
+    return houses.map(house => {
+      let points = 0;
+      
+      if (type === 'yearly') {
+        const totals = calculateTotalPoints(house);
+        points = totals.total;
+      } else if (type === 'monthly') {
+        const monthData = house.points?.[currentYear]?.[selectedMonth];
+        points = typeof monthData === 'number' 
+          ? monthData 
+          : (monthData?.internal || 0) + (monthData?.external || 0) + (monthData?.events || 0);
       } else {
-        house1 = houses[0]?.points[2023]
-          ? houses[0]?.points[2023][selectedMonth]
-          : 0;
-        house2 = houses[1]?.points[2023]
-          ? houses[1]?.points[2023][selectedMonth]
-          : 0;
-        house3 = houses[2]?.points[2023]
-          ? houses[2]?.points[2023][selectedMonth]
-          : 0;
-        house4 = houses[3]?.points[2023]
-          ? houses[3]?.points[2023][selectedMonth]
-          : 0;
-
-        house1 =
-          typeof house1 === "number"
-            ? house1
-            : (house1?.internal ?? 0) +
-              (house1?.external ?? 0) +
-              (house1?.events ?? 0);
-        house2 =
-          typeof house2 === "number"
-            ? house2
-            : (house2?.internal ?? 0) +
-              (house2?.external ?? 0) +
-              (house2?.events ?? 0);
-        house3 =
-          typeof house3 === "number"
-            ? house3
-            : (house3?.internal ?? 0) +
-              (house3?.external ?? 0) +
-              (house3?.events ?? 0);
-        house4 =
-          typeof house4 === "number"
-            ? house4
-            : (house4?.internal ?? 0) +
-              (house4?.external ?? 0) +
-              (house4?.events ?? 0);
+        const monthData = house.points?.[currentYear]?.[prevMonth];
+        points = typeof monthData === 'number'
+          ? monthData
+          : (monthData?.internal || 0) + (monthData?.external || 0) + (monthData?.events || 0);
       }
 
-      const houseLeaderboard = document.getElementById(
-        "monthly"
-      ) as HTMLCanvasElement;
-      if (!houseLeaderboard) return;
-      hcl = new Chart(houseLeaderboard, {
-        type: "bar",
-        data: {
-          labels: [
-            houses[0].name,
-            houses[1].name,
-            houses[2].name,
-            houses[3].name,
-          ],
-          datasets: [
-            {
-              label: "Points",
-              data: [house1, house2, house3, house4],
-              backgroundColor: [
-                houses[0].color,
-                houses[1].color,
-                houses[2].color,
-                houses[3].color,
-              ],
-              borderColor: [
-                "rgba(255, 99, 132, 1)",
-                "rgba(255, 206, 86, 1)",
-                "rgba(54, 162, 235, 1)",
-                "rgba(75, 192, 192, 1)",
-              ],
-              borderWidth: 0,
-              borderRadius: 10,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false,
-            },
-          },
-          scales: {
-            x: {
-              grid: {
-                color: "#f2f2f2",
-                display: false,
-              },
-              ticks: {
-                display: true,
-              },
-              border: {
-                display: false,
-              },
-            },
-            y: {
-              grid: {
-                color: "#f2f2f2",
-                display: false,
-              },
-            },
-          },
-        },
-      });
-    }
-
-    return () => {
-      if (hcl) {
-        hcl?.destroy();
-      }
-    };
-  }, [loading, selectedMonth]);
-
-  useEffect(() => {
-    let hcl: Chart<"bar", any[], string>;
-
-    if (!loading) {
-      let house1, house2, house3, house4;
-      if (selectedMonth === "all") {
-        house1 = calculateTotalPoints(houses[0]);
-        house2 = calculateTotalPoints(houses[1]);
-        house3 = calculateTotalPoints(houses[2]);
-        house4 = calculateTotalPoints(houses[3]);
-
-        house1 =
-          house1?.totalInternal + house1?.totalExternal + house1?.totalEvents;
-        house2 =
-          house2?.totalInternal + house2?.totalExternal + house2?.totalEvents;
-        house3 =
-          house3?.totalInternal + house3?.totalExternal + house3?.totalEvents;
-        house4 =
-          house4?.totalInternal + house4?.totalExternal + house4?.totalEvents;
-      } else {
-        house1 = houses[0].points[2023] ? houses[0].points[2023][prevMonth] : 0;
-        house2 = houses[1].points[2023] ? houses[1].points[2023][prevMonth] : 0;
-        house3 = houses[2].points[2023] ? houses[2].points[2023][prevMonth] : 0;
-        house4 = houses[3].points[2023] ? houses[3].points[2023][prevMonth] : 0;
-
-        house1 =
-          typeof house1 === "number"
-            ? house1
-            : (house1?.internal ?? 0) +
-              (house1?.external ?? 0) +
-              (house1?.events ?? 0);
-        house2 =
-          typeof house2 === "number"
-            ? house2
-            : (house2?.internal ?? 0) +
-              (house2?.external ?? 0) +
-              (house2?.events ?? 0);
-        house3 =
-          typeof house3 === "number"
-            ? house3
-            : (house3?.internal ?? 0) +
-              (house3?.external ?? 0) +
-              (house3?.events ?? 0);
-        house4 =
-          typeof house4 === "number"
-            ? house4
-            : (house4?.internal ?? 0) +
-              (house4?.external ?? 0) +
-              (house4?.events ?? 0);
-      }
-
-      const houseLeaderboard = document?.getElementById(
-        "prev"
-      ) as HTMLCanvasElement;
-      if (!houseLeaderboard) return;
-      hcl = new Chart(houseLeaderboard, {
-        type: "bar",
-        data: {
-          labels: [
-            houses[0].name,
-            houses[1].name,
-            houses[2].name,
-            houses[3].name,
-          ],
-          datasets: [
-            {
-              label: "Points",
-              data: [house1, house2, house3, house4],
-              backgroundColor: [
-                houses[0].color,
-                houses[1].color,
-                houses[2].color,
-                houses[3].color,
-              ],
-              borderColor: [
-                "rgba(255, 99, 132, 1)",
-                "rgba(255, 206, 86, 1)",
-                "rgba(54, 162, 235, 1)",
-                "rgba(75, 192, 192, 1)",
-              ],
-              borderWidth: 0,
-              borderRadius: 10,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false,
-            },
-          },
-          scales: {
-            x: {
-              grid: {
-                color: "#f2f2f2",
-                display: false,
-              },
-              ticks: {
-                display: true,
-              },
-              border: {
-                display: false,
-              },
-            },
-            y: {
-              grid: {
-                color: "#f2f2f2",
-                display: false,
-              },
-            },
-          },
-        },
-      });
-    }
-
-    return () => {
-      if (hcl) {
-        hcl.destroy();
-      }
-    };
-  }, [loading, selectedMonth]);
-
-  useEffect(() => {
-    let hcl: Chart<"bar", number[], string>;
-
-    if (!loading) {
-      let house1, house2, house3, house4;
-
-      house1 = calculateTotalPoints(houses[0]);
-      house2 = calculateTotalPoints(houses[1]);
-      house3 = calculateTotalPoints(houses[2]);
-      house4 = calculateTotalPoints(houses[3]);
-
-      house1 =
-        (house1?.totalInternal ?? 0) +
-        (house1?.totalExternal ?? 0) +
-        (house1?.totalEvents ?? 0);
-      house2 =
-        (house2?.totalInternal ?? 0) +
-        (house2?.totalExternal ?? 0) +
-        (house2?.totalEvents ?? 0);
-      house3 =
-        (house3?.totalInternal ?? 0) +
-        (house3?.totalExternal ?? 0) +
-        (house3?.totalEvents ?? 0);
-      house4 =
-        (house4?.totalInternal ?? 0) +
-        (house4?.totalExternal ?? 0) +
-        (house4?.totalEvents ?? 0);
-
-      const houseLeaderboard = document.getElementById(
-        "yearly"
-      ) as HTMLCanvasElement;
-      hcl = new Chart(houseLeaderboard, {
-        type: "bar",
-        data: {
-          labels: [
-            houses[0].name,
-            houses[1].name,
-            houses[2].name,
-            houses[3].name,
-          ],
-          datasets: [
-            {
-              label: "Points",
-              data: [house1, house2, house3, house4],
-              backgroundColor: [
-                houses[0].color,
-                houses[1].color,
-                houses[2].color,
-                houses[3].color,
-              ],
-              borderColor: [
-                "rgba(255, 99, 132, 1)",
-                "rgba(255, 206, 86, 1)",
-                "rgba(54, 162, 235, 1)",
-                "rgba(75, 192, 192, 1)",
-              ],
-              borderWidth: 0,
-              borderRadius: 10,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-
-          plugins: {
-            legend: {
-              display: false,
-            },
-          },
-          scales: {
-            x: {
-              grid: {
-                color: "#f2f2f2",
-                display: false,
-              },
-              ticks: {
-                display: true,
-              },
-              border: {
-                display: false,
-              },
-            },
-            y: {
-              grid: {
-                color: "#f2f2f2",
-                display: false,
-              },
-            },
-          },
-        },
-      });
-    }
-
-    return () => {
-      if (hcl) {
-        hcl.destroy();
-      }
-    };
-  }, [loading, currentYear]);
+      return {
+        name: house.name,
+        points,
+        color: house.color
+      };
+    });
+  };
 
   const axios = useAxios();
 
   useEffect(() => {
-    axios
-      .get("/houses")
+    axios.get("/houses")
       .then((res) => {
         setHouses(res.data.data);
         setLoading(false);
@@ -461,82 +99,163 @@ const Houses = () => {
           isClosable: true,
         });
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   }, []);
 
-  if (!loading) {
+  if (loading) {
     return (
-      <>
-        <Box className="houses">
-          <Flex className="graph-wrapper" gap="20px" wrap="wrap">
-            {houses.map((house) => (
-              <Card
-                key={house._id}
-                className="house-card"
-                bg={house.color}
-                cursor="pointer"
-                onClick={() => {
-                  navigate(`/houses/${house._id}`);
-                }}
-              >
-                <CardBody>
-                  <Text textAlign="center">{house.name}</Text>
-                </CardBody>
-              </Card>
-            ))}
-          </Flex>
-          <Box className="graph-wrapper">
-            <Flex gap="20px" justifyContent="space-between" wrap="wrap">
-              <Box p="20px" width="32%" className="graphs" height="65vh">
-                <Text fontSize="25px" mb="50px">
-                  Leaderboard - Monthly
-                </Text>
-                <Box height="80%">
-                  <canvas id="monthly" height="200px"></canvas>
-                </Box>
-              </Box>
-
-              <Box p="20px" width="32%" className="graphs" height="65vh">
-                <Text
-                  fontSize="25px"
-                  mb="50px"
-                  alignSelf="flex-end"
-                  textAlign="center"
-                  width="100%"
-                >
-                  Leaderboard - Previous Month
-                </Text>
-                <Box height="80%">
-                  {" "}
-                  <canvas id="prev"></canvas>
-                </Box>
-              </Box>
-
-              <Box p="20px" width="32%" className="graphs" height="65vh">
-                <Text
-                  fontSize="25px"
-                  mb="50px"
-                  alignSelf="flex-start"
-                  textAlign="start"
-                  width="100%"
-                >
-                  Leaderboard - Yearly
-                </Text>
-                <Box height="80%">
-                  {" "}
-                  <canvas id="yearly"></canvas>
-                </Box>
-              </Box>
-            </Flex>
-          </Box>
-        </Box>
-      </>
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
     );
-  } else {
-    return <Loader />;
   }
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-100">
+          <p className="font-semibold">{payload[0].payload.name}</p>
+          <p className="text-gray-600">Points: {payload[0].value}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-7xl mx-auto"
+      >
+        {/* House Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {houses.map((house) => (
+            <motion.div
+              key={house._id}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="cursor-pointer"
+              onClick={() => navigate(`/houses/${house._id}`)}
+            >
+              <div 
+                className="rounded-xl p-6 shadow-lg"
+                style={{ backgroundColor: house.color }}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white">{house.name}</h3>
+                  <Trophy className="w-6 h-6 text-white opacity-80" />
+                </div>
+                <p className="mt-2 text-white opacity-90">
+                  {calculateTotalPoints(house).total} Points
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Monthly Leaderboard */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white rounded-xl shadow-lg p-6 w-full"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <Calendar className="w-6 h-6 text-blue-500" />
+              <h3 className="text-xl font-semibold">Monthly Leaderboard</h3>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={prepareChartData('monthly')}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                >
+                  <XAxis 
+                    dataKey="name" 
+                    interval={0}
+                    tick={{ fontSize: 12 }}
+                    height={60}
+                    angle={-45}
+                    textAnchor="end"
+                  />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="points" fill="#4F46E5" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Previous Month */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-xl shadow-lg p-6 w-full"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <History className="w-6 h-6 text-purple-500" />
+              <h3 className="text-xl font-semibold">Previous Month</h3>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={prepareChartData('previous')}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                >
+                  <XAxis 
+                    dataKey="name" 
+                    interval={0}
+                    tick={{ fontSize: 12 }}
+                    height={60}
+                    angle={-45}
+                    textAnchor="end"
+                  />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="points" fill="#9333EA" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Yearly Leaderboard */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white rounded-xl shadow-lg p-6 w-full"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <TrendingUp className="w-6 h-6 text-green-500" />
+              <h3 className="text-xl font-semibold">Yearly Leaderboard</h3>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={prepareChartData('yearly')}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                >
+                  <XAxis 
+                    dataKey="name" 
+                    interval={0}
+                    tick={{ fontSize: 12 }}
+                    height={60}
+                    angle={-45}
+                    textAnchor="end"
+                  />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="points" fill="#10B981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </div>
+  );
 };
 
 export default Houses;

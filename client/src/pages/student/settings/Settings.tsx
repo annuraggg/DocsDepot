@@ -1,19 +1,14 @@
 import React, { useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   Box,
-  Divider,
-  Heading,
-  FormControl,
-  FormLabel,
-  InputGroup,
-  Switch,
   useColorMode,
-  Button,
-  InputRightElement,
-  Text,
-  Input,
   useToast,
+  Card,
+  CardBody,
+  Container,
 } from "@chakra-ui/react";
+import { Moon, Sun, Eye, EyeOff, Save, Shield } from "lucide-react";
 import Loader from "../../../components/Loader";
 import useAxios from "@/config/axios";
 
@@ -23,23 +18,19 @@ const Settings = () => {
   const toast = useToast();
 
   const [show1, setShow1] = React.useState(false);
-  const handleClick1 = () => setShow1(!show1);
-
   const [show2, setShow2] = React.useState(false);
-  const handleClick2 = () => setShow2(!show2);
-
   const [show3, setShow3] = React.useState(false);
-  const handleClick3 = () => setShow3(!show3);
 
   const [oldPass, setOldPass] = React.useState("");
   const [newPass, setNewPass] = React.useState("");
   const [confirmPass, setConfirmPass] = React.useState("");
   const [err, setErr] = React.useState("");
-
   const [isButtonLoading, setIsButtonLoading] = React.useState(false);
 
   const axios = useAxios();
+  const { colorMode, toggleColorMode } = useColorMode();
 
+  // Rest of the validation and password change logic remains exactly the same
   const validatePassMatch = (pass: string) => {
     setConfirmPass(pass);
     if (pass === newPass) {
@@ -66,21 +57,11 @@ const Settings = () => {
       setIsButtonLoading(true);
 
       function isPasswordValid(password: string) {
-        if (password.length < 9) {
-          return false;
-        }
-        if (!/[A-Z]/.test(password)) {
-          return false;
-        }
-        if (!/[a-z]/.test(password)) {
-          return false;
-        }
-        if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)) {
-          return false;
-        }
-        if (!/\d/.test(password)) {
-          return false;
-        }
+        if (password.length < 9) return false;
+        if (!/[A-Z]/.test(password)) return false;
+        if (!/[a-z]/.test(password)) return false;
+        if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)) return false;
+        if (!/\d/.test(password)) return false;
         return true;
       }
 
@@ -96,7 +77,7 @@ const Settings = () => {
       axios
         .post("/auth/profile/password", {
           oldPass: oldPass.toString(),
-          newPass: newPass.toString,
+          newPass: newPass.toString(),
         })
         .then(async (res) => {
           setIsButtonLoading(false);
@@ -144,12 +125,6 @@ const Settings = () => {
     }
   };
 
-  const { colorMode, toggleColorMode } = useColorMode();
-
-  useEffect(() => {
-    setLoading(false);
-  }, []);
-
   const setDark = () => {
     if (colorMode === "dark") {
       toggleColorMode();
@@ -163,6 +138,10 @@ const Settings = () => {
 
     window.location.reload();
   };
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     if (toastDispatched) {
@@ -179,84 +158,183 @@ const Settings = () => {
 
   if (!loading) {
     return (
-      <>
-        <Box className="StudentSettings">
-          <Box className="wrapper">
-            <Heading alignSelf="flex-start">Settings</Heading>
-            <FormControl
-              display="flex"
-              alignItems="center"
-              className="formcontrol"
-            >
-              <FormLabel htmlFor="email-alerts" mb="0">
-                Dark Mode
-              </FormLabel>
-              <Switch
-                id="email-alerts"
-                onChange={() => {
-                  setDark();
-                }}
-                isChecked={colorMode === "dark" ? true : false}
-              />
-            </FormControl>
-            <Divider />
-            <FormControl display="flex" flexDirection="column" gap="20px">
-              <Text>Change Password</Text>
-              <InputGroup size="md">
-                <Input
-                  pr="4.5rem"
-                  type={show1 ? "text" : "password"}
-                  placeholder="Enter Old Password"
-                  onChange={(e) => setOldPass(e?.target?.value)}
-                />
-                <InputRightElement width="4.5rem">
-                  <Button h="1.75rem" size="sm" onClick={handleClick1}>
-                    {show1 ? "Hide" : "Show"}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-              <InputGroup size="md">
-                <Input
-                  pr="4.5rem"
-                  type={show2 ? "text" : "password"}
-                  placeholder="Enter New Password"
-                  onChange={(e) => setNewPass(e?.target?.value)}
-                />
-                <InputRightElement width="4.5rem">
-                  <Button h="1.75rem" size="sm" onClick={handleClick2}>
-                    {show2 ? "Hide" : "Show"}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-              <InputGroup size="md">
-                <Input
-                  pr="4.5rem"
-                  type={show3 ? "text" : "password"}
-                  placeholder="Confirm New Password"
-                  onChange={(e) => validatePassMatch(e?.target?.value)}
-                />
-                <InputRightElement width="4.5rem">
-                  <Button h="1.75rem" size="sm" onClick={handleClick3}>
-                    {show3 ? "Hide" : "Show"}
-                  </Button>
-                </InputRightElement>
-              </InputGroup>
-              <Text color="red">{err}</Text>
-            </FormControl>
-            <Button
-              isLoading={isButtonLoading}
-              alignSelf="flex-end"
-              colorScheme="green"
-              isDisabled={!toastDispatched}
-              onClick={() => {
-                sendNewPass();
-              }}
-            >
-              Save
-            </Button>
-          </Box>
-        </Box>
-      </>
+      <Container maxW="container.md" py={8}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card
+            className="w-full shadow-xl rounded-xl"
+            style={{
+              backgroundColor: colorMode === 'dark' ? '#1a202c' : '#ffffff',
+            }}
+          >
+            <CardBody className="p-8">
+              <div className="flex justify-between items-center mb-8">
+                <h1 
+                  className="text-3xl font-bold"
+                  style={{
+                    color: colorMode === 'dark' ? '#ffffff' : '#1a202c'
+                  }}
+                >
+                  Settings
+                </h1>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`p-2 rounded-lg ${
+                    colorMode === 'dark' 
+                      ? 'bg-gray-700 hover:bg-gray-600' 
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                  onClick={setDark}
+                >
+                  {colorMode === "dark" ? (
+                    <Sun className="w-6 h-6 text-yellow-500" />
+                  ) : (
+                    <Moon className="w-6 h-6 text-gray-600" />
+                  )}
+                </motion.button>
+              </div>
+
+              <div className="space-y-6">
+                <div className={`border-t pt-6 ${
+                  colorMode === 'dark' 
+                    ? 'border-gray-700' 
+                    : 'border-gray-200'
+                }`}>
+                  <div className="flex items-center gap-3 mb-6">
+                    <Shield className="w-5 h-5 text-blue-500" />
+                    <h2 
+                      className="text-xl font-semibold"
+                      style={{
+                        color: colorMode === 'dark' ? '#ffffff' : '#1a202c'
+                      }}
+                    >
+                      Change Password
+                    </h2>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <input
+                        type={show1 ? "text" : "password"}
+                        placeholder="Enter Old Password"
+                        onChange={(e) => setOldPass(e.target.value)}
+                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                          colorMode === 'dark'
+                            ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
+                            : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'
+                        }`}
+                      />
+                      <button
+                        onClick={() => setShow1(!show1)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                      >
+                        {show1 ? (
+                          <EyeOff className={`w-5 h-5 ${
+                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`} />
+                        ) : (
+                          <Eye className={`w-5 h-5 ${
+                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`} />
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <input
+                        type={show2 ? "text" : "password"}
+                        placeholder="Enter New Password"
+                        onChange={(e) => setNewPass(e.target.value)}
+                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                          colorMode === 'dark'
+                            ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
+                            : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'
+                        }`}
+                      />
+                      <button
+                        onClick={() => setShow2(!show2)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                      >
+                        {show2 ? (
+                          <EyeOff className={`w-5 h-5 ${
+                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`} />
+                        ) : (
+                          <Eye className={`w-5 h-5 ${
+                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`} />
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="relative">
+                      <input
+                        type={show3 ? "text" : "password"}
+                        placeholder="Confirm New Password"
+                        onChange={(e) => validatePassMatch(e.target.value)}
+                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                          colorMode === 'dark'
+                            ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
+                            : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'
+                        }`}
+                      />
+                      <button
+                        onClick={() => setShow3(!show3)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                      >
+                        {show3 ? (
+                          <EyeOff className={`w-5 h-5 ${
+                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`} />
+                        ) : (
+                          <Eye className={`w-5 h-5 ${
+                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`} />
+                        )}
+                      </button>
+                    </div>
+
+                    {err && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-red-500 text-sm mt-2"
+                      >
+                        {err}
+                      </motion.p>
+                    )}
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={!toastDispatched || isButtonLoading}
+                  onClick={sendNewPass}
+                  className={`flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-500 text-white rounded-lg font-medium transition-all duration-200
+                    ${isButtonLoading || !toastDispatched
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-blue-600'
+                    }`}
+                >
+                  {isButtonLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save Changes
+                    </>
+                  )}
+                </motion.button>
+              </div>
+            </CardBody>
+          </Card>
+        </motion.div>
+      </Container>
     );
   } else {
     return <Loader />;

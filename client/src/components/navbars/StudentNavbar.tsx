@@ -137,7 +137,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
         </Box>
 
         <MenuList>
-          <Link to="/settings">
+          <Link to="/student/settings">
             <MenuItem value="settings">Settings</MenuItem>
           </Link>
           <Link to="/profile">
