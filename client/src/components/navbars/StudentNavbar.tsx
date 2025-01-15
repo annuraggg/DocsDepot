@@ -73,7 +73,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
         <div
           className="cursor-pointer"
           onClick={() => {
-            navigate("/");
+            navigate("/student");
           }}
         >
           <img src={Logo} className="w-8" alt="Logo" />
@@ -82,7 +82,7 @@ const Navbar = ({ notifications }: { notifications?: Notification[] }) => {
           <Menu>
             <MenuButton>Pages</MenuButton>
             <MenuList>
-              <Link to="/certificates">
+              <Link to="/student/certificates">
                 <MenuItem value="certificates">Certificates</MenuItem>
               </Link>
               <Link to="/houses">

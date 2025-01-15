@@ -51,9 +51,7 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.post("/student", {
-        mid: localUser?.mid?.toString(),
-      });
+      const response = await axios.get("/dashboard/student");
       setData(response.data.data);
     } catch (error) {
       toast({

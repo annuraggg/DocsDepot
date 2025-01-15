@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 import {
   Container,
   VStack,
@@ -18,13 +18,13 @@ import {
   PopoverBody,
   PopoverFooter,
   ButtonGroup,
-} from '@chakra-ui/react';
-import { FileBadge as CertIcon, Upload, Filter, Search } from 'lucide-react';
-import { CertificateFilters } from './CertificateFilters';
-import { CertificateTable } from './CertificateTable';
-import { UploadModal } from './UploadModal';
-import { useCertificates } from './useCertificates';
-import Loader from '../../../components/Loader';
+} from "@chakra-ui/react";
+import { FileBadge as CertIcon, Upload, Filter, Search } from "lucide-react";
+import { CertificateFilters } from "./CertificateFilters";
+import CertificateTable from "./CertificateTable";
+import { UploadModal } from "./UploadModal";
+import { useCertificates } from "./useCertificates";
+import Loader from "../../../components/Loader";
 import useAxios from "@/config/axios";
 
 const containerVariants = {
@@ -32,9 +32,9 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 const itemVariants = {
@@ -44,14 +44,22 @@ const itemVariants = {
     opacity: 1,
     transition: {
       type: "spring",
-      stiffness: 100
-    }
-  }
+      stiffness: 100,
+    },
+  },
 };
 
 const Certificates: React.FC = () => {
-  const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
-  const { isOpen: isFilterOpen, onOpen: onFilterOpen, onClose: onFilterClose } = useDisclosure();
+  const {
+    isOpen: isUploadOpen,
+    onOpen: onUploadOpen,
+    onClose: onUploadClose,
+  } = useDisclosure();
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
   const {
     certificates,
     loading,
@@ -63,7 +71,7 @@ const Certificates: React.FC = () => {
     resetFilters,
   } = useCertificates();
 
-  const hasActiveFilters = Object.values(filters).some(filter => 
+  const hasActiveFilters = Object.values(filters).some((filter) =>
     Array.isArray(filter) ? filter.length > 0 : !!filter
   );
 
@@ -82,8 +90,8 @@ const Certificates: React.FC = () => {
             <VStack spacing={6} align="stretch">
               <Flex justify="space-between" align="center">
                 <HStack spacing={4}>
-                  <Icon as={CertIcon} boxSize={8} color="green.500" />
-                  <Heading size="lg">Your Certificates</Heading>
+                  <Icon as={CertIcon} boxSize={6} color="green.500" />
+                  <Heading size="md">Your Certificates</Heading>
                 </HStack>
                 <HStack spacing={3}>
                   <Popover
@@ -97,10 +105,9 @@ const Certificates: React.FC = () => {
                         leftIcon={<Filter />}
                         variant={hasActiveFilters ? "solid" : "outline"}
                         colorScheme={hasActiveFilters ? "green" : "gray"}
-                        size="lg"
                         onClick={onFilterOpen}
                       >
-                        Filters {hasActiveFilters && '(Active)'}
+                        Filters {hasActiveFilters && "(Active)"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent
@@ -146,7 +153,6 @@ const Certificates: React.FC = () => {
                   <Button
                     leftIcon={<Upload />}
                     colorScheme="green"
-                    size="lg"
                     onClick={onUploadOpen}
                     className="shadow-lg hover:shadow-xl transition-all duration-300"
                   >
@@ -164,10 +170,11 @@ const Certificates: React.FC = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   borderRadius="lg"
+                  fontSize="md"
                   bg="white"
                   _focus={{
-                    borderColor: 'green.500',
-                    boxShadow: '0 0 0 1px var(--chakra-colors-green-500)'
+                    borderColor: "green.500",
+                    boxShadow: "0 0 0 1px var(--chakra-colors-green-500)",
                   }}
                 />
               </InputGroup>

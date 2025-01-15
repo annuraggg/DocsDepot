@@ -28,7 +28,8 @@ export const CertificateFilters: React.FC<CertificateFiltersProps> = ({
     setFilters,
 }) => {
     const handleFilterChange = (filterType: keyof FilterState, values: string[]) => {
-        setFilters({ ...filters, [filterType]: values });
+        console.log(values)
+        setFilters({ ...filters, [filterType]: values[0] === "" ? [] : values });
     };
 
     return (
@@ -43,7 +44,7 @@ export const CertificateFilters: React.FC<CertificateFiltersProps> = ({
                         <VStack align="start" spacing={2}>
                             <Checkbox value="internal">Internal</Checkbox>
                             <Checkbox value="external">External</Checkbox>
-                            <Checkbox value="events">Events</Checkbox>
+                            <Checkbox value="event">Events</Checkbox>
                         </VStack>
                     </CheckboxGroup>
                 </FormControl>
@@ -58,6 +59,7 @@ export const CertificateFilters: React.FC<CertificateFiltersProps> = ({
                             <Checkbox value="beginner">Beginner</Checkbox>
                             <Checkbox value="intermediate">Intermediate</Checkbox>
                             <Checkbox value="advanced">Advanced</Checkbox>
+                            <Checkbox value="Department">Department</Checkbox>
                         </VStack>
                     </CheckboxGroup>
                 </FormControl>
