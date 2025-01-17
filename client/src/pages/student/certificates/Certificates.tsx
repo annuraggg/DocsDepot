@@ -193,6 +193,7 @@ const Certificates: React.FC = () => {
             const axios = useAxios();
             const res = await axios.post("/certificates", formData);
             if (res.status === 200) {
+              refreshCertificates();
             }
           }}
         />

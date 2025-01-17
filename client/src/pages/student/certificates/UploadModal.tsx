@@ -142,20 +142,37 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     }
 
     const formData = new FormData();
-    formData.append("title", certificateName);
-    formData.append("issuingOrg", issuingOrg);
-    formData.append("issueMonth", issueMonth);
-    formData.append("issueYear", issueYear);
-    formData.append("expires", expiry.toString());
+
+    // Add basic certificate information
+    const issue = {
+      month: issueMonth,
+      year: parseInt(issueYear),
+    };
+
+    const expiry = {
+      month: expiryMonth,
+      year: parseInt(expiryYear),
+    };
+
+    formData.append("name", certificateName);
+    formData.append("issuingOrganization", issuingOrg);
+    formData.append("issueDate", JSON.stringify(issue));
+    // Handle expiration data
+    formData.append("expires", expiry ? "true" : "false");
     if (expiry) {
-      formData.append("expiryMonth", expiryMonth);
-      formData.append("expiryYear", expiryYear);
+      formData.append("expirationDate", JSON.stringify(expiry));
+    } else {
+      formData.append("expirationDate", JSON.stringify({}));
     }
-    formData.append("certificateType", certificateType);
-    formData.append("certificateLevel", certificateLevel);
-    formData.append("certificateURL", certificateUrl);
-    if (file) formData.append("certificate", file);
+
+    // Add other certificate details
+    formData.append("type", certificateType);
+    formData.append("level", certificateLevel);
     formData.append("uploadType", certificateUrl ? "url" : "file");
+
+    // Add optional fields
+    if (certificateUrl) formData.append("url", certificateUrl);
+    if (file) formData.append("certificate", file);
 
     try {
       await onUpload(formData);
@@ -167,7 +184,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         isClosable: true,
         position: "top-right",
       });
-      
     } catch (error) {
       toast({
         title: "Error",

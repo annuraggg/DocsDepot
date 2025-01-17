@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Box,
   useColorMode,
   useToast,
   Card,
@@ -126,17 +125,11 @@ const Settings = () => {
   };
 
   const setDark = () => {
-    if (colorMode === "dark") {
-      toggleColorMode();
-    } else {
-      toggleColorMode();
-    }
+    toggleColorMode();
 
-    axios.post("/student/profile/theme", {
+    axios.post("/auth/profile/theme", {
       colorMode: colorMode === "dark" ? "light" : "dark",
     });
-
-    window.location.reload();
   };
 
   useEffect(() => {
@@ -167,15 +160,15 @@ const Settings = () => {
           <Card
             className="w-full shadow-xl rounded-xl"
             style={{
-              backgroundColor: colorMode === 'dark' ? '#1a202c' : '#ffffff',
+              backgroundColor: colorMode === "dark" ? "#1a202c" : "#ffffff",
             }}
           >
             <CardBody className="p-8">
               <div className="flex justify-between items-center mb-8">
-                <h1 
+                <h1
                   className="text-3xl font-bold"
                   style={{
-                    color: colorMode === 'dark' ? '#ffffff' : '#1a202c'
+                    color: colorMode === "dark" ? "#ffffff" : "#1a202c",
                   }}
                 >
                   Settings
@@ -184,9 +177,9 @@ const Settings = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={`p-2 rounded-lg ${
-                    colorMode === 'dark' 
-                      ? 'bg-gray-700 hover:bg-gray-600' 
-                      : 'bg-gray-100 hover:bg-gray-200'
+                    colorMode === "dark"
+                      ? "bg-gray-700 hover:bg-gray-600"
+                      : "bg-gray-100 hover:bg-gray-200"
                   }`}
                   onClick={setDark}
                 >
@@ -199,17 +192,17 @@ const Settings = () => {
               </div>
 
               <div className="space-y-6">
-                <div className={`border-t pt-6 ${
-                  colorMode === 'dark' 
-                    ? 'border-gray-700' 
-                    : 'border-gray-200'
-                }`}>
+                <div
+                  className={`border-t pt-6 ${
+                    colorMode === "dark" ? "border-gray-700" : "border-gray-200"
+                  }`}
+                >
                   <div className="flex items-center gap-3 mb-6">
                     <Shield className="w-5 h-5 text-blue-500" />
-                    <h2 
+                    <h2
                       className="text-xl font-semibold"
                       style={{
-                        color: colorMode === 'dark' ? '#ffffff' : '#1a202c'
+                        color: colorMode === "dark" ? "#ffffff" : "#1a202c",
                       }}
                     >
                       Change Password
@@ -223,9 +216,9 @@ const Settings = () => {
                         placeholder="Enter Old Password"
                         onChange={(e) => setOldPass(e.target.value)}
                         className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          colorMode === 'dark'
-                            ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
-                            : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'
+                          colorMode === "dark"
+                            ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                            : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
                         }`}
                       />
                       <button
@@ -233,13 +226,21 @@ const Settings = () => {
                         className="absolute right-3 top-1/2 -translate-y-1/2"
                       >
                         {show1 ? (
-                          <EyeOff className={`w-5 h-5 ${
-                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`} />
+                          <EyeOff
+                            className={`w-5 h-5 ${
+                              colorMode === "dark"
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
+                          />
                         ) : (
-                          <Eye className={`w-5 h-5 ${
-                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`} />
+                          <Eye
+                            className={`w-5 h-5 ${
+                              colorMode === "dark"
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
+                          />
                         )}
                       </button>
                     </div>
@@ -250,9 +251,9 @@ const Settings = () => {
                         placeholder="Enter New Password"
                         onChange={(e) => setNewPass(e.target.value)}
                         className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          colorMode === 'dark'
-                            ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
-                            : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'
+                          colorMode === "dark"
+                            ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                            : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
                         }`}
                       />
                       <button
@@ -260,13 +261,21 @@ const Settings = () => {
                         className="absolute right-3 top-1/2 -translate-y-1/2"
                       >
                         {show2 ? (
-                          <EyeOff className={`w-5 h-5 ${
-                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`} />
+                          <EyeOff
+                            className={`w-5 h-5 ${
+                              colorMode === "dark"
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
+                          />
                         ) : (
-                          <Eye className={`w-5 h-5 ${
-                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`} />
+                          <Eye
+                            className={`w-5 h-5 ${
+                              colorMode === "dark"
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
+                          />
                         )}
                       </button>
                     </div>
@@ -277,9 +286,9 @@ const Settings = () => {
                         placeholder="Confirm New Password"
                         onChange={(e) => validatePassMatch(e.target.value)}
                         className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          colorMode === 'dark'
-                            ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
-                            : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'
+                          colorMode === "dark"
+                            ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                            : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
                         }`}
                       />
                       <button
@@ -287,13 +296,21 @@ const Settings = () => {
                         className="absolute right-3 top-1/2 -translate-y-1/2"
                       >
                         {show3 ? (
-                          <EyeOff className={`w-5 h-5 ${
-                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`} />
+                          <EyeOff
+                            className={`w-5 h-5 ${
+                              colorMode === "dark"
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
+                          />
                         ) : (
-                          <Eye className={`w-5 h-5 ${
-                            colorMode === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`} />
+                          <Eye
+                            className={`w-5 h-5 ${
+                              colorMode === "dark"
+                                ? "text-gray-400"
+                                : "text-gray-500"
+                            }`}
+                          />
                         )}
                       </button>
                     </div>
@@ -316,9 +333,10 @@ const Settings = () => {
                   disabled={!toastDispatched || isButtonLoading}
                   onClick={sendNewPass}
                   className={`flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-500 text-white rounded-lg font-medium transition-all duration-200
-                    ${isButtonLoading || !toastDispatched
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:bg-blue-600'
+                    ${
+                      isButtonLoading || !toastDispatched
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-blue-600"
                     }`}
                 >
                   {isButtonLoading ? (
