@@ -3,10 +3,8 @@ import { Button, useDisclosure, useToast } from "@chakra-ui/react";
 import { Printer } from "lucide-react";
 import Loader from "@/components/Loader";
 import useAxios from "@/config/axios";
-import type {
-  Certificate as ICertificate,
-  Comment,
-} from "@shared-types/Certificate";
+import type { ExtendedCertificate as ICertificate } from "@/types/ExtendedCertificate";
+import { Comment } from "@shared-types/Certificate";
 import GreenTheme from "./GreenTheme";
 import {
   Modal,
@@ -72,10 +70,13 @@ const Certificate = () => {
     const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `${certificate?.certificateName}.${certificate?.ext}`);
+    link.setAttribute(
+      "download",
+      `${certificate?.name}.${certificate?.extension}`
+    );
     document.body.appendChild(link);
     link.click();
-  }
+  };
 
   const addComment = async (
     comment: Omit<Comment, "_id" | "createdAt">
@@ -112,7 +113,7 @@ const Certificate = () => {
         {certificate?.uploadType === "url" && (
           <Button
             className="w-full mt-4"
-            onClick={() => window.open(certificate.certificateURL!)}
+            onClick={() => window.open(certificate.url!)}
             colorScheme="blue"
           >
             View Certificate
@@ -129,7 +130,7 @@ const Certificate = () => {
           </Button>
         )}
 
-        {certificate?.sha256 || certificate?.md5 ? (
+        {certificate?.hashes?.sha256 || certificate?.hashes?.md5 ? (
           <Button className="w-full mt-4" onClick={onOpen} colorScheme="teal">
             Verify Hashes
           </Button>
@@ -148,11 +149,11 @@ const Certificate = () => {
             </p>
           )}
 
-          {certificate?.status === "approved" && (
+          {/* {certificate?.status === "approved" && (
             <p className="text-green-500 text-sm">
               House Earned {certificate.xp} XP from this certificate
             </p>
-          )}
+          )} */}
         </div>
 
         {editPrivilege && (
@@ -180,24 +181,24 @@ const Certificate = () => {
           <ModalCloseButton />
           <ModalBody>
             <p>
-              <strong>MD5:</strong> {certificate?.md5}
+              <strong>MD5:</strong> {certificate?.hashes?.md5}
               <Button
                 size="xs"
                 ml={2}
                 variant="ghost"
-                onClick={() => handleCopy(certificate?.md5 || "")}
+                onClick={() => handleCopy(certificate?.hashes?.md5 || "")}
               >
                 <CopyIcon size={20} />
               </Button>
             </p>
             <p>
-              <strong>SHA256:</strong> {certificate?.sha256}
+              <strong>SHA256:</strong> {certificate?.hashes?.sha256}
               <Button
                 size="xs"
                 ml={2}
                 paddingY={5}
                 variant="ghost"
-                onClick={() => handleCopy(certificate?.sha256 || "")}
+                onClick={() => handleCopy(certificate?.hashes?.sha256 || "")}
               >
                 <CopyIcon size={20} />
               </Button>

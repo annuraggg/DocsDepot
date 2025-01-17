@@ -31,6 +31,7 @@ interface AcademicDetails {
 type Gender = "M" | "F";
 
 interface User {
+  _id: string;
   mid: string;
   password: string;
   fname: string;

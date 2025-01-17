@@ -1,4 +1,4 @@
-import type { Certificate } from "@shared-types/Certificate";
+import type { ExtendedCertificate as Certificate } from "@/types/ExtendedCertificate";
 import CertificateBg from "@/assets/img/certificate-bg.svg";
 import React from "react";
 
@@ -38,8 +38,8 @@ const GreenTheme = (
 
         <div className="mb-12">
           <p className="text-gray-500">
-            {titleCase(certificate?.certificateType)} Certificate -
-            {titleCase(certificate?.certificateLevel)} Level
+            {titleCase(certificate?.type)} Certificate -
+            {titleCase(certificate?.level)} Level
           </p>
         </div>
 
@@ -47,27 +47,27 @@ const GreenTheme = (
           <p className="text-lg text-gray-600 font-serif">
             This certificate is issued to
           </p>
-          <p className="text-7xl  text-green-500 font-rouge">{certificate?.user}</p>
+          <p className="text-7xl  text-green-500 font-rouge">{certificate?.user?.fname} {certificate?.user?.lname}</p>
 
           <p className="text-xl text-gray-600 font-serif mt-5">for</p>
 
-          <h3>{certificate?.certificateName}</h3>
-          <p className=" text-gray-700">Issued by {certificate?.issuingOrg}</p>
+          <h3>{certificate?.name}</h3>
+          <p className=" text-gray-700">Issued by {certificate?.issuingOrganization}</p>
         </div>
 
         <div className="flex justify-center gap-24 text-gray-600 font-serif">
           <div>
             <p className="text-sm">Issue Date</p>
             <p className="text-lg">
-              {titleCase(certificate?.issueMonth)} {certificate?.issueYear}
+              {titleCase(certificate?.issueDate?.month)} {certificate?.issueDate?.year}
             </p>
           </div>
           {certificate?.expires && (
             <div>
               <p className="text-sm">Valid Until</p>
               <p className="text-lg">
-                {titleCase(certificate?.expiryMonth || "")}{" "}
-                {certificate?.expiryYear}
+                {titleCase(certificate?.expirationDate?.month || "")}{" "}
+                {certificate?.expirationDate?.year}
               </p>
             </div>
           )}

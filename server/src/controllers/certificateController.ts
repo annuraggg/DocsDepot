@@ -6,6 +6,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Token } from "scriptopia-types/Token.js";
+import { Certificate as ICertificate } from "scriptopia-types/Certificate.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,26 +16,16 @@ type CertificateType = "external" | "internal" | "event";
 type CertificateLevel = "beginner" | "intermediate" | "advanced" | "department";
 type UploadType = "url" | "print" | "file";
 
-interface CertificateFormData {
-  user: string;
-  title: string;
-  issuingOrg: string;
-  issueMonth: string;
-  issueYear: string;
-  expires: string;
-  expiryMonth: string;
-  expiryYear: string;
-  certificateType: string;
-  certificateLevel: string;
-  uploadType: string;
-  certificateURL?: string;
-  certificate?: File;
-}
-
 // Ensure certificates directory exists
 const certificatesPath = path.join(__dirname, "..", "certificates");
 if (!fs.existsSync(certificatesPath)) {
   fs.mkdirSync(certificatesPath, { recursive: true });
+}
+
+interface ExtendedCertificate extends Omit<ICertificate, "issueDate" | "expirationDate"> {
+  certificate: File;
+  issueDate: string;
+  expirationDate: string;
 }
 
 // File type validation
@@ -84,7 +75,7 @@ const getCertificatesByUserId = async (c: Context) => {
   try {
     const { _id } = (await c.get("user")) as Token;
     const { id } = c.req.param();
-    const certificates = await Certificate.find({ _id: id ? id : _id })
+    const certificates = await Certificate.find({ user: id ? id : _id })
       .populate("user")
       .lean();
 
@@ -106,22 +97,23 @@ const getCertificatesByUserId = async (c: Context) => {
 const createCertificate = async (c: Context) => {
   try {
     const formData =
-      (await c.req.parseBody()) as unknown as CertificateFormData;
+      (await c.req.parseBody()) as unknown as ExtendedCertificate;
     const user = c.get("user") as Token;
 
     console.log(formData);
+    console.log(formData?.level)
 
     // Extract file if present
     const certificateFile = formData.certificate;
-    let certificateURL: string | undefined = formData.certificateURL;
+    let url: string | undefined = formData.url ?? undefined;
 
     // Validate certificate type
-    if (!isCertificateType(formData.certificateType)) {
+    if (!isCertificateType(formData.type)) {
       return sendError(c, 400, "Invalid certificate type", null);
     }
 
     // Validate certificate level
-    if (!isCertificateLevel(formData.certificateLevel)) {
+    if (!isCertificateLevel(formData.level)) {
       return sendError(c, 400, "Invalid certificate level", null);
     }
 
@@ -130,21 +122,27 @@ const createCertificate = async (c: Context) => {
       return sendError(c, 400, "Invalid upload type", null);
     }
 
+    const issueDate = JSON.parse(formData.issueDate as string);
+    const expirationDate = JSON.parse(formData.expirationDate as string);
+
     const certificate = new Certificate({
       user: user._id,
-      certificateName: formData.title || "",
-      issuingOrg: formData.issuingOrg || "",
-      issueMonth: formData.issueMonth || "",
-      issueYear: parseInt(formData.issueYear) || new Date().getFullYear(),
-      expires: formData.expires === "true",
-      expiryMonth: formData.expiryMonth || "",
-      expiryYear: parseInt(formData.expiryYear) || new Date().getFullYear(),
-      certificateType: formData.certificateType as CertificateType,
-      certificateLevel: formData.certificateLevel as CertificateLevel,
+      name: formData.name || "",
+      issuingOrganization: formData.issuingOrganization || "",
+      issueDate: {
+        month: issueDate.month || "",
+        year: Number(issueDate.year) || new Date().getFullYear(),
+      },
+      expires: formData.expires === true,
+      expirationDate: {
+        month: expirationDate?.month || "",
+        year: Number(expirationDate?.year) || new Date().getFullYear(),
+      },
+      type: formData.type as CertificateType,
+      level: formData.level as CertificateLevel,
       uploadType: formData.uploadType as UploadType,
-      url: formData.certificateURL || "",
+      url: formData.url || "",
       status: "pending",
-      house: user.house,
       comments: [],
       xp: 0,
     });
@@ -174,11 +172,11 @@ const createCertificate = async (c: Context) => {
       fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
       // Update certificate URL
-      certificateURL = `/certificates/${newFileName}`;
+      url = `/certificates/${newFileName}`;
       certificate.extension = fileExt;
     }
 
-    certificate.url = certificateURL || "";
+    certificate.url = url || "";
     await certificate.save();
 
     return sendSuccess(c, 200, "Certificate created successfully", certificate);
@@ -198,18 +196,16 @@ const updateCertificate = async (c: Context) => {
     }
 
     const formData =
-      (await c.req.parseBody()) as unknown as CertificateFormData;
+      (await c.req.parseBody()) as unknown as ExtendedCertificate;
     const certificateFile = formData.certificate;
 
-    console.log(formData);
-
     // Validate certificate type
-    if (!isCertificateType(formData.certificateType)) {
+    if (!isCertificateType(formData.type)) {
       return sendError(c, 400, "Invalid certificate type", null);
     }
 
     // Validate certificate level
-    if (!isCertificateLevel(formData.certificateLevel)) {
+    if (!isCertificateLevel(formData.level)) {
       return sendError(c, 400, "Invalid certificate level", null);
     }
 
@@ -226,26 +222,32 @@ const updateCertificate = async (c: Context) => {
       }
     }
 
+    const issueDate = JSON.parse(formData.issueDate as string);
+    const expirationDate = JSON.parse(formData.expirationDate as string)
+
     // Update certificate fields
-    certificate.name = formData.title || certificate.name;
+    certificate.name = formData.name;
     certificate.issuingOrganization =
-      formData.issuingOrg || certificate.issuingOrganization;
+      formData.issuingOrganization || certificate.issuingOrganization;
     if (!certificate.issueDate) {
       certificate.issueDate = { month: "", year: new Date().getFullYear() };
     }
-    certificate.issueDate.month = formData.issueMonth || "";
+    certificate.issueDate.month = issueDate.month || "";
     certificate.issueDate.year =
-      parseInt(formData.issueYear) || certificate.issueDate.year;
-    certificate.expires = formData.expires === "true";
+      Number(issueDate.year) || issueDate.year;
+    certificate.expires = formData.expires === true;
     if (!certificate.expirationDate) {
-      certificate.expirationDate = { month: "", year: new Date().getFullYear() };
+      certificate.expirationDate = {
+        month: "",
+        year: new Date().getFullYear(),
+      };
     }
     certificate.expirationDate.year =
-      parseInt(formData.expiryYear) || certificate.expirationDate.year;
+      Number(expirationDate.year) || certificate.expirationDate.year;
     certificate.expirationDate.month =
-      formData.expiryMonth || certificate.expirationDate.month;
-    certificate.type = formData.certificateType as CertificateType;
-    certificate.level = formData.certificateLevel as CertificateLevel;
+    expirationDate.year || certificate.expirationDate.month;
+    certificate.type = formData.type as CertificateType;
+    certificate.level = formData.level as CertificateLevel;
 
     if (certificate.uploadType === "file" && certificateFile) {
       // Validate file type
@@ -271,7 +273,7 @@ const updateCertificate = async (c: Context) => {
       const arrayBuffer = await certificateFile.arrayBuffer();
       fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
-      // Update certificate URL
+      // Update certificate URLi
       certificate.url = `/certificates/${newFileName}`;
     }
 

@@ -40,8 +40,7 @@ import {
   Code,
 } from "@chakra-ui/react";
 import Loader from "../../components/Loader";
-import { useNavigate } from "react-router";
-import { Certificate as ICertificate } from "@shared-types/Certificate";
+import { ExtendedCertificate as ICertificate } from "@/types/ExtendedCertificate";
 import { Copy } from "lucide-react";
 import useUser from "@/config/user";
 import useAxios from "@/config/axios";
@@ -54,14 +53,12 @@ const Certificate = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [certificateName, setCertificateName] = useState("");
   const [issuingOrg, setIssuingOrg] = useState("");
-  const [issueMonth, setIssueMonth] = useState("");
+  const [issueDate, setissueDate] = useState("");
   const [issueYear, setIssueYear] = useState(0);
-  const [certificateType, setCertificateType] = useState("external");
-  const [certificateLevel, setCertificateLevel] = useState("beginner");
+  const [type, settype] = useState("external");
+  const [level, setlevel] = useState("beginner");
 
   const user = useUser();
-
-  const navigate = useNavigate();
 
   const [editPrivilege, setEditPrivilege] = useState(false);
 
@@ -120,7 +117,7 @@ const Certificate = () => {
   }, []);
 
   useEffect(() => {
-    if (certificate?.mid === user?.mid) {
+    if (certificate?.user?._id === user?._id) {
       setEditPrivilege(true);
     }
   }, [certificate]);
@@ -128,20 +125,20 @@ const Certificate = () => {
   const toast = useToast();
 
   useEffect(() => {
-    setCertificateName(certificate?.certificateName);
-    setIssuingOrg(certificate?.issuingOrg);
-    setIssueMonth(certificate?.issueMonth);
-    setIssueYear(certificate?.issueYear);
-    setCertificateType(certificate?.certificateType);
-    setCertificateLevel(certificate?.certificateLevel);
+    setCertificateName(certificate?.name);
+    setIssuingOrg(certificate?.issuingOrganization);
+    setissueDate(certificate?.issueDate.month);
+    setIssueYear(certificate?.issueDate.year);
+    settype(certificate?.type);
+    setlevel(certificate?.level);
   }, [certificate]);
 
   const handleDownload = () => {
     setLoader3(true);
     if (certificate?.uploadType === "url") {
       setLoader3(false);
-      if (!certificate?.certificateURL) return;
-      window.open(certificate?.certificateURL, "_blank");
+      if (!certificate?.url) return;
+      window.open(certificate?.url, "_blank");
       return;
     }
 
@@ -203,10 +200,10 @@ const Certificate = () => {
     const formData = new FormData();
     formData.append("title", certificateName);
     formData.append("issuingOrg", issuingOrg);
-    formData.append("issueMonth", issueMonth);
+    formData.append("issueDate.month", issueDate);
     formData.append("issueYear", issueYear.toString());
-    formData.append("certificateType", certificateType);
-    formData.append("certificateLevel", certificateLevel);
+    formData.append("type", type);
+    formData.append("level", level);
 
     axios
       .put(`certificates/${certificate._id}`, formData)
@@ -244,7 +241,8 @@ const Certificate = () => {
     });
   };
 
-  const copyText = (text: string) => {
+  const copyText = (text?: string) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     toast({
       title: "Copied",
@@ -274,16 +272,31 @@ const Certificate = () => {
     const currentYear = new Date().getFullYear();
 
     if (certificate?.expires) {
-      if (certificate?.expiryYear && certificate.expiryYear < currentYear)
+      if (
+        certificate?.expirationDate.year &&
+        certificate.expirationDate.year < currentYear
+      )
         return false;
-      if (certificate?.expiryYear && certificate?.expiryYear > currentYear)
+      if (
+        certificate?.expirationDate.year &&
+        certificate?.expirationDate.year > currentYear
+      )
         return true;
 
-      if (monthNames.indexOf(certificate?.expiryMonth || "") < currentMonth)
+      if (
+        monthNames.indexOf(certificate?.expirationDate.month || "") <
+        currentMonth
+      )
         return false;
-      if (monthNames.indexOf(certificate?.expiryMonth || "") > currentMonth)
+      if (
+        monthNames.indexOf(certificate?.expirationDate.month || "") >
+        currentMonth
+      )
         return true;
-      if (monthNames.indexOf(certificate?.expiryMonth || "") === currentMonth)
+      if (
+        monthNames.indexOf(certificate?.expirationDate.month || "") ===
+        currentMonth
+      )
         return true;
     }
 
@@ -305,45 +318,51 @@ const Certificate = () => {
               height="50vh"
             >
               <Text textAlign="center">
-                {certificate?.certificateType?.charAt(0).toUpperCase() +
-                  certificate?.certificateType?.slice(1)}{" "}
+                {certificate?.type?.charAt(0).toUpperCase() +
+                  certificate?.type?.slice(1)}{" "}
                 Certification -{" "}
-                {certificate?.certificateLevel?.charAt(0).toUpperCase() +
-                  certificate?.certificateLevel?.slice(1)}{" "}
+                {certificate?.level?.charAt(0).toUpperCase() +
+                  certificate?.level?.slice(1)}{" "}
                 Level
               </Text>
               <Text textAlign="center" mt="-17px">
-                Uploaded By {certificate?.mid}
+                Uploaded By {certificate?.user?.mid}
               </Text>
               {certificate?.expires ? (
                 !calculateExpiry() ? (
                   <Text color="red" textAlign="center" mt="-17px">
                     Certificate Expired On{" "}
-                    {certificate?.expiryMonth
-                      ? certificate.expiryMonth.slice(0, 1).toUpperCase() +
-                        certificate.expiryMonth.slice(1)
+                    {certificate?.expirationDate.month
+                      ? certificate.expirationDate.month
+                          .slice(0, 1)
+                          .toUpperCase() +
+                        certificate.expirationDate.month.slice(1)
                       : ""}{" "}
-                    {certificate?.expiryYear}
+                    {certificate?.expirationDate.year}
                   </Text>
                 ) : (
                   <Text color="green" textAlign="center" mt="-17px">
                     Certificate Expires On{" "}
-                    {certificate?.expiryMonth
-                      ? certificate.expiryMonth.slice(0, 1).toUpperCase() +
-                        certificate.expiryMonth.slice(1)
+                    {certificate?.expirationDate.month
+                      ? certificate.expirationDate.month
+                          .slice(0, 1)
+                          .toUpperCase() +
+                        certificate.expirationDate.month.slice(1)
                       : ""}{" "}
-                    {certificate?.expiryYear}
+                    {certificate?.expirationDate.year}
                   </Text>
                 )
               ) : null}
               <Heading textAlign="center">
-                {certificate?.certificateName?.charAt(0).toUpperCase() +
-                  certificate?.certificateName?.slice(1)}{" "}
+                {certificate?.name?.charAt(0).toUpperCase() +
+                  certificate?.name?.slice(1)}{" "}
               </Heading>
               <Text textAlign="center">
                 By{" "}
-                {certificate?.issuingOrg?.charAt(0).toUpperCase() +
-                  certificate?.issuingOrg?.slice(1)}
+                {certificate?.issuingOrganization
+                  ?.charAt(0)
+                  .toUpperCase() +
+                  certificate?.issuingOrganization?.slice(1)}
               </Text>
 
               {certificate.uploadType !== "print" ? (
@@ -364,22 +383,21 @@ const Certificate = () => {
               ) : null}
               <Text textAlign="center">
                 Issued On{" "}
-                {certificate?.issueMonth?.charAt(0).toUpperCase() +
-                  certificate?.issueMonth?.slice(1)}{" "}
-                {certificate?.issueYear}
+                {certificate?.issueDate?.month?.charAt(0).toUpperCase() +
+                  certificate?.issueDate?.month?.slice(1)}{" "}
+                {certificate?.issueDate?.month}
               </Text>
             </Box>
 
             <Box className="comments" mb="20px" mt="20px">
-              <Textarea
-                readOnly
-                resize="none"
-                value={
-                  certificate?.comments
-                    ? certificate?.comments
-                    : "No Comments Yet"
-                }
-              />
+              {certificate.comments?.map((comment, index) => (
+                <Textarea
+                  readOnly
+                  key={index}
+                  resize="none"
+                  value={comment.comment}
+                />
+              ))}
             </Box>
 
             <Box className="buttons">
@@ -469,8 +487,8 @@ const Certificate = () => {
                       <Box className="flex">
                         <Select
                           placeholder="Select Month"
-                          onChange={(e) => setIssueMonth(e?.target?.value)}
-                          value={issueMonth}
+                          onChange={(e) => setissueDate(e?.target?.value)}
+                          value={issueDate}
                         >
                           <option value="jan">January</option>
                           <option value="feb">February</option>
@@ -506,8 +524,8 @@ const Certificate = () => {
                     <Box className="flex">
                       <Select
                         placeholder="Select Type"
-                        onChange={(e) => setCertificateType(e?.target?.value)}
-                        value={certificateType}
+                        onChange={(e) => settype(e?.target?.value)}
+                        value={type}
                       >
                         <option value="internal">Internal Certification</option>
                         <option value="external">External Certification</option>
@@ -515,8 +533,8 @@ const Certificate = () => {
 
                       <Select
                         placeholder="Select Level"
-                        onChange={(e) => setCertificateLevel(e?.target?.value)}
-                        value={certificateLevel}
+                        onChange={(e) => setlevel(e?.target?.value)}
+                        value={level}
                       >
                         <option value="beginner">Beginner</option>
                         <option value="intermediate">Intermediate</option>
@@ -548,17 +566,17 @@ const Certificate = () => {
               <ModalHeader>Verify Hashes</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <Text>SHA256 Hash:</Text>
-                <Code>{certificate?.sha256}</Code>
+                <Text>hashes?.sha256 Hash:</Text>
+                <Code>{certificate?.hashes?.sha256}</Code>
                 <Copy
                   cursor="pointer"
-                  onClick={() => copyText(certificate?.sha256)}
+                  onClick={() => copyText(certificate?.hashes?.sha256)}
                 />
-                <Text>MD5 Hash: </Text>
-                <Code>{certificate?.md5}</Code>
+                <Text>hashes?.md5 Hash: </Text>
+                <Code>{certificate?.hashes?.md5}</Code>
                 <Copy
                   cursor="pointer"
-                  onClick={() => copyText(certificate?.md5)}
+                  onClick={() => copyText(certificate?.hashes?.md5)}
                 />
 
                 <Text mt="20px">
@@ -576,35 +594,35 @@ const Certificate = () => {
                   <Text mt="10px">On Windows</Text>
                   <Code>
                     certUtil -hashfile '
-                    {certificate?.certificateName +
+                    {certificate?.name +
                       "." +
-                      certificate?.ext +
-                      "' MD5"}
+                      certificate?.extension +
+                      "' hashes?.md5"}
                   </Code>
                   <Copy
                     cursor="pointer"
                     onClick={() =>
                       copyText(
                         `certUtil -hashfile '${
-                          certificate?.certificateName +
+                          certificate?.name +
                           "." +
-                          certificate?.ext +
-                          "' MD5"
+                          certificate?.extension +
+                          "' hashes?.md5"
                         }`
                       )
                     }
                   />
                   <Text mt="10px">On Linux</Text>
                   <Code>
-                    sha256sum '
-                    {certificate?.certificateName + "." + certificate?.ext}'
+                    hashes?.sha256sum '
+                    {certificate?.name + "." + certificate?.extension}'
                   </Code>
                   <Copy
                     cursor="pointer"
                     onClick={() =>
                       copyText(
-                        `sha256sum '${
-                          certificate?.certificateName + "." + certificate?.ext
+                        `hashes?.sha256sum '${
+                          certificate?.name + "." + certificate?.extension
                         }'`
                       )
                     }
@@ -634,45 +652,49 @@ const Certificate = () => {
             >
               <Box className="info" display="flex" flexDir="column" gap="15px">
                 <Text textAlign="center">
-                  {certificate?.certificateType?.charAt(0).toUpperCase() +
-                    certificate?.certificateType?.slice(1)}{" "}
+                  {certificate?.type?.charAt(0).toUpperCase() +
+                    certificate?.type?.slice(1)}{" "}
                   Certification -{" "}
-                  {certificate?.certificateLevel?.charAt(0).toUpperCase() +
-                    certificate?.certificateLevel?.slice(1)}{" "}
+                  {certificate?.level?.charAt(0).toUpperCase() +
+                    certificate?.level?.slice(1)}{" "}
                   Level
                 </Text>
                 <Text textAlign="center" mt="-17px">
-                  Uploaded By {certificate.mid}
+                  Uploaded By {certificate.user?.mid}
                 </Text>
                 {certificate?.expires ? (
                   !calculateExpiry() ? (
                     <Text color="red" textAlign="center" mt="-17px">
                       Certificate Expired On{" "}
-                      {certificate?.expiryMonth
-                        ? certificate.expiryMonth.slice(0, 1).toUpperCase() +
-                          certificate.expiryMonth.slice(1)
+                      {certificate?.expirationDate.month
+                        ? certificate.expirationDate.month
+                            .slice(0, 1)
+                            .toUpperCase() +
+                          certificate.expirationDate.month.slice(1)
                         : ""}{" "}
-                      {certificate?.expiryYear}
+                      {certificate?.expirationDate.year}
                     </Text>
                   ) : (
                     <Text color="green" textAlign="center" mt="-17px">
                       Certificate Expires On{" "}
-                      {certificate?.expiryMonth
-                        ? certificate.expiryMonth.slice(0, 1).toUpperCase() +
-                          certificate.expiryMonth.slice(1)
+                      {certificate?.expirationDate.month
+                        ? certificate.expirationDate.month
+                            .slice(0, 1)
+                            .toUpperCase() +
+                          certificate.expirationDate.month.slice(1)
                         : ""}{" "}
-                      {certificate?.expiryYear}
+                      {certificate?.expirationDate.year}
                     </Text>
                   )
                 ) : null}
                 <Heading textAlign="center">
-                  {certificate?.certificateName?.charAt(0).toUpperCase() +
-                    certificate?.certificateName?.slice(1)}{" "}
+                  {certificate?.name?.charAt(0).toUpperCase() +
+                    certificate?.name?.slice(1)}{" "}
                 </Heading>
                 <Text textAlign="center">
                   By{" "}
-                  {certificate?.issuingOrg?.charAt(0).toUpperCase() +
-                    certificate?.issuingOrg?.slice(1)}
+                  {certificate?.issuingOrganization?.charAt(0).toUpperCase() +
+                    certificate?.issuingOrganization?.slice(1)}
                 </Text>
                 {certificate.uploadType !== "print" ? (
                   <Button
@@ -707,9 +729,9 @@ const Certificate = () => {
 
                 <Text textAlign="center">
                   Issued On{" "}
-                  {certificate?.issueMonth?.charAt(0).toUpperCase() +
-                    certificate?.issueMonth?.slice(1)}{" "}
-                  {certificate?.issueYear}
+                  {certificate?.issueDate.month?.charAt(0).toUpperCase() +
+                    certificate?.issueDate.month?.slice(1)}{" "}
+                  {certificate?.issueDate.year}
                 </Text>
               </Box>
 
@@ -745,15 +767,14 @@ const Certificate = () => {
               </Box>
 
               <Box className="comments" mb="20px">
-                <Textarea
-                  readOnly
-                  resize="none"
-                  value={
-                    certificate?.comments
-                      ? certificate?.comments
-                      : "No Comments Yet"
-                  }
-                />
+                {certificate.comments?.map((comment, index) => (
+                  <Textarea
+                    readOnly
+                    key={index}
+                    resize="none"
+                    value={comment.comment}
+                  />
+                ))}
               </Box>
 
               <Box className="buttons">
@@ -765,15 +786,15 @@ const Certificate = () => {
                   <>
                     <Text color="green" fontWeight="500">
                       Your House Earned{" "}
-                      {certificate?.xp ? certificate?.xp + " XP" : "0 XP"} from
+                      {/* {certificate?.xp ? certificate?.xp + " XP" : "0 XP"} from */}
                       this Certificate
                     </Text>
                   </>
                 ) : (
                   <>
                     <Text color="green" fontWeight="500">
-                      {certificate.mid} Earned{" "}
-                      {certificate?.xp ? certificate?.xp + " XP" : "0 XP"} from
+                      {certificate.user?.mid} Earned{" "}
+                      {/* {certificate?.xp ? certificate?.xp + " XP" : "0 XP"} from */}
                       this Certificate
                     </Text>
                   </>
@@ -860,8 +881,8 @@ const Certificate = () => {
                       <Box className="flex">
                         <Select
                           placeholder="Select Month"
-                          onChange={(e) => setIssueMonth(e?.target?.value)}
-                          value={issueMonth}
+                          onChange={(e) => setissueDate(e?.target?.value)}
+                          value={issueDate}
                         >
                           <option value="jan">January</option>
                           <option value="feb">February</option>
@@ -897,8 +918,8 @@ const Certificate = () => {
                     <Box className="flex">
                       <Select
                         placeholder="Select Type"
-                        onChange={(e) => setCertificateType(e?.target?.value)}
-                        value={certificateType}
+                        onChange={(e) => settype(e?.target?.value)}
+                        value={type}
                       >
                         <option value="internal">Internal Certification</option>
                         <option value="external">External Certification</option>
@@ -906,8 +927,8 @@ const Certificate = () => {
 
                       <Select
                         placeholder="Select Level"
-                        onChange={(e) => setCertificateLevel(e?.target?.value)}
-                        value={certificateLevel}
+                        onChange={(e) => setlevel(e?.target?.value)}
+                        value={level}
                       >
                         <option value="beginner">Beginner</option>
                         <option value="intermediate">Intermediate</option>
@@ -939,17 +960,17 @@ const Certificate = () => {
               <ModalHeader>Verify Hashes</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <Text>SHA256 Hash:</Text>
-                <Code>{certificate?.sha256}</Code>
+                <Text>hashes?.sha256 Hash:</Text>
+                <Code>{certificate?.hashes?.sha256}</Code>
                 <Copy
                   cursor="pointer"
-                  onClick={() => copyText(certificate?.sha256)}
+                  onClick={() => copyText(certificate?.hashes?.sha256)}
                 />
-                <Text>MD5 Hash: </Text>
-                <Code>{certificate?.md5}</Code>
+                <Text>hashes?.md5 Hash: </Text>
+                <Code>{certificate?.hashes?.md5}</Code>
                 <Copy
                   cursor="pointer"
-                  onClick={() => copyText(certificate?.md5)}
+                  onClick={() => copyText(certificate?.hashes?.md5)}
                 />
 
                 <Text mt="20px">
@@ -967,35 +988,35 @@ const Certificate = () => {
                   <Text mt="10px">On Windows</Text>
                   <Code>
                     certUtil -hashfile '
-                    {certificate?.certificateName +
+                    {certificate?.name +
                       "." +
-                      certificate?.ext +
-                      "' MD5"}
+                      certificate?.extension +
+                      "' hashes?.md5"}
                   </Code>
                   <Copy
                     cursor="pointer"
                     onClick={() =>
                       copyText(
                         `certUtil -hashfile '${
-                          certificate?.certificateName +
+                          certificate?.name +
                           "." +
-                          certificate?.ext +
-                          "' MD5"
+                          certificate?.extension +
+                          "' hashes?.md5"
                         }`
                       )
                     }
                   />
                   <Text mt="10px">On Linux</Text>
                   <Code>
-                    sha256sum '
-                    {certificate?.certificateName + "." + certificate?.ext}'
+                    hashes?.sha256sum '
+                    {certificate?.name + "." + certificate?.extension}'
                   </Code>
                   <Copy
                     cursor="pointer"
                     onClick={() =>
                       copyText(
-                        `sha256sum '${
-                          certificate?.certificateName + "." + certificate?.ext
+                        `hashes?.sha256sum '${
+                          certificate?.name + "." + certificate?.extension
                         }'`
                       )
                     }

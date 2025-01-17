@@ -25,6 +25,7 @@ interface Hashes {
 }
 
 interface Certificate {
+  _id: string
   user: string;
   name: string;
   issuingOrganization: string;

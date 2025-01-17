@@ -34,6 +34,7 @@ export const useCertificates = () => {
       const res = await axios.get("/certificates/user");
       if (res.status === 200) {
         setCertificates(res.data.data);
+        console.log(res.data.data);
       }
     } catch (err) {
       console.error("Error fetching certificates:", err);
@@ -64,18 +65,18 @@ export const useCertificates = () => {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (cert) =>
-          cert.certificateName.toLowerCase().includes(searchLower) ||
-          cert.issuingOrg.toLowerCase().includes(searchLower)
+          cert.name.toLowerCase().includes(searchLower) ||
+          cert.issuingOrganization.toLowerCase().includes(searchLower)
       );
     }
     if (filters.types.length > 0) {
       filtered = filtered.filter((cert) =>
-        filters.types.includes(cert.certificateType)
+        filters.types.includes(cert.type)
       );
     }
     if (filters.levels.length > 0) {
       filtered = filtered.filter((cert) =>
-        filters.levels.includes(cert.certificateLevel)
+        filters.levels.includes(cert.level)
       );
     }
     if (filters.status.length > 0) {
@@ -85,7 +86,7 @@ export const useCertificates = () => {
     }
     if (filters.issueYears.length > 0) {
       filtered = filtered.filter((cert) =>
-        filters.issueYears.includes(cert.issueYear.toString())
+        filters.issueYears.includes(cert.issueDate.year.toString())
       );
     } else {
       // Reset logic for issueYears if necessary (no filter applied)
@@ -94,7 +95,7 @@ export const useCertificates = () => {
       filtered = filtered.filter(
         (cert) =>
           cert.expires &&
-          filters.expiryYears.includes((cert.expiryYear || "").toString())
+          filters.expiryYears.includes((cert.expirationDate.year || "").toString())
       );
     } else {
       // Reset logic for expiryYears if necessary (no filter applied)

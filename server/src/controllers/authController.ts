@@ -127,7 +127,9 @@ const firstTimePassword = async (c: Context) => {
           mid,
           fname: user.fname,
           lname: user.lname,
-          ay: user.academicDetails?.academicYear ? user.academicDetails?.academicYear : undefined,
+          ay: user.academicDetails?.academicYear
+            ? user.academicDetails?.academicYear
+            : undefined,
           branch: user?.academicDetails?.branch,
           role: user.role,
         };
@@ -274,7 +276,7 @@ const updateTheme = async (c: Context) => {
       { _id: _id },
       {
         $set: {
-          colorMode,
+          "settings.colorMode": colorMode,
         },
       }
     );

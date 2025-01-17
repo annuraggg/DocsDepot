@@ -24,7 +24,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
   certificates = [],
 }) => {
   const getLevelProps = (level: string) => {
-    switch (level.toLowerCase()) {
+    switch (level?.toLowerCase()) {
       case "beginner":
         return { bg: "emerald.100", color: "emerald.800" };
       case "intermediate":
@@ -37,7 +37,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
   };
 
   const getTypeProps = (type: string) => {
-    return type.toLowerCase() === "internal"
+    return type?.toLowerCase() === "internal"
       ? { bg: "blue.100", color: "blue.800" }
       : { bg: "purple.100", color: "purple.800" };
   };
@@ -151,9 +151,9 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
             </Tr>
           </Thead>
           <Tbody>
-            {certificates.map((cert, index) => (
+            {certificates?.map((cert, index) => (
               <Tr
-                key={cert._id}
+                key={cert?._id}
                 _hover={{ bg: "gray.50" }}
                 transition="background 0.15s"
                 borderBottom="1px"
@@ -166,7 +166,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                   <HStack spacing={2}>
                     <Icon as={Award} color="green.500" boxSize={5} />
                     <Text fontSize="sm" fontWeight="medium" color="gray.900">
-                      {cert.certificateName}
+                      {cert?.name}
                     </Text>
                   </HStack>
                 </Td>
@@ -174,7 +174,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                   <HStack spacing={2}>
                     <Icon as={Building2} color="gray.400" boxSize={5} />
                     <Text fontSize="sm" color="gray.600">
-                      {cert.issuingOrg}
+                      {cert?.issuingOrganization}
                     </Text>
                   </HStack>
                 </Td>
@@ -182,9 +182,9 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                   <HStack spacing={2}>
                     <Icon as={Calendar} color="blue.400" boxSize={5} />
                     <Text fontSize="sm" color="gray.600">
-                      {cert.issueMonth.charAt(0).toUpperCase() +
-                        cert.issueMonth.slice(1)}{" "}
-                      {cert.issueYear}
+                      {cert?.issueDate?.month?.charAt(0)?.toUpperCase() +
+                        cert?.issueDate?.month?.slice(1)}{" "}
+                      {cert?.issueDate?.year}
                     </Text>
                   </HStack>
                 </Td>
@@ -196,10 +196,10 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                     fontSize="xs"
                     textTransform="initial"
                     fontWeight="medium"
-                    {...getTypeProps(cert.certificateType)}
+                    {...getTypeProps(cert?.type)}
                   >
-                    {cert.certificateType.charAt(0).toUpperCase() +
-                      cert.certificateType.slice(1)}
+                    {cert?.type?.charAt(0)?.toUpperCase() +
+                      cert?.type?.slice(1)}
                   </Badge>
                 </Td>
                 <Td py={4} px={6}>
@@ -210,10 +210,10 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                     fontSize="xs"
                     textTransform="initial"
                     fontWeight="medium"
-                    {...getLevelProps(cert.certificateLevel)}
+                    {...getLevelProps(cert?.level)}
                   >
-                    {cert.certificateLevel.charAt(0).toUpperCase() +
-                      cert.certificateLevel.slice(1)}
+                    {cert?.level?.charAt(0)?.toUpperCase() +
+                      cert?.level?.slice(1)}
                   </Badge>
                 </Td>
                 <Td py={4} px={6}>
@@ -224,16 +224,16 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                     fontSize="xs"
                     fontWeight="medium"
                     textTransform="initial"
-                    {...getStatusProps(cert.status)}
+                    {...getStatusProps(cert?.status)}
                   >
-                    {(cert.status ?? "Pending").charAt(0).toUpperCase() +
-                      (cert.status ?? "pending").slice(1)}
+                    {(cert?.status ?? "Pending")?.charAt(0)?.toUpperCase() +
+                      (cert?.status ?? "pending")?.slice(1)}
                   </Badge>
                 </Td>
                 <Td py={4} px={6}>
                   <Button
                     as="a"
-                    href={`/certificates/${cert._id}`}
+                    href={`/certificates/${cert?._id}`}
                     size="sm"
                     variant="ghost"
                     colorScheme="lightblue"
@@ -242,7 +242,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                     fontWeight="medium"
                     _hover={{
                       bg: "blue.50",
-                      transform: "translateX(4px)",
+                      transform: "translateX(4px)", 
                     }}
                     transition="all 0.2s"
                   >
