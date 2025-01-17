@@ -1,22 +1,18 @@
-import React, { useEffect, useState } from "react";
-import Navbar from "../../../components/admin/Navbar";
+import { useEffect, useState } from "react";
 import {
   Box,
   Card,
-  CardHeader,
   CardBody,
-  CardFooter,
   Text,
   Flex,
   useToast,
 } from "@chakra-ui/react";
 import "./Feedback.css";
 import Loader from "../../../components/Loader";
-import { useAuthCheck } from "../../../hooks/useAuthCheck";
+import { Feedback as IFeedback } from "@shared-types/Feedback";
 
 const Feedback = () => {
-  useAuthCheck("A");
-  const [feedback, setFeedback] = useState([""]);
+  const [feedback, setFeedback] = useState<IFeedback[]>([]);
   const toast = useToast();
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +46,6 @@ const Feedback = () => {
   if (!loading) {
     return (
       <>
-        <Navbar />
         <Box p="30px 70px">
           <Flex
             p="30px 70px"

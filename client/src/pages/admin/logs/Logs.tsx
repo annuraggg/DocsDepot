@@ -17,19 +17,17 @@ import {
   AlertDialogOverlay,
   useToast,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
-import Navbar from "../../../components/admin/Navbar";
+import React, { ReactElement, useEffect, useState } from "react";
 import "./Logs.css";
 import jsPDF from "jspdf";
-import { ChevronDownIcon } from "@chakra-ui/icons";
-import { useAuthCheck } from "../../../hooks/useAuthCheck";
+import { ChevronDownIcon } from "lucide-react";
 import Loader from "../../../components/Loader";
+import useAxios from "@/config/axios";
 
 const Logs = () => {
   const [loading, setLoading] = useState(true);
-  useAuthCheck("A");
-  const [logs, setLogs] = useState("");
-  const cancelRef = React.useRef();
+  const [logs, setLogs] = useState<ReactElement[]>([]);
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
 
@@ -43,7 +41,7 @@ const Logs = () => {
     })
       .then(async (res) => await res.json())
       .then((data) => {
-        const logLines = data.data.split("\n").map((line, index) => {
+        const logLines = data.data.split("\n").map((line: { split: (arg0: string) => [any, any]; }, index: React.Key | null | undefined) => {
           const [time, message] = line.split("] ");
           return (
             <div key={index}>
@@ -56,7 +54,7 @@ const Logs = () => {
         setLoading(false);
       })
       .catch((err) => {
-        console.error(error);
+        console.error(err);
         toast({
           title: "Error",
           description: "Error fetching logs.",
@@ -75,9 +73,12 @@ const Logs = () => {
     }
   }, [logs]);
 
-  const search = (e) => {
+  const search = (e:
+    | React.ChangeEvent<HTMLInputElement>
+  ) => {
     const searchValue = e.target.value;
     const logContainer = document.querySelector(".log-container");
+    if (!logContainer) return
     const logLines = logContainer.querySelectorAll("div");
     logLines.forEach((line) => {
       if (line.innerText.toLowerCase().includes(searchValue.toLowerCase())) {
@@ -88,15 +89,9 @@ const Logs = () => {
     });
   };
 
+  const axios = useAxios()
   const deleteLogs = () => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/logs/delete`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
+    axios.delete("/admin/logs/").then((res) => res.data.data)
       .then((data) => {
         if (data.success) {
           toast({
@@ -106,7 +101,7 @@ const Logs = () => {
             duration: 5000,
             isClosable: true,
           });
-          setLogs("");
+          setLogs([]);
           onClose();
         } else {
           toast({
@@ -128,9 +123,11 @@ const Logs = () => {
           isClosable: true,
         });
       });
+
   };
   const exportAsPDF = () => {
     const logContainer = document.querySelector(".log-container");
+    if (!logContainer) return
     const logLines = logContainer.querySelectorAll("div");
     const doc = new jsPDF();
     doc.setFontSize(12);
@@ -149,6 +146,7 @@ const Logs = () => {
 
   const exportAsTXT = () => {
     const logContainer = document.querySelector(".log-container");
+    if (!logContainer) return
     const logLines = logContainer.querySelectorAll("div");
     let text = "Server Logs\n\n";
     logLines.forEach((line) => {
@@ -165,7 +163,6 @@ const Logs = () => {
   if (!loading) {
     return (
       <>
-        <Navbar />
         <Box className="AdminLogs">
           <Flex alignItems="center" direction="row" gap="20px" wrap="wrap">
             <Heading>Server Logs</Heading>
@@ -195,7 +192,7 @@ const Logs = () => {
             </Button>
             <Button
               onClick={() =>
-                document.querySelector(".log-container").scrollTo(0, 0)
+                document.querySelector(".log-container")?.scrollTo(0, 0)
               }
             >
               Scroll to Top

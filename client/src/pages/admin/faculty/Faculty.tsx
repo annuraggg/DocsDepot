@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "./Faculty.css";
 import {
   Box,
   Button,
@@ -34,28 +33,24 @@ import {
   List,
   ListItem,
   ListIcon,
-  useRadioGroup,
 } from "@chakra-ui/react";
-import Navbar from "../../../components/admin/Navbar";
-import Breadcrumb from "../../../components/Breadcrumb";
 import Loader from "../../../components/Loader";
-import { useAuthCheck } from "../../../hooks/useAuthCheck";
-import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
+import { User } from "@shared-types/User";
+import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
 
 const Faculty = () => {
-  useAuthCheck("A");
   const toast = useToast();
   const [loading, setLoading] = useState(true);
-  const [faculty, setFaculty] = useState([]);
+  const [faculty, setFaculty] = useState<User[]>([]);
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredFaculty, seFilteredFaculty] = useState([]);
+  const [filteredFaculty, seFilteredFaculty] = useState<User[]>([]);
   const [houses, setHouses] = useState([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = React.useRef();
+  const cancelRef = React.useRef(null);
 
   const {
     isOpen: isPermsOpen,
@@ -84,7 +79,7 @@ const Faculty = () => {
     onOpen: onDeleteOpen,
     onClose: onDeleteClose,
   } = useDisclosure();
-  const cancelDeleteRef = React.useRef();
+  const cancelDeleteRef = React.useRef(null);
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty`, {
@@ -119,31 +114,30 @@ const Faculty = () => {
   useEffect(() => {
     const filtered = faculty.filter((faculty) =>
       Object.values(faculty).some((value) =>
-        value.toString().toLowerCase().includes(searchQuery.toLowerCase())
+        typeof value === 'string' && value.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
     seFilteredFaculty(filtered);
   }, [searchQuery, faculty]);
 
-  const deleteCustomer = (id) => {
+  const deleteCustomer = (id: string) => {
     setDelItem(id);
     onDeleteOpen();
   };
 
-  const alertDelete = (id) => {
-    let fac;
-    faculty.filter((faculty) => {
+  const alertDelete = () => {
+    let fac: User = {} as User;
+    faculty.filter((faculty: User) => {
       if (faculty.mid === delItem) {
         fac = faculty;
       }
     });
 
-    console.log(fac);
-   if (
-      fac?.perms?.includes("HCO0") ||
-      fac?.perms?.includes("HCO1") ||
-      fac?.perms?.includes("HCO2") ||
-      fac?.perms?.includes("HCO3")
+    if (
+      fac?.permissions?.includes("HCO0") ||
+      fac?.permissions?.includes("HCO1") ||
+      fac?.permissions?.includes("HCO2") ||
+      fac?.permissions?.includes("HCO3")
     ) {
       onAlertDeleteOpen();
     } else {
@@ -198,20 +192,22 @@ const Faculty = () => {
       });
   };
 
-  const openEdit = (id) => {
+  const openEdit = (id: string) => {
     onOpen();
-    const faculty = filteredFaculty.find((faculty) => faculty.mid === id);
+    const faculty: User | undefined = filteredFaculty.find((faculty: User) => faculty.mid === id);
+    if (!faculty) return;
+
     setMid(faculty.mid);
     setFname(faculty.fname);
     setLname(faculty.lname);
-    setEmail(faculty.email);
+    setEmail(faculty.social.email);
     setGender(faculty.gender);
-    setFacOID(faculty.id);
-    setPerms(faculty.perms);
+    setFacOID(faculty._id);
+    setPerms(faculty.permissions);
   };
 
   const updateFaculty = () => {
-    function checkElements(arr) {
+    function checkElements(arr: string | string[]) {
       const elementsToCheck = ["HCO0", "HCO1", "HCO2", "HCO3"];
       let count = 0;
 
@@ -299,15 +295,6 @@ const Faculty = () => {
   else
     return (
       <>
-        <Navbar />
-        <Breadcrumb
-          title="Faculty"
-          links={[
-            { href: "/admin", name: "Admin" },
-            { href: "/admin/faculty", name: "Faculty" },
-          ]}
-          relatedLinks={[{ href: "/admin/faculty/add", name: "Add Faculty" }]}
-        />
         <Box className="AdminStudents">
           <Box className="filters">
             <Box className="filters">
@@ -418,7 +405,7 @@ const Faculty = () => {
 
                   <RadioGroup
                     value={gender}
-                    onChange={(e) => setGender(e.target.value)}
+                    onChange={(e) => setGender(e)}
                   >
                     <Flex gap="20px">
                       <Radio name="gender" value="Male">
@@ -527,7 +514,7 @@ const Faculty = () => {
               <Box>
                 <Table>
                   <Tbody>
-                    <CheckboxGroup value={perms} onChange={(e) => setPerms(e)}>
+                    <CheckboxGroup value={perms} onChange={(e) => setPerms(e as string[])}>
                       <Tr>
                         <Td>
                           <Checkbox value="UFC" readOnly>
@@ -537,7 +524,7 @@ const Faculty = () => {
                         <Td>
                           <List>
                             <ListItem mb={2}>
-                              <ListIcon as={WarningIcon} color="yellow.500" />
+                              <ListIcon as={FileWarningIcon} color="yellow.500" />
                               Default permission - Cannot be changed
                             </ListItem>
                             <ListItem mb={2}>
@@ -623,7 +610,7 @@ const Faculty = () => {
                           </List>
                         </Td>
                       </Tr>
-                      {}
+                      { }
                       <Tr>
                         <Td>
                           <Checkbox value="RSP">

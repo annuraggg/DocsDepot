@@ -12,55 +12,23 @@ const storagePath = path.join(__dirname, "../uploads");
 
 export const getHouse = async (c: Context) => {
   const { id } = c.req.param();
+  console.log(id)
   try {
-    const house = await House.findById(id);
+    const house = await House.findById(id).populate("members").populate("facultyCordinator").populate("studentCordinator").lean();
+
+    if (!house) {
+      return sendError(c, 404, "House not found");
+    }
+
     if (house) {
-      const members = await Promise.all(
-        house.members.map(async (member) => {
-          const memInfo = await User.findOne({ mid: member });
-          return {
-            mid: member,
-            fname: memInfo?.fname,
-            lname: memInfo?.lname,
-            pfp: memInfo?.profilePicture,
-          };
-        })
-      );
-
-      const facCordInfo = [];
-      if (house.fc) {
-        for (const fc of house.fc) {
-          const facCord = await User.findOne({ mid: fc });
-
-          if (!facCord)
-            return sendSuccess(c, 404, "Faculty Coordinator not found");
-
-          facCordInfo.push(facCord._id);
-        }
-      }
-
-      const studentCord = await User.findOne({ mid: house.sc });
-      let studentCordInfo = null;
-      if (studentCord) {
-        studentCordInfo = {
-          id: studentCord._id,
-          fname: studentCord.fname,
-          lname: studentCord.lname,
-          pfp: studentCord.profilePicture,
-          mid: studentCord.mid,
-        };
-      }
-
       return sendSuccess(c, 200, "House found", {
         house,
-        members,
-        facCordInfo,
-        studentCordInfo,
       });
     } else {
       return sendError(c, 404, "House not found");
     }
   } catch (err) {
+    console.log(err)
     return sendError(c, 500, "Error fetching house");
   }
 };
@@ -105,8 +73,6 @@ export const removeMember = async (c: Context) => {
 
   const house = await House.findById(id);
   if (!house) return sendError(c, 404, "House not found");
-  const hno = house.no;
-  const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET!);
 
   try {
     await House.updateOne({ _id: id }, { $pull: { members: mid } });
@@ -123,7 +89,6 @@ export const uploadLogo = async (c: Context) => {
 
   const house = await House.findById(houseId);
   if (!house) return sendError(c, 404, "House not found");
-  const hid = house.no;
 
   try {
     const fileName = `house_logo_${houseId}.png`;

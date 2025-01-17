@@ -1,7 +1,7 @@
 interface Comment {
   user: string;
   comment: string;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 interface IssueDate {

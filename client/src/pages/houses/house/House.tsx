@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import { useToast } from '../../../components/useToast';
 import useAxios from "@/config/axios";
-import { House as IHouse, Member } from '../../../types/house';
+import { House as IHouse } from '@shared-types/House';
 import { Token } from '@shared-types/Token';
 
 import { HouseBanner } from './HouseBanner';
@@ -18,35 +18,30 @@ import { SettingsModal } from './SettingsModal';
 import { ImageEditorModal } from './ImageEditorModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import AvatarEditor from 'react-avatar-editor';
+import { User } from '@shared-types/User';
+
+interface ExtendedHouse extends Omit<IHouse, 'members' | 'facultyCordinator' | 'studentCordinator'> {
+  members: User[];
+  facultyCordinator: User;
+  studentCordinator: User;
+}
 
 export const House: React.FC = () => {
-  const [house, setHouse] = React.useState<IHouse | null>(null);
-  const [members, setMembers] = React.useState<Member[]>([]);
-  const [facCord, setFacCord] = React.useState<any[]>([]);
-  const [editPrivilege, setEditPrivilege] = React.useState(false);
+  const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
   const [decoded, setDecoded] = React.useState<Token>({} as Token);
-
-  // Points state
-  const [totalPoints, setTotalPoints] = React.useState(0);
-  const [internalPoints, setInternalPoints] = React.useState(0);
-  const [externalPoints, setExternalPoints] = React.useState(0);
-  const [eventPoints, setEventPoints] = React.useState(0);
 
   // Form state
   const [houseName, setHouseName] = React.useState('');
   const [houseColor, setHouseColor] = React.useState('');
   const [houseAbstract, setHouseAbstract] = React.useState('');
   const [houseDesc, setHouseDesc] = React.useState('');
-  const [facCordID, setFacCordID] = React.useState('');
-  const [studentCordID, setStudentCordID] = React.useState('');
+  const [editPrivilege, setEditPrivilege] = React.useState(false);
 
   // Image editing state
   const [logo, setLogo] = React.useState<File | null>(null);
   const [banner, setBanner] = React.useState<File | null>(null);
   const [logoZoom, setLogoZoom] = React.useState(1);
   const [bannerZoom, setBannerZoom] = React.useState(1);
-  const [logoLoading, setLogoLoading] = React.useState(false);
-  const [bannerLoading, setBannerLoading] = React.useState(false);
 
   // Refs
   const logoRef = React.useRef<AvatarEditor>(null);
@@ -104,18 +99,15 @@ export const House: React.FC = () => {
     try {
       const response = await axios.get(`/houses/${houseID}`);
       if (response.status === 200) {
-        const { house, members, facCordInfo, studentCordInfo } = response.data.data;
+        const { house } = response.data.data;
         setHouse(house);
-        setMembers(members);
-        setFacCord(facCordInfo);
-        setStudentCordID(studentCordInfo);
+
 
         // form data
         setHouseName(house.name);
         setHouseColor(house.color);
         setHouseAbstract(house.abstract);
         setHouseDesc(house.desc);
-        setFacCordID(facCordInfo.mid);
         setBanner(house.banner);
         setLogo(house.logo);
       }
@@ -139,7 +131,7 @@ export const House: React.FC = () => {
   const handleSaveBanner = async () => {
   };
 
-  const handleDeleteMember = async (member: Member) => {
+  const handleDeleteMember = async (member: User) => {
   };
 
   return (
@@ -165,7 +157,7 @@ export const House: React.FC = () => {
                 <HouseProfile
                   logo={house?.logo || ''}
                   name={house?.name || ''}
-                  facCord={facCord}
+                  facCord={house?.facultyCordinator || {} as User}
                   editPrivilege={editPrivilege}
                   onSelectLogo={() => { }}
                   onLogoChange={() => { }}
@@ -195,7 +187,7 @@ export const House: React.FC = () => {
               <CardBody>
                 <h3 className="text-xl font-semibold mb-4">Members</h3>
                 <MembersTable
-                  members={members}
+                  members={house?.members || []}
                   editPrivilege={editPrivilege}
                   onMemberClick={(id) => navigate(`/profile/${id}`)}
                   onDeleteClick={handleDeleteMember}
@@ -205,12 +197,12 @@ export const House: React.FC = () => {
           </div>
 
           <div>
-            <HouseStats
+            {/* <HouseStats
               totalPoints={totalPoints}
               internalPoints={internalPoints}
               externalPoints={externalPoints}
               eventPoints={eventPoints}
-            />
+            /> */}
           </div>
         </div>
       </div>
@@ -240,7 +232,6 @@ export const House: React.FC = () => {
         zoom={logoZoom}
         onZoomChange={(value) => setLogoZoom(Array.isArray(value) ? value[0] : value)}
         onSave={handleSaveLogo}
-        isLoading={logoLoading}
       />
 
       <ImageEditorModal
@@ -252,7 +243,6 @@ export const House: React.FC = () => {
         zoom={bannerZoom}
         onZoomChange={(value) => setBannerZoom(Array.isArray(value) ? value[0] : value)}
         onSave={handleSaveBanner}
-        isLoading={bannerLoading}
       />
 
       <DeleteConfirmDialog

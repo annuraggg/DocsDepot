@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+const pointSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    value: { type: Number, required: true },
+  },
+  { timestamps: true }
+);
+
 const houseSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -24,6 +32,7 @@ const houseSchema = new mongoose.Schema(
       linkedin: { type: String, required: false },
       twitter: { type: String, required: false },
     },
+    points: { type: [pointSchema], required: false },
   },
   { timestamps: true }
 );

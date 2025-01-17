@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import Navbar from "../../../../components/admin/Navbar";
+import { useEffect, useState } from "react";
 import {
   Checkbox,
   CheckboxGroup,
@@ -30,27 +29,25 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Loader from "../../../../components/Loader";
-import { useAuthCheck } from "../../../../hooks/useAuthCheck";
-
+import { Certificate, Comment } from "@shared-types/Certificate";
+import useUser from "@/config/user";
 const Certificates = () => {
-  const decoded = useAuthCheck("A");
+  const [pendingCertificates, setPendingCertificates] = useState<Certificate[]>([]);
 
-  const [pendingCertificates, setPendingCertificates] = useState([]);
-
-  const [certificates, setCertificates] = useState([]);
-  const [filteredCertificates, setFilteredCertificates] = useState([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [update, setUpdate] = useState(false);
 
-  const [selectedCertificate, setSelectedCertificate] = useState();
-  const [action, setAction] = useState();
-  const [xp, setXp] = useState(0);
-  const [comments, setComments] = useState();
+  const [selectedCertificate, setSelectedCertificate] = useState<string>("");
+  const [action, setAction] = useState<string>("");
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const navigate = useNavigate();
+  const user = useUser()
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -89,8 +86,8 @@ const Certificates = () => {
       });
   }, [update]);
 
-  const openCert = (id) => {
-    setSelectedCertificate(id);
+  const openCert = (cert: string) => {
+    setSelectedCertificate(cert);
     onOpen();
   };
 
@@ -107,8 +104,7 @@ const Certificates = () => {
     }
 
     fetch(
-      `${
-        import.meta.env.VITE_BACKEND_ADDRESS
+      `${import.meta.env.VITE_BACKEND_ADDRESS
       }/admin/faculty/certificates/update`,
       {
         method: "POST",
@@ -119,7 +115,6 @@ const Certificates = () => {
         body: JSON.stringify({
           id: selectedCertificate,
           action: action,
-          xp: parseInt(xp),
           comments: comments,
         }),
       }
@@ -149,7 +144,9 @@ const Certificates = () => {
     setFilteredCertificates(certificates);
   }, [certificates]);
 
-  const search = (e) => {
+  const search = (e:
+    | React.ChangeEvent<HTMLInputElement>
+  ) => {
     const keyword = e.target.value;
     if (keyword !== "") {
       const results = certificates.filter((certificate) => {
@@ -161,11 +158,13 @@ const Certificates = () => {
     }
   };
 
-  const filter = (e) => {
+  const filter = (e:
+    | string[]
+  ) => {
     const keyword = e; //is an array
     if (keyword.length !== 0) {
       const results = certificates.filter((certificate) => {
-        return keyword.includes(certificate.certificateType);
+        return keyword.includes(certificate.type);
       });
       setFilteredCertificates(results);
     } else {
@@ -176,7 +175,6 @@ const Certificates = () => {
   if (!loading) {
     return (
       <>
-        <Navbar />
         <Box className="FacultyCertificates">
           <Heading fontSize="20px">Pending Certificates</Heading>
           <Table mt="50px" variant="striped">
@@ -193,12 +191,12 @@ const Certificates = () => {
                 return (
                   <Tr key={certificate?._id}>
                     <Td>{certificate?.name}</Td>
-                    <Td>{certificate?.certificateName}</Td>
+                    <Td>{certificate?.name}</Td>
                     <Td>
-                      {certificate?.certificateType.slice(0, 1).toUpperCase() +
-                        certificate?.certificateType.slice(1)}
+                      {certificate?.type.slice(0, 1).toUpperCase() +
+                        certificate?.type.slice(1)}
                     </Td>
-                    <Td>{certificate?.issuingOrg}</Td>
+                    <Td>{certificate?.issuingOrganization}</Td>
                     <Td>
                       <Button
                         onClick={() =>
@@ -234,8 +232,7 @@ const Certificates = () => {
             />
             <CheckboxGroup
               colorScheme="green"
-              mr="20px"
-              onChange={(e) => filter(e)}
+              onChange={(e) => filter(e as string[])}
               defaultValue={["internal", "external"]}
             >
               <Checkbox value="internal">Internal</Checkbox>
@@ -258,12 +255,12 @@ const Certificates = () => {
                 return (
                   <Tr key={certificate?._id}>
                     <Td>{certificate?.name}</Td>
-                    <Td>{certificate?.certificateName}</Td>
+                    <Td>{certificate?.name}</Td>
                     <Td>
-                      {certificate?.certificateType.slice(0, 1).toUpperCase() +
-                        certificate?.certificateType.slice(1)}
+                      {certificate?.type.slice(0, 1).toUpperCase() +
+                        certificate?.type.slice(1)}
                     </Td>
-                    <Td>{certificate?.issuingOrg}</Td>
+                    <Td>{certificate?.issuingOrganization}</Td>
                     <Td>
                       <Button
                         onClick={() =>
@@ -296,12 +293,22 @@ const Certificates = () => {
                 <option value="rejected">Reject Certificate</option>
               </Select>
 
-              <Textarea
-                mt="20px"
-                placeholder="Add Comments"
-                comments={xp}
-                onChange={(e) => setComments(e.target.value)}
-              />
+              {comments?.map(comment => {
+                return (
+                  <Textarea
+                    placeholder="Comments"
+                    value={comment.comment}
+                    onChange={(e) => setComments([
+                      ...comments,
+                      {
+                        comment: e.target.value,
+                        user: user?._id!,
+                      }
+                    ])
+                    }
+                  />
+                );
+              })}
             </ModalBody>
 
             <ModalFooter>

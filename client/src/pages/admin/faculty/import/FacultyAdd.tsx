@@ -26,11 +26,15 @@ import {
   Tr,
   Td,
 } from "@chakra-ui/react";
-import { CheckCircleIcon, WarningIcon } from "@chakra-ui/icons";
-import { useAuthCheck } from "../../../../hooks/useAuthCheck";
+import { House } from "@shared-types/House";
+import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
 
-const FacultyAdd = ({ setModal, h }) => {
-  useAuthCheck("A");
+interface FacultyAddProps {
+  setModal: (value: boolean) => void;
+  h: { houses: House[] };
+}
+
+const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isPermOpen,
@@ -44,14 +48,15 @@ const FacultyAdd = ({ setModal, h }) => {
   const [moodleid, setMoodleid] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [perms, setPerms] = React.useState(["UFC"]);
-  const [houses, setHouses] = React.useState([]);
+  const [houses, setHouses] = React.useState<House[]>([]);
 
   const toast = useToast();
 
   useEffect(() => {
-    setHouses(h.houses);
-    onOpen();
-  }, []);
+      const houseObjects = h.houses.map((house: House) => house);
+      setHouses(houseObjects);
+      onOpen();
+    }, []);
 
   useEffect(() => {
     console.error(perms);
@@ -72,7 +77,7 @@ const FacultyAdd = ({ setModal, h }) => {
       perms: perms,
     };
 
-    function checkElements(arr) {
+    function checkElements(arr: string | string[]) {
       const elementsToCheck = ["HCO0", "HCO1", "HCO2", "HCO3"];
       let count = 0;
 
@@ -225,7 +230,7 @@ const FacultyAdd = ({ setModal, h }) => {
               <Box overflowX="auto" scrollBehavior="smooth">
                 <Table>
                   <Tbody>
-                    <CheckboxGroup value={perms} onChange={(e) => setPerms(e)}>
+                    <CheckboxGroup value={perms} onChange={(e) => setPerms(e as string[])}>
                       <Tr>
                         <Td>
                           <Checkbox value="UFC" readOnly>
@@ -235,7 +240,7 @@ const FacultyAdd = ({ setModal, h }) => {
                         <Td>
                           <List>
                             <ListItem mb={2}>
-                              <ListIcon as={WarningIcon} color="yellow.500" />
+                              <ListIcon as={FileWarningIcon} color="yellow.500" />
                               Default permission - Cannot be changed
                             </ListItem>
                             <ListItem mb={2}>
@@ -298,7 +303,7 @@ const FacultyAdd = ({ setModal, h }) => {
                         <Tr key={index}>
                           <Td>
                             <Checkbox value={`HCO${index}`}>
-                              House Coordinator - {house}
+                              House Coordinator - {house.facultyCordinator}
                             </Checkbox>
                           </Td>
                           <Td>

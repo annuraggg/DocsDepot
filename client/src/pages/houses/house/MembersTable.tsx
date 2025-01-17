@@ -14,13 +14,13 @@ import {
   Box
 } from '@chakra-ui/react';
 import { Trash2 } from 'lucide-react';
-import { Member } from '../../../types/house';
+import { User } from '@shared-types/User';
 
 interface MembersTableProps {
-  members: Member[];
+  members: User[];
   editPrivilege: boolean;
   onMemberClick: (id: string) => void;
-  onDeleteClick: (member: Member) => void;
+  onDeleteClick: (member: User) => void;
 }
 
 export const MembersTable: React.FC<MembersTableProps> = ({
@@ -68,7 +68,7 @@ export const MembersTable: React.FC<MembersTableProps> = ({
                 </HStack>
               </Td>
               <Td>{member.mid}</Td>
-              <Td>{member.totalPoints}</Td>
+              {/* <Td>{member.totalPoints}</Td> */}
               {editPrivilege && (
                 <Td>
                   <Button

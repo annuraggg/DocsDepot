@@ -21,13 +21,10 @@ import {
   Input,
   Alert,
 } from "@chakra-ui/react";
-import Navbar from "../../../components/admin/Navbar";
 import Loader from "../../../components/Loader";
-import { useAuthCheck } from "../../../hooks/useAuthCheck";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const Settings = () => {
-  useAuthCheck("A");
   const [toastDispatched, setToastDispatched] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const toast = useToast();
@@ -53,7 +50,7 @@ const Settings = () => {
 
   const [backupIsLoading, setBackupIsLoading] = React.useState(false);
 
-  const validatePassMatch = (pass) => {
+  const validatePassMatch = (pass: string) => {
     setConfirmPass(pass);
     if (pass === newPass) {
       setErr("");
@@ -147,7 +144,7 @@ const Settings = () => {
     }
   }, [toastDispatched]);
 
-  const toggleMaintainaceMode = (mode) => {
+  const toggleMaintainaceMode = (mode: boolean) => {
     fetch(
       `${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/maintainanceMode`,
       {
@@ -194,9 +191,8 @@ const Settings = () => {
           const element = document.createElement("a");
           element.href = URL.createObjectURL(blob);
           const date = new Date();
-          const dateString = `${date.getFullYear()}-${
-            date.getMonth() + 1
-          }-${date.getDate()}`;
+          const dateString = `${date.getFullYear()}-${date.getMonth() + 1
+            }-${date.getDate()}`;
           const timeString = `${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
           element.download = `Scriptopia_backup-${dateString}-${timeString}.zip`;
 
@@ -245,14 +241,13 @@ const Settings = () => {
       body: JSON.stringify({
         theme: colorMode === "dark" ? "light" : "dark",
       }),
-    }).then((res) => {});
+    }).then(() => { });
     window.location.reload();
   };
 
   if (!loading) {
     return (
       <>
-        <Navbar />
         <Box className="AdminSettings">
           <Box className="wrapper">
             <Heading alignSelf="flex-start">Settings</Heading>
@@ -279,9 +274,9 @@ const Settings = () => {
                     <FormLabel htmlFor="dark-mode">Dark Mode</FormLabel>
                     <Switch
                       id="dark-mode"
-                      onChange={(e) => {
-                        setDark();
-                      }}
+                      onChange={() =>
+                        setDark()
+                      }
                       isChecked={colorMode === "dark" ? true : false}
                     />
                   </FormControl>

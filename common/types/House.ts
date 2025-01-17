@@ -4,6 +4,13 @@ interface Social {
   twitter?: string | null;
 }
 
+interface Point {
+  certificateId: string;
+  points: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface House {
   _id: string;
   name: string;
@@ -15,9 +22,10 @@ interface House {
   facultyCordinator: string;
   studentCordinator?: string | null;
   members: string[];
+  points: Point[]
   social: Social;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export type { House, Social };
+export type { House, Social, Point };

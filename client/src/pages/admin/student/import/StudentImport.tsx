@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./StudentImport.css";
 import {
   Box,
@@ -14,32 +14,30 @@ import {
   Tr,
   useToast,
 } from "@chakra-ui/react";
-import Navbar from "../../../../components/admin/Navbar";
 import Papa from "papaparse";
-import Breadcrumb from "../../../../components/Breadcrumb";
-import { useAuthCheck } from "../../../../hooks/useAuthCheck";
 import StudentAdd from "./StudentAdd";
 
 const StudentImport = () => {
-  useAuthCheck("A");
 
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState([]);
 
   const toast = useToast();
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+    const file = files[0];
     Papa.parse(file, {
       complete: (result) => {
-        setTableData(result.data);
+        setTableData(result.data as string[][]);
       },
     });
   };
 
-  const handleModal = (value) => {
+  const handleModal = (value: boolean) => {
     setAddIndividual(value);
   };
 
@@ -74,7 +72,6 @@ const StudentImport = () => {
     fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/students/import`, {
       method: "POST",
       credentials: "include",
-      withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },
@@ -148,15 +145,6 @@ const StudentImport = () => {
 
   return (
     <>
-      <Navbar />
-      <Breadcrumb
-        title="Add Students"
-        links={[
-          { href: "/admin", name: "Admin" },
-          { href: "/admin/students", name: "Students" },
-          { href: "#", name: "Add" },
-        ]}
-      />
       <Box className="StudentImport">
         <Box className="main">
           <Box className="btn">

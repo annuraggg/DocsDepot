@@ -40,14 +40,14 @@ function App() {
   const adminRoutes = [
     { path: "", element: <AdminHome /> },
     { path: "students", element: <AdminStudents /> },
-    // { path: "students/add", element: <AdminStudentsImport /> },
-    // { path: "faculty/add", element: <AdminFacultyImport /> },
-    // { path: "faculty", element: <AdminFaculty /> },
-    // { path: "settings", element: <AdminSettings /> },
-    // { path: "logs", element: <AdminLogs /> },
-    // { path: "certificates", element: <AdminStudentCertificates /> },
-    // { path: "feedback", element: <AdminFeedback /> },
-    // { path: "faculty/certificates", element: <AdminFacultyCertificates /> },
+    { path: "students/add", element: <AdminStudentsImport /> },
+    { path: "faculty/add", element: <AdminFacultyImport /> },
+    { path: "faculty", element: <AdminFaculty /> },
+    { path: "settings", element: <AdminSettings /> },
+    { path: "logs", element: <AdminLogs /> },
+    { path: "certificates", element: <AdminStudentCertificates /> },
+    { path: "feedback", element: <AdminFeedback /> },
+    { path: "faculty/certificates", element: <AdminFacultyCertificates /> },
   ];
 
   const router = createBrowserRouter([

@@ -8,38 +8,39 @@ import {
   Th,
   Alert,
   AlertIcon,
-  AlertTitle,
   AlertDescription,
   Thead,
   Tr,
   useToast,
 } from "@chakra-ui/react";
-import Navbar from "../../../../components/admin/Navbar";
 import Papa from "papaparse";
-import Breadcrumb from "../../../../components/Breadcrumb";
-import { useAuthCheck } from "../../../../hooks/useAuthCheck";
 import "./FacultyImport.css";
 import FacultyAdd from "./FacultyAdd";
+import { House } from "@shared-types/House";
 
 const FacultyImport = () => {
-  useAuthCheck("A");
-
-  const [tableData, setTableData] = useState([]);
+  const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
-  const [houses, setHouses] = useState([]);
+  const [houses, setHouses] = useState<House[]>([]);
   const toast = useToast();
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    Papa.parse(file, {
-      complete: (result) => {
-        setTableData(result.data);
-      },
-    });
+  const handleFileUpload = (event:
+    | React.ChangeEvent<HTMLInputElement>
+    | React.DragEvent<HTMLDivElement>
+  ) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
+    if (file) {
+      Papa.parse(file, {
+        complete: (result) => {
+          setTableData(result.data as string[][]);
+        },
+      });
+    }
   };
 
-  const handleModal = (value) => {
+  const handleModal = (value: boolean | ((prevState: boolean) => boolean)) => {
     setAddIndividual(value);
   };
 
@@ -59,7 +60,6 @@ const FacultyImport = () => {
     fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/import`, {
       method: "POST",
       credentials: "include",
-      withCredentials: true,
       headers: {
         "Content-Type": "application/json",
       },
@@ -97,15 +97,7 @@ const FacultyImport = () => {
 
   return (
     <>
-      <Navbar />
-      <Breadcrumb
-        title="Add Faculty"
-        links={[
-          { href: "/admin", name: "Admin" },
-          { href: "/admin/faculty", name: "Faculty" },
-          { href: "#", name: "Add" },
-        ]}
-      />
+
       <Box className="FacultyImport">
         <Box className="main">
           <Box className="btn">
@@ -157,7 +149,7 @@ const FacultyImport = () => {
               </Thead>
               <Tbody>
                 {tableData.map((row, index) => (
-                  <Tr key={row.mid}>
+                  <Tr key={index}>
                     {row.map((cell, index) => (
                       <Td key={index}>{cell}</Td>
                     ))}
@@ -178,7 +170,7 @@ const FacultyImport = () => {
         </Box>
       </Box>
 
-      {addIndividual ? <FacultyAdd setModal={handleModal} h={houses} /> : <></>}
+      {addIndividual ? <FacultyAdd setModal={handleModal} h={{ houses }} /> : <></>}
     </>
   );
 };

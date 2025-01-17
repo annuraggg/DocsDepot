@@ -18,8 +18,14 @@ import {
   useToast,
   Select,
 } from "@chakra-ui/react";
+import { House } from "@shared-types/House";
 
-const StudentAdd = ({ setModal, houses }) => {
+interface StudentAddProps {
+  setModal: (value: boolean) => void;
+  houses: House[];
+}
+
+const StudentAdd = ({ setModal, houses }: StudentAddProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [gender, setGender] = React.useState("Male");
 
@@ -50,7 +56,7 @@ const StudentAdd = ({ setModal, houses }) => {
       gender: gender,
     };
 
-    if(moodleid.length !== 8) {
+    if (moodleid.length !== 8) {
       toast({
         title: "Error",
         description: "Moodle ID must be 8 digits",

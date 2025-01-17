@@ -19,7 +19,6 @@ interface ImageEditorModalProps {
   zoom: number;
   onZoomChange: (value: number | number[]) => void;
   onSave: () => void;
-  isLoading: boolean;
 }
 
 export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
@@ -31,7 +30,6 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
   zoom,
   onZoomChange,
   onSave,
-  isLoading,
 }) => {
   const editorProps = type === 'logo' 
     ? { width: 250, height: 250, borderRadius: 125 }
@@ -79,7 +77,6 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
           <Button 
             color="primary" 
             onClick={onSave}
-            isLoading={isLoading}
           >
             Save Changes
           </Button>

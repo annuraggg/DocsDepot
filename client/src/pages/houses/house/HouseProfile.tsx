@@ -2,11 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, Button } from '@chakra-ui/react';
 import { Settings, Camera } from 'lucide-react';
+import { User } from '@shared-types/User';
 
 interface HouseProfileProps {
   logo: string;
   name: string;
-  facCord: any[];
+  facCord: User;
   editPrivilege: boolean;
   onSelectLogo: () => void;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -74,17 +75,17 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
             )}
           </div>
           <div className="flex gap-2 mt-3">
-            {facCord.map((fac) => (
-              <Button
-                key={fac.mid}
-                size="sm"
-                variant="ghost"
-                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
-                onClick={() => navigateToProfile(fac.mid)}
-              >
-                @{fac.fname} {fac.lname}
-              </Button>
-            ))}
+
+            <Button
+              key={facCord.mid}
+              size="sm"
+              variant="ghost"
+              className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
+              onClick={() => navigateToProfile(facCord.mid)}
+            >
+              @{facCord.fname} {facCord.lname}
+            </Button>
+              
           </div>
         </div>
       </div>

@@ -5,78 +5,56 @@ import { useToast } from "@chakra-ui/react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { Trophy, TrendingUp, History, Calendar } from "lucide-react";
 import useAxios from "@/config/axios";
-import { House } from "@shared-types/House";
+import { House, Point } from "@shared-types/House";
 
 const Houses = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const [houses, setHouses] = useState<House[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState("all");
-  const [currentYear, setCurrentYear] = useState(0);
-  const [prevMonth, setPrevMonth] = useState<string>("all");
-
-  useEffect(() => {
-    const monthNames = [
-      "all", "january", "february", "march", "april", "may", "june",
-      "july", "august", "september", "october", "november", "december"
-    ];
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    setSelectedMonth(monthNames[currentMonth + 1]);
-    setPrevMonth(monthNames[currentMonth]);
-    setCurrentYear(currentDate.getFullYear());
-  }, []);
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // January = 1
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [prevMonth, setPrevMonth] = useState<number>(new Date().getMonth());
 
   const calculateTotalPoints = (data: House) => {
-    const totalInternalPoints = data?.points?.[currentYear]
-      ? Object.values(data.points[currentYear]).reduce((acc, month) => 
-          acc + (typeof month === 'number' ? month : (month?.internal || 0)), 0)
-      : 0;
+    const filterPointsByDate = (month?: number) =>
+      data.points.filter((point: Point) => {
+        const date = new Date(point.createdAt);
+        return (
+          date.getFullYear() === currentYear &&
+          (month ? date.getMonth() + 1 === month : true)
+        );
+      });
 
-    const totalExternalPoints = data?.points?.[currentYear]
-      ? Object.values(data.points[currentYear]).reduce((acc, month) => 
-          acc + (typeof month === 'number' ? 0 : (month?.external || 0)), 0)
-      : 0;
+    const calculatePoints = (filteredPoints: Point[]) =>
+      filteredPoints.reduce((total, point) => total + point.points, 0);
 
-    const totalEventsPoints = data?.points?.[currentYear]
-      ? Object.values(data.points[currentYear]).reduce((acc, month) => 
-          acc + (typeof month === 'number' ? 0 : (month?.events || 0)), 0)
-      : 0;
+    const totalMonthlyPoints = calculatePoints(filterPointsByDate(selectedMonth));
+    const totalPrevMonthPoints = calculatePoints(filterPointsByDate(prevMonth));
+    const totalYearlyPoints = calculatePoints(filterPointsByDate());
 
     return {
-      totalInternal: totalInternalPoints,
-      totalExternal: totalExternalPoints,
-      totalEvents: totalEventsPoints,
-      total: totalInternalPoints + totalExternalPoints + totalEventsPoints
+      totalMonthly: totalMonthlyPoints,
+      totalPreviousMonth: totalPrevMonthPoints,
+      totalYearly: totalYearlyPoints,
     };
   };
 
-  const prepareChartData = (type: 'monthly' | 'previous' | 'yearly') => {
+  const prepareChartData = (type: "monthly" | "previous" | "yearly") => {
     if (!houses.length) return [];
 
-    return houses.map(house => {
+    return houses.map((house) => {
+      const totals = calculateTotalPoints(house);
       let points = 0;
-      
-      if (type === 'yearly') {
-        const totals = calculateTotalPoints(house);
-        points = totals.total;
-      } else if (type === 'monthly') {
-        const monthData = house.points?.[currentYear]?.[selectedMonth];
-        points = typeof monthData === 'number' 
-          ? monthData 
-          : (monthData?.internal || 0) + (monthData?.external || 0) + (monthData?.events || 0);
-      } else {
-        const monthData = house.points?.[currentYear]?.[prevMonth];
-        points = typeof monthData === 'number'
-          ? monthData
-          : (monthData?.internal || 0) + (monthData?.external || 0) + (monthData?.events || 0);
-      }
+
+      if (type === "monthly") points = totals.totalMonthly;
+      else if (type === "previous") points = totals.totalPreviousMonth;
+      else if (type === "yearly") points = totals.totalYearly;
 
       return {
         name: house.name,
         points,
-        color: house.color
+        color: house.color,
       };
     });
   };
@@ -84,7 +62,8 @@ const Houses = () => {
   const axios = useAxios();
 
   useEffect(() => {
-    axios.get("/houses")
+    axios
+      .get("/houses")
       .then((res) => {
         setHouses(res.data.data);
         setLoading(false);
@@ -124,7 +103,7 @@ const Houses = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-7xl mx-auto"
@@ -139,7 +118,7 @@ const Houses = () => {
               className="cursor-pointer"
               onClick={() => navigate(`/houses/${house._id}`)}
             >
-              <div 
+              <div
                 className="rounded-xl p-6 shadow-lg"
                 style={{ backgroundColor: house.color }}
               >
@@ -148,7 +127,7 @@ const Houses = () => {
                   <Trophy className="w-6 h-6 text-white opacity-80" />
                 </div>
                 <p className="mt-2 text-white opacity-90">
-                  {calculateTotalPoints(house).total} Points
+                  {calculateTotalPoints(house).totalYearly} Points
                 </p>
               </div>
             </motion.div>
@@ -169,12 +148,12 @@ const Houses = () => {
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={prepareChartData('monthly')}
+                <BarChart
+                  data={prepareChartData("monthly")}
                   margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                 >
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     interval={0}
                     tick={{ fontSize: 12 }}
                     height={60}
@@ -201,12 +180,12 @@ const Houses = () => {
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={prepareChartData('previous')}
+                <BarChart
+                  data={prepareChartData("previous")}
                   margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                 >
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     interval={0}
                     tick={{ fontSize: 12 }}
                     height={60}
@@ -233,12 +212,12 @@ const Houses = () => {
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={prepareChartData('yearly')}
+                <BarChart
+                  data={prepareChartData("yearly")}
                   margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                 >
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     interval={0}
                     tick={{ fontSize: 12 }}
                     height={60}

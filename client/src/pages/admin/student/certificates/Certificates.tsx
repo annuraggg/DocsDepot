@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import Navbar from "../../../components/admin/Navbar";
+import { useEffect, useState } from "react";
 import "./Certificates.css";
 import {
   Box,
@@ -14,17 +13,15 @@ import {
   useToast,
 } from "@chakra-ui/react";
 
-import { useNavigate } from "react-router-dom";
-import Loader from "../../../components/Loader";
-import { useAuthCheck } from "../../../hooks/useAuthCheck";
+import { useNavigate } from "react-router";
+import { Certificate } from "@shared-types/Certificate";
+import Loader from "@/components/Loader";
 
 const Certificates = () => {
-  const [certificates, setCertificates] = useState([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const toast = useToast();
-
-  const decoded = useAuthCheck("A");
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/certificates`, {
@@ -56,7 +53,6 @@ const Certificates = () => {
   if (!loading) {
     return (
       <>
-        <Navbar />
         <Box className="AdminCertificates">
           <Heading fontSize="20px">Certificates</Heading>
           <Box className="table">
@@ -74,14 +70,14 @@ const Certificates = () => {
                   return (
                     <Tr key={certificate?._id}>
                       <Td>{certificate?.name}</Td>
-                      <Td>{certificate?.certificateName}</Td>
+                      <Td>{certificate?.name}</Td>
                       <Td>
-                        {certificate?.certificateType
+                        {certificate?.type
                           .slice(0, 1)
                           .toUpperCase() +
-                          certificate?.certificateType.slice(1)}
+                          certificate?.type.slice(1)}
                       </Td>
-                      <Td>{certificate?.issuingOrg}</Td>
+                      <Td>{certificate?.issuingOrganization}</Td>
                       <Td>
                         <Button
                           onClick={() =>
