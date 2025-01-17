@@ -15,7 +15,8 @@ import {
   CardHeader,
   Divider,
 } from "@chakra-ui/react";
-import type { Certificate, Comment } from "@shared-types/Certificate";
+import type { Comment } from "@shared-types/Certificate";
+import { ExtendedCertificate as Certificate } from "@/types/ExtendedCertificate";
 import useUser from "@/config/user";
 
 interface CommentSectionProps {
@@ -80,7 +81,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       </CardHeader>
       <CardBody>
         <VStack spacing={6} align="stretch">
-          {user?._id && user?._id !== certificate?.user ? (
+          {user?._id && user?._id !== certificate?.user?._id ? (
             <Box as="form" onSubmit={handleSubmitComment}>
               <Textarea
                 value={newComment}
@@ -121,7 +122,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             <VStack spacing={4} align="stretch">
               {certificate?.comments.map((comment) => (
                 <Box
-                  key={comment?._id}
+                  key={comment?.createdAt.toString()}
                   p={4}
                   borderWidth="1px"
                   borderRadius="md"
@@ -141,7 +142,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                           {comment?.user}
                         </Text>
                         <Text fontSize="sm" color="gray.500">
-                          {formatDate(comment?.createdAt)}
+                          {formatDate(comment?.createdAt.toString())}
                         </Text>
                       </Flex>
                       <Text mt={2} color="gray.700" whiteSpace="pre-wrap">

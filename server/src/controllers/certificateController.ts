@@ -22,8 +22,10 @@ if (!fs.existsSync(certificatesPath)) {
   fs.mkdirSync(certificatesPath, { recursive: true });
 }
 
-interface ExtendedCertificate extends ICertificate {
+interface ExtendedCertificate extends Omit<ICertificate, "issueDate" | "expirationDate"> {
   certificate: File;
+  issueDate: string;
+  expirationDate: string;
 }
 
 // File type validation
@@ -99,6 +101,7 @@ const createCertificate = async (c: Context) => {
     const user = c.get("user") as Token;
 
     console.log(formData);
+    console.log(formData?.level)
 
     // Extract file if present
     const certificateFile = formData.certificate;
@@ -119,22 +122,27 @@ const createCertificate = async (c: Context) => {
       return sendError(c, 400, "Invalid upload type", null);
     }
 
+    const issueDate = JSON.parse(formData.issueDate as string);
+    const expirationDate = JSON.parse(formData.expirationDate as string);
+
     const certificate = new Certificate({
       user: user._id,
-      certificateName: formData.name || "",
-      issuingOrg: formData.issuingOrganization || "",
-      issueMonth: formData.issueDate.month || "",
-      issueYear: Number(formData.issueDate.year) || new Date().getFullYear(),
+      name: formData.name || "",
+      issuingOrganization: formData.issuingOrganization || "",
+      issueDate: {
+        month: issueDate.month || "",
+        year: Number(issueDate.year) || new Date().getFullYear(),
+      },
       expires: formData.expires === true,
-      expiryMonth: formData.expirationDate.month || "",
-      expiryYear:
-        Number(formData.expirationDate.year) || new Date().getFullYear(),
-      certificateType: formData.type as CertificateType,
-      certificateLevel: formData.level as CertificateLevel,
+      expirationDate: {
+        month: expirationDate?.month || "",
+        year: Number(expirationDate?.year) || new Date().getFullYear(),
+      },
+      type: formData.type as CertificateType,
+      level: formData.level as CertificateLevel,
       uploadType: formData.uploadType as UploadType,
       url: formData.url || "",
       status: "pending",
-      house: user.house,
       comments: [],
       xp: 0,
     });
@@ -214,16 +222,19 @@ const updateCertificate = async (c: Context) => {
       }
     }
 
+    const issueDate = JSON.parse(formData.issueDate as string);
+    const expirationDate = JSON.parse(formData.expirationDate as string)
+
     // Update certificate fields
-    certificate.name = formData.name || certificate.name;
+    certificate.name = formData.name;
     certificate.issuingOrganization =
       formData.issuingOrganization || certificate.issuingOrganization;
     if (!certificate.issueDate) {
       certificate.issueDate = { month: "", year: new Date().getFullYear() };
     }
-    certificate.issueDate.month = formData.issueDate.month || "";
+    certificate.issueDate.month = issueDate.month || "";
     certificate.issueDate.year =
-      Number(formData.issueDate.year) || certificate.issueDate.year;
+      Number(issueDate.year) || issueDate.year;
     certificate.expires = formData.expires === true;
     if (!certificate.expirationDate) {
       certificate.expirationDate = {
@@ -232,9 +243,9 @@ const updateCertificate = async (c: Context) => {
       };
     }
     certificate.expirationDate.year =
-      Number(formData.expirationDate.year) || certificate.expirationDate.year;
+      Number(expirationDate.year) || certificate.expirationDate.year;
     certificate.expirationDate.month =
-      formData.expirationDate.year || certificate.expirationDate.month;
+    expirationDate.year || certificate.expirationDate.month;
     certificate.type = formData.type as CertificateType;
     certificate.level = formData.level as CertificateLevel;
 
@@ -262,7 +273,7 @@ const updateCertificate = async (c: Context) => {
       const arrayBuffer = await certificateFile.arrayBuffer();
       fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
-      // Update certificate URL
+      // Update certificate URLi
       certificate.url = `/certificates/${newFileName}`;
     }
 
