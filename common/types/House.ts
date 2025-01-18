@@ -4,9 +4,32 @@ interface Social {
   twitter?: string | null;
 }
 
+interface PointData {
+  internal: number;
+  external: number;
+  events: number;
+}
+
+interface YearlyPoints {
+  [key: string]: {
+    january?: PointData;
+    february?: PointData;
+    march?: PointData;
+    april?: PointData;
+    may?: PointData;
+    june?: PointData;
+    july?: PointData;
+    august?: PointData;
+    september?: PointData;
+    october?: PointData;
+    november?: PointData;
+    december?: PointData;
+  }
+}
+
 interface Point {
   certificateId: string;
-  points: number;
+  points: number | YearlyPoints;
   createdAt: Date;
   updatedAt: Date;
 }
