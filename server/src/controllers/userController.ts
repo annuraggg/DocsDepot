@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import User from "../models/User";
+import House from "../models/House";
 
 const getAllUsers = async (c: Context) => {
   try {
@@ -27,7 +28,8 @@ const getAllStudents = async (c: Context) => {
 const getAllFaculty = async (c: Context) => {
   try {
     const faculty = await User.find({ role: "F" }).lean();
-    return sendSuccess(c, 200, "Success", faculty);
+    const houses = await House.find().lean();
+    return sendSuccess(c, 200, "Success", { faculty, houses });
   } catch {
     return sendError(c, 500, "Internal Server Error");
   }
@@ -65,6 +67,29 @@ const getUserById = async (c: Context) => {
   }
 };
 
+const updateUser = async (c: Context) => {
+  const { id } = c.req.param();
+  const body = await c.req.json();
+  try {
+    const user = await User.findByIdAndUpdate(id, body, { new: true });
+    if (!user) return sendError(c, 404, "User not found");
+    return sendSuccess(c, 200, "User updated", user);
+  } catch {
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
+const deleteUser = async (c: Context) => {
+  const { id } = c.req.param();
+  try {
+    const user = await User.findByIdAndDelete(id);
+    if (!user) return sendError(c, 404, "User not found");
+    return sendSuccess(c, 200, "User deleted", user);
+  } catch {
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 export default {
   getAllUsers,
   getAllStudents,
@@ -72,4 +97,6 @@ export default {
   getAllAdmins,
   getUserByMid,
   getUserById,
+  updateUser,
+  deleteUser,
 };

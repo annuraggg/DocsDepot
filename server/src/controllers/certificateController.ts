@@ -7,6 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Token } from "scriptopia-types/Token.js";
 import { Certificate as ICertificate } from "scriptopia-types/Certificate.js";
+import { User } from "scriptopia-types/User.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +23,8 @@ if (!fs.existsSync(certificatesPath)) {
   fs.mkdirSync(certificatesPath, { recursive: true });
 }
 
-interface ExtendedCertificate extends Omit<ICertificate, "issueDate" | "expirationDate"> {
+interface ExtendedCertificate
+  extends Omit<ICertificate, "issueDate" | "expirationDate"> {
   certificate: File;
   issueDate: string;
   expirationDate: string;
@@ -101,7 +103,7 @@ const createCertificate = async (c: Context) => {
     const user = c.get("user") as Token;
 
     console.log(formData);
-    console.log(formData?.level)
+    console.log(formData?.level);
 
     // Extract file if present
     const certificateFile = formData.certificate;
@@ -223,7 +225,7 @@ const updateCertificate = async (c: Context) => {
     }
 
     const issueDate = JSON.parse(formData.issueDate as string);
-    const expirationDate = JSON.parse(formData.expirationDate as string)
+    const expirationDate = JSON.parse(formData.expirationDate as string);
 
     // Update certificate fields
     certificate.name = formData.name;
@@ -233,8 +235,7 @@ const updateCertificate = async (c: Context) => {
       certificate.issueDate = { month: "", year: new Date().getFullYear() };
     }
     certificate.issueDate.month = issueDate.month || "";
-    certificate.issueDate.year =
-      Number(issueDate.year) || issueDate.year;
+    certificate.issueDate.year = Number(issueDate.year) || issueDate.year;
     certificate.expires = formData.expires === true;
     if (!certificate.expirationDate) {
       certificate.expirationDate = {
@@ -245,7 +246,7 @@ const updateCertificate = async (c: Context) => {
     certificate.expirationDate.year =
       Number(expirationDate.year) || certificate.expirationDate.year;
     certificate.expirationDate.month =
-    expirationDate.year || certificate.expirationDate.month;
+      expirationDate.year || certificate.expirationDate.month;
     certificate.type = formData.type as CertificateType;
     certificate.level = formData.level as CertificateLevel;
 
@@ -366,6 +367,52 @@ const downloadCertificate = async (c: Context) => {
   }
 };
 
+const getStudentCertificates = async (c: Context) => {
+  try {
+    const certificates = await Certificate.find().populate("user").lean();
+
+    if (!certificates) {
+      return sendSuccess(c, 200, "No certificates found", []);
+    }
+
+    const studentCertificates = certificates.filter(
+      (certificate: any) => (certificate.user as User).role === "S"
+    );
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificates fetched successfully",
+      studentCertificates
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error fetching certificates", error);
+  }
+};
+
+const getFacultyCertificates = async (c: Context) => {
+  try {
+    const certificates = await Certificate.find().populate("user").lean();
+
+    if (!certificates) {
+      return sendSuccess(c, 200, "No certificates found", []);
+    }
+
+    const facultyCertificates = certificates.filter(
+      (certificate: any) => (certificate.user as User).role === "F"
+    );
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificates fetched successfully",
+      facultyCertificates
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error fetching certificates", error);
+  }
+};
+
 // Type guard functions
 function isCertificateType(value: string): value is CertificateType {
   return ["external", "internal", "event"].includes(value);
@@ -387,4 +434,6 @@ export default {
   updateCertificate,
   deleteCertificate,
   downloadCertificate,
+  getStudentCertificates,
+  getFacultyCertificates,
 };

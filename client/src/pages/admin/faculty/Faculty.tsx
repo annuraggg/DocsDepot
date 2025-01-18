@@ -38,6 +38,8 @@ import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router";
 import { User } from "@shared-types/User";
 import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
+import useAxios from "@/config/axios";
+import { House } from "@shared-types/House";
 
 const Faculty = () => {
   const toast = useToast();
@@ -47,7 +49,7 @@ const Faculty = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredFaculty, seFilteredFaculty] = useState<User[]>([]);
-  const [houses, setHouses] = useState([]);
+  const [houses, setHouses] = useState<House[]>([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const cancelRef = React.useRef(null);
@@ -81,23 +83,16 @@ const Faculty = () => {
   } = useDisclosure();
   const cancelDeleteRef = React.useRef(null);
 
+  const axios = useAxios();
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty`, {
-      // ! CHANGE TO FACULTY
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        token: localStorage.getItem("token"),
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    axios
+      .get("/user/faculty")
+      .then((res) => {
         setLoading(false);
-        setFaculty(data.faculty);
-        setHouses(data.houses);
+
+        setFaculty(res.data.data.faculty);
+        setHouses(res.data.data.houses);
       })
       .catch((err) => {
         console.error(err);
@@ -113,8 +108,10 @@ const Faculty = () => {
 
   useEffect(() => {
     const filtered = faculty.filter((faculty) =>
-      Object.values(faculty).some((value) =>
-        typeof value === 'string' && value.toLowerCase().includes(searchQuery.toLowerCase())
+      Object.values(faculty).some(
+        (value) =>
+          typeof value === "string" &&
+          value.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
     seFilteredFaculty(filtered);
@@ -146,42 +143,20 @@ const Faculty = () => {
   };
 
   const confirmDelete = () => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/delete`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        mid: delItem,
-      }),
-    })
-      .then(async (res) => await res.json())
-      .then((data) => {
-        if (data.success) {
-          onDeleteClose();
-          setSearchQuery("");
-          toast({
-            title: "Success",
-            description: "Faculty deleted successfully",
-            status: "success",
-            duration: 2000,
-            isClosable: true,
-          });
-          window.location.reload();
-        } else {
-          onDeleteClose();
-          toast({
-            title: "Error",
-            description: "Something went wrong",
-            status: "error",
-            duration: 2000,
-            isClosable: true,
-          });
-        }
-      })
-      .catch((err) => {
-        console.error(err);
+    axios.delete(`/user/${delItem}`).then((res) => {
+      if (res.data.success) {
+        onDeleteClose();
+        setSearchQuery("");
+        toast({
+          title: "Success",
+          description: "Faculty deleted successfully",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+        window.location.reload();
+      } else {
+        onDeleteClose();
         toast({
           title: "Error",
           description: "Something went wrong",
@@ -189,12 +164,15 @@ const Faculty = () => {
           duration: 2000,
           isClosable: true,
         });
-      });
+      }
+    });
   };
 
   const openEdit = (id: string) => {
     onOpen();
-    const faculty: User | undefined = filteredFaculty.find((faculty: User) => faculty.mid === id);
+    const faculty: User | undefined = filteredFaculty.find(
+      (faculty: User) => faculty.mid === id
+    );
     if (!faculty) return;
 
     setMid(faculty.mid);
@@ -234,25 +212,17 @@ const Faculty = () => {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/update`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: facOID,
+    axios
+      .put(`/user/${facOID}`, {
         mid: mid,
         fname: fname,
         lname: lname,
         email: email,
         gender: gender,
-        perms: perms,
-      }),
-    })
-      .then(async (res) => await res.json())
-      .then((data) => {
-        if (data.success) {
+        permissions: perms,
+      })
+      .then((res) => {
+        if (res.data.success) {
           onClose();
           setSearchQuery("");
           toast({
@@ -353,7 +323,7 @@ const Faculty = () => {
                         <Box
                           className="action"
                           cursor="pointer"
-                          onClick={() => deleteCustomer(faculty.mid)}
+                          onClick={() => deleteCustomer(faculty._id)}
                         >
                           Delete
                         </Box>
@@ -403,10 +373,7 @@ const Faculty = () => {
                 <Box className="ipgroup" mt="10px">
                   <FormLabel>Gender</FormLabel>
 
-                  <RadioGroup
-                    value={gender}
-                    onChange={(e) => setGender(e)}
-                  >
+                  <RadioGroup value={gender} onChange={(e) => setGender(e)}>
                     <Flex gap="20px">
                       <Radio name="gender" value="Male">
                         Male
@@ -484,8 +451,7 @@ const Faculty = () => {
 
               <AlertDialogBody>
                 This faculty is a house coordinator. Please assign another house
-                coordinator immediately or before deleting to avoid
-                crashes.
+                coordinator immediately or before deleting to avoid crashes.
               </AlertDialogBody>
 
               <AlertDialogFooter>
@@ -514,7 +480,10 @@ const Faculty = () => {
               <Box>
                 <Table>
                   <Tbody>
-                    <CheckboxGroup value={perms} onChange={(e) => setPerms(e as string[])}>
+                    <CheckboxGroup
+                      value={perms}
+                      onChange={(e) => setPerms(e as string[])}
+                    >
                       <Tr>
                         <Td>
                           <Checkbox value="UFC" readOnly>
@@ -524,7 +493,10 @@ const Faculty = () => {
                         <Td>
                           <List>
                             <ListItem mb={2}>
-                              <ListIcon as={FileWarningIcon} color="yellow.500" />
+                              <ListIcon
+                                as={FileWarningIcon}
+                                color="yellow.500"
+                              />
                               Default permission - Cannot be changed
                             </ListItem>
                             <ListItem mb={2}>
@@ -567,33 +539,58 @@ const Faculty = () => {
                           </List>
                         </Td>
                       </Tr>
-                      {houses.map((house, index) => (
-                        <Tr key={index}>
-                          <Td>
-                            <Checkbox value={`HCO${index}`}>
-                              House Coordinator - {house}
-                            </Checkbox>
-                          </Td>
-                          <Td>
-                            <List>
-                              <ListItem mb={2}>
-                                <ListIcon
-                                  as={CheckCircleIcon}
-                                  color="green.500"
-                                />
-                                Manage House Profile
-                              </ListItem>
-                              <ListItem>
-                                <ListIcon
-                                  as={CheckCircleIcon}
-                                  color="green.500"
-                                />
-                                Manage House Members
-                              </ListItem>
-                            </List>
-                          </Td>
-                        </Tr>
-                      ))}
+                    </CheckboxGroup>
+
+                    <Tr>
+                      <Td>
+                        <RadioGroup
+                          value={
+                            perms.find((perm) => perm.startsWith("HCO")) || ""
+                          }
+                          onChange={(value) => {
+                            setPerms((prev) =>
+                              [
+                                ...prev.filter(
+                                  (perm) => !perm.startsWith("HCO")
+                                ),
+                                value,
+                              ].filter(Boolean)
+                            );
+                          }}
+                        >
+                          <Flex direction="column" gap={3}>
+                            {houses.map((house, index) => (
+                              <Radio key={index} value={`HCO${index}`}>
+                                House Coordinator - {house.name}
+                              </Radio>
+                            ))}
+                            <Radio value="">None</Radio>
+                          </Flex>
+                        </RadioGroup>
+                      </Td>{" "}
+                      <Td>
+                        <List>
+                          <ListItem>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Manage House Profile
+                          </ListItem>{" "}
+                          <ListItem>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Manage House Members
+                          </ListItem>
+                        </List>
+                      </Td>
+                    </Tr>
+
+                    <CheckboxGroup
+                      value={perms.filter((perm) => !perm.startsWith("HCO"))}
+                      onChange={(values) => {
+                        const nonHCOValues = values.filter(
+                          (value) => !(value as string).startsWith("HCO")
+                        );
+                        setPerms([...nonHCOValues].map(String));
+                      }}
+                    >
                       <Tr>
                         <Td>
                           <Checkbox value="SND">Send Notifications</Checkbox>
@@ -610,7 +607,6 @@ const Faculty = () => {
                           </List>
                         </Td>
                       </Tr>
-                      { }
                       <Tr>
                         <Td>
                           <Checkbox value="RSP">

@@ -15,27 +15,20 @@ import {
 import { useNavigate } from "react-router";
 import { Certificate } from "@shared-types/Certificate";
 import Loader from "@/components/Loader";
+import useAxios from "@/config/axios";
 
 const Certificates = () => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const axios = useAxios();
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/certificates`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    axios
+      .get("/certificates/student")
       .then((res) => {
-        setLoading(false);
-        return res.json();
-      })
-      .then((data) => {
-        setCertificates(data.certificates);
+        setCertificates(res.data.data);
       })
       .catch((err) => {
         console.error(err);
@@ -46,6 +39,9 @@ const Certificates = () => {
           duration: 5000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
@@ -55,7 +51,7 @@ const Certificates = () => {
         <Box className="AdminCertificates">
           <Heading fontSize="20px">Certificates</Heading>
           <Box className="table">
-            <Table mt="50px" variant="striped" >
+            <Table mt="50px" variant="striped">
               <Thead>
                 <Tr>
                   <Th>Student Name</Th>
@@ -71,9 +67,7 @@ const Certificates = () => {
                       <Td>{certificate?.name}</Td>
                       <Td>{certificate?.name}</Td>
                       <Td>
-                        {certificate?.type
-                          .slice(0, 1)
-                          .toUpperCase() +
+                        {certificate?.type.slice(0, 1).toUpperCase() +
                           certificate?.type.slice(1)}
                       </Td>
                       <Td>{certificate?.issuingOrganization}</Td>

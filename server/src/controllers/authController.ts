@@ -33,6 +33,8 @@ const login = async (c: Context) => {
         fname: findUser.fname,
         lname: findUser.lname,
         role: "A",
+        certificateTheme: findUser.settings?.certificateLayout || "classic",
+        theme: findUser.settings?.colorMode || "light",
       };
       token = jwt.sign(data, process.env.JWT_SECRET!);
     } else if (findUser.role === "F") {
@@ -49,6 +51,8 @@ const login = async (c: Context) => {
           lname: findUser.lname,
           role: "F",
           perms: findUser.permissions,
+          certificateTheme: findUser.settings?.certificateLayout || "classic",
+          theme: findUser.settings?.colorMode || "light",
         };
         token = jwt.sign(data, process.env.JWT_SECRET!);
       }
@@ -76,6 +80,8 @@ const login = async (c: Context) => {
             : undefined,
           branch: findUser.academicDetails?.branch,
           role: "S",
+          certificateTheme: findUser.settings?.certificateLayout || "classic",
+          theme: findUser.settings?.colorMode || "light",
         };
         token = jwt.sign(data, process.env.JWT_SECRET!);
       }
@@ -132,6 +138,8 @@ const firstTimePassword = async (c: Context) => {
             : undefined,
           branch: user?.academicDetails?.branch,
           role: user.role,
+          certificateTheme: user.settings?.certificateLayout || "classic",
+          theme: user.settings?.colorMode || "light",
         };
         const token = jwt.sign(data, process.env.JWT_SECRET!);
         const expirationTime = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
@@ -281,10 +289,66 @@ const updateTheme = async (c: Context) => {
       }
     );
 
-    return sendSuccess(c, 200, "Theme updated successfully");
+    const newToken = jwt.sign(
+      {
+        _id: user._id,
+        house: user.house,
+        profilePicture: user.profilePicture,
+        mid: user.mid,
+        fname: user.fname,
+        lname: user.lname,
+        role: user.role,
+        certificateTheme: user.settings?.certificateLayout || "classic",
+        theme: colorMode,
+      },
+      process.env.JWT_SECRET!
+    );
+
+    return sendSuccess(c, 200, "Theme updated successfully", newToken);
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Error updating theme");
+  }
+};
+
+const updateCertificateTheme = async (c: Context) => {
+  const { _id } = (await c.get("user")) as Token;
+  const { certificateTheme } = await c.req.json();
+
+  try {
+    const user = await User.findOne({ _id: _id });
+    if (!user) {
+      return sendError(c, 500, "User not found");
+    }
+
+    await User.updateOne(
+      { _id: _id },
+      {
+        $set: {
+          "settings.certificateLayout": certificateTheme,
+        },
+      }
+    );
+
+    const newToken = jwt.sign(
+      {
+        _id: user._id,
+        house: user.house,
+        profilePicture: user.profilePicture,
+        mid: user.mid,
+        fname: user.fname,
+        lname: user.lname,
+        role: user.role,
+        certificateTheme,
+        theme: user.settings?.colorMode || "light",
+      },
+      process.env.JWT_SECRET!
+    );
+
+    return sendSuccess(c, 200, "Certificate theme updated successfully", newToken);
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Error updating certificate theme");
   }
 };
 
@@ -296,4 +360,5 @@ export default {
   updateProfilePicture,
   updatePassword,
   updateTheme,
+  updateCertificateTheme,
 };
