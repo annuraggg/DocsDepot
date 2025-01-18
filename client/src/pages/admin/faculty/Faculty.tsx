@@ -267,6 +267,7 @@ const Faculty = () => {
       <>
         <Box className="AdminStudents">
           <Box className="filters">
+            <Button onClick={() => navigate("/admin/faculty/add")}>Add Faculty</Button>
             <Box className="filters">
               <Box className="ipgroup">
                 <FormLabel>Search</FormLabel>

@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     fname: { type: String, required: true },
     lname: { type: String, required: true },
     profilePicture: { type: String, default: "" },
-    gender: { type: String, enum: ["M", "F"], required: true },
+    gender: { type: String, enum: ["M", "F", "O"], required: true },
     role: { type: String, enum: ["A", "S", "F"], required: true }, // A for Admin, S for Student
 
     house: { type: mongoose.Types.ObjectId, default: null, ref: "House" },

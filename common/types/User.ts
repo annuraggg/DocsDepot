@@ -28,7 +28,7 @@ interface AcademicDetails {
   admissionYear: number;
 }
 
-type Gender = "M" | "F";
+type Gender = "M" | "F" | "O";
 
 interface User {
   _id: string;

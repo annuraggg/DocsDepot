@@ -11,5 +11,7 @@ app.get("/:mid", userController.getUserByMid);
 app.get("/id/:id", userController.getUserById);
 app.put("/:id", userController.updateUser);
 app.delete("/:id", userController.deleteUser);
+app.post("/student", userController.createStudent);
+app.post("/faculty", userController.createFaculty);
 
 export default app;

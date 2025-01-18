@@ -24,9 +24,11 @@ import {
   Tbody,
   Tr,
   Td,
+  Flex,
 } from "@chakra-ui/react";
 import { House } from "@shared-types/House";
 import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
+import useAxios from "@/config/axios";
 
 interface FacultyAddProps {
   setModal: (value: boolean) => void;
@@ -52,10 +54,10 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const toast = useToast();
 
   useEffect(() => {
-      const houseObjects = h.houses.map((house: House) => house);
-      setHouses(houseObjects);
-      onOpen();
-    }, []);
+    const houseObjects = h.houses.map((house: House) => house);
+    setHouses(houseObjects);
+    onOpen();
+  }, []);
 
   useEffect(() => {
     console.error(perms);
@@ -66,14 +68,17 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
     onClose();
   };
 
+  const axios = useAxios();
+
   const addFaculty = () => {
     const data = {
       fname: fname,
       lname: lname,
-      moodleid: moodleid,
+      mid: moodleid,
       email: email,
       gender: gender,
       perms: perms,
+      role: "F",
     };
 
     function checkElements(arr: string | string[]) {
@@ -103,14 +108,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/add`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).then((res) => {
+    axios.post("/user/faculty", data).then((res) => {
       if (res.status === 200) {
         setClose();
         toast({
@@ -120,7 +118,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
           duration: 3000,
           isClosable: true,
         });
-      } else if(res.status === 409) {
+      } else if (res.status === 409) {
         toast({
           title: "Error",
           description: "Moodle ID already exists",
@@ -185,9 +183,9 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
 
               <RadioGroup onChange={setGender} value={gender}>
                 <Stack direction="row">
-                  <Radio value="Male">Male</Radio>
-                  <Radio value="Female">Female</Radio>
-                  <Radio value="Others">Others</Radio>
+                  <Radio value="M">Male</Radio>
+                  <Radio value="F">Female</Radio>
+                  <Radio value="O">Others</Radio>
                 </Stack>
               </RadioGroup>
             </Box>
@@ -229,7 +227,10 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
               <Box overflowX="auto" scrollBehavior="smooth">
                 <Table>
                   <Tbody>
-                    <CheckboxGroup value={perms} onChange={(e) => setPerms(e as string[])}>
+                    <CheckboxGroup
+                      value={perms}
+                      onChange={(e) => setPerms(e as string[])}
+                    >
                       <Tr>
                         <Td>
                           <Checkbox value="UFC" readOnly>
@@ -239,7 +240,10 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                         <Td>
                           <List>
                             <ListItem mb={2}>
-                              <ListIcon as={FileWarningIcon} color="yellow.500" />
+                              <ListIcon
+                                as={FileWarningIcon}
+                                color="yellow.500"
+                              />
                               Default permission - Cannot be changed
                             </ListItem>
                             <ListItem mb={2}>
@@ -298,33 +302,29 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                           </List>
                         </Td>
                       </Tr>
-                      {houses.map((house, index) => (
-                        <Tr key={index}>
-                          <Td>
-                            <Checkbox value={`HCO${index}`}>
-                              House Coordinator - {house.facultyCordinator}
-                            </Checkbox>
-                          </Td>
-                          <Td>
-                            <List>
-                              <ListItem mb={2}>
-                                <ListIcon
-                                  as={CheckCircleIcon}
-                                  color="green.500"
-                                />
-                                Manage House Profile
-                              </ListItem>
-                              <ListItem>
-                                <ListIcon
-                                  as={CheckCircleIcon}
-                                  color="green.500"
-                                />
-                                Manage House Members
-                              </ListItem>
-                            </List>
-                          </Td>
-                        </Tr>
-                      ))}
+                      <RadioGroup
+                        value={
+                          perms.find((perm) => perm.startsWith("HCO")) || ""
+                        }
+                        onChange={(value) => {
+                          setPerms((prev) =>
+                            [
+                              ...prev.filter((perm) => !perm.startsWith("HCO")),
+                              value,
+                            ].filter(Boolean)
+                          );
+                        }}
+                      >
+                        <Flex direction="column" gap={3}>
+                          {houses.map((house, index) => (
+                            <Radio key={index} value={`HCO${index}`}>
+                              House Coordinator - {house.name}
+                            </Radio>
+                          ))}
+                          <Radio value="">None</Radio>
+                        </Flex>
+                      </RadioGroup>{" "}
+                      F
                       <Tr>
                         <Td>
                           <Checkbox value="RSP">

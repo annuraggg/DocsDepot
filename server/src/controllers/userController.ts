@@ -2,6 +2,7 @@ import { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import User from "../models/User";
 import House from "../models/House";
+import bcrypt from "bcrypt";
 
 const getAllUsers = async (c: Context) => {
   try {
@@ -90,6 +91,34 @@ const deleteUser = async (c: Context) => {
   }
 };
 
+const createStudent = async (c: Context) => {
+  const body = await c.req.json();
+  try {
+    const user = new User(body);
+    const password = bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10);
+    user.password = password;
+    await user.save();
+    return sendSuccess(c, 200, "User created", user);
+  } catch (err) {
+    console.log(err)
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
+const createFaculty = async (c: Context) => {
+  const body = await c.req.json();
+  try {
+    const user = new User(body);
+    const password = bcrypt.hashSync(process.env.DEFAULT_FACULTY_PASSWORD!, 10);
+    user.password = password;
+    await user.save();
+    return sendSuccess(c, 200, "User created", user);
+  } catch (err) {
+    console.log(err)
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 export default {
   getAllUsers,
   getAllStudents,
@@ -99,4 +128,6 @@ export default {
   getUserById,
   updateUser,
   deleteUser,
+  createStudent,
+  createFaculty,
 };
