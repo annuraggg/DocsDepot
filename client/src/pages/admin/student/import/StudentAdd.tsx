@@ -18,13 +18,14 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { House } from "@shared-types/House";
+import useAxios from "@/config/axios";
 
 interface StudentAddProps {
   setModal: (value: boolean) => void;
   houses: House[];
 }
 
-const StudentAdd = ({ setModal, houses }: StudentAddProps) => {
+const StudentAdd = ({ setModal }: StudentAddProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [gender, setGender] = React.useState("Male");
 
@@ -33,11 +34,22 @@ const StudentAdd = ({ setModal, houses }: StudentAddProps) => {
   const [moodleid, setMoodleid] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [house, setHouse] = React.useState("");
+  const [houses, setHouses] = React.useState<House[]>([]);
 
   const toast = useToast();
+  const axios = useAxios();
 
   useEffect(() => {
     onOpen();
+    axios
+      .get("/houses")
+      .then((res) => {
+        console.log(res.data.data);
+        setHouses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   const setClose = () => {
@@ -49,10 +61,11 @@ const StudentAdd = ({ setModal, houses }: StudentAddProps) => {
     const data = {
       fname: fname,
       lname: lname,
-      moodleid: moodleid,
+      mid: moodleid,
       email: email,
       house: house,
       gender: gender,
+      role: "S"
     };
 
     if (moodleid.length !== 8) {
@@ -66,14 +79,8 @@ const StudentAdd = ({ setModal, houses }: StudentAddProps) => {
       return;
     }
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/students/add`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
+    axios
+      .post("/user/student", data)
       .then((res) => {
         if (res.status === 200) {
           setClose();
@@ -166,9 +173,9 @@ const StudentAdd = ({ setModal, houses }: StudentAddProps) => {
 
               <RadioGroup onChange={setGender} value={gender}>
                 <Stack direction="row">
-                  <Radio value="Male">Male</Radio>
-                  <Radio value="Female">Female</Radio>
-                  <Radio value="Others">Others</Radio>
+                  <Radio value="M">Male</Radio>
+                  <Radio value="F">Female</Radio>
+                  <Radio value="O">Others</Radio>
                 </Stack>
               </RadioGroup>
             </Box>

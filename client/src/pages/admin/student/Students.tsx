@@ -28,6 +28,7 @@ import Loader from "../../../components/Loader";
 import { User, Gender } from "@shared-types/User";
 import useAxios from "@/config/axios";
 import { House } from "@shared-types/House";
+import { useNavigate } from "react-router";
 
 interface ExtendedUser extends Omit<User, "house"> {
   house: House;
@@ -47,6 +48,8 @@ const Students = () => {
     onClose: onEditClose,
   } = useDisclosure();
 
+  const navigate = useNavigate();
+
   const [fname, setFname] = useState("");
   const [lname, setLname] = useState("");
   const [moodleid, setMoodleid] = useState("");
@@ -54,6 +57,7 @@ const Students = () => {
   const [house, setHouse] = useState("");
   const [gender, setGender] = useState<Gender>("M");
   const [update, setUpdate] = useState(false);
+  const [studentId, setStudentId] = useState("");
 
   const toast = useToast();
   const axios = useAxios();
@@ -62,7 +66,7 @@ const Students = () => {
     axios
       .get("/user/students")
       .then((res) => {
-        console.log(res.data.data)
+        console.log(res.data.data);
         setLoading(false);
         setStudents(res.data.data);
       })
@@ -94,6 +98,7 @@ const Students = () => {
   const openEdit = (mid: string) => {
     const student = students.find((stu) => stu.mid === mid);
     if (student) {
+      setStudentId(student._id);
       setFname(student.fname);
       setLname(student.lname);
       setMoodleid(student.mid);
@@ -107,7 +112,7 @@ const Students = () => {
   const updateStudent = () => {
     onEditClose();
     axios
-      .post("/admin/students/update", {
+      .put(`/user/${studentId}`, {
         mid: moodleid,
         fname,
         lname,
@@ -146,6 +151,9 @@ const Students = () => {
       <Box>
         {/* Search and Filter UI */}
         <Box>
+          <Button onClick={() => navigate("/admin/students/add")}>
+            Add Student
+          </Button>
           <FormLabel>Search</FormLabel>
           <Input
             placeholder="Search by name or email"
