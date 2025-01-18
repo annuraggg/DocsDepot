@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "./StudentImport.css";
 import {
   Box,
   Button,

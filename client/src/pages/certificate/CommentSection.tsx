@@ -64,7 +64,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -122,7 +123,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             <VStack spacing={4} align="stretch">
               {certificate?.comments.map((comment) => (
                 <Box
-                  key={comment?.createdAt.toString()}
+                  key={comment?.createdAt?.toString()}
                   p={4}
                   borderWidth="1px"
                   borderRadius="md"
@@ -142,7 +143,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                           {comment?.user}
                         </Text>
                         <Text fontSize="sm" color="gray.500">
-                          {formatDate(comment?.createdAt.toString())}
+                          {formatDate(comment?.createdAt?.toString())}
                         </Text>
                       </Flex>
                       <Text mt={2} color="gray.700" whiteSpace="pre-wrap">

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./Certificates.css";
 import {
   Box,
   Heading,

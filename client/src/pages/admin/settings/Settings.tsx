@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import "./Settings.css";
 import {
   Box,
   Divider,

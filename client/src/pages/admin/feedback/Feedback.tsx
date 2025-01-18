@@ -7,7 +7,6 @@ import {
   Flex,
   useToast,
 } from "@chakra-ui/react";
-import "./Feedback.css";
 import Loader from "../../../components/Loader";
 import { Feedback as IFeedback } from "@shared-types/Feedback";
 

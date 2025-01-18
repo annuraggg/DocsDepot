@@ -6,7 +6,6 @@ import {
   Input,
   useToast,
 } from "@chakra-ui/react";
-import "./Certificates.css";
 import {
   Box,
   Button,

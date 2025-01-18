@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import "./FacultyAdd.css";
 import {
   Modal,
   ModalOverlay,

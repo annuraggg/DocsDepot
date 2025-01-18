@@ -13,8 +13,7 @@ import {
   Tr,
   useToast,
 } from "@chakra-ui/react";
-import Papa from "papaparse";
-import "./FacultyImport.css";
+import Papa from "papaparse"; 
 import FacultyAdd from "./FacultyAdd";
 import { House } from "@shared-types/House";
 

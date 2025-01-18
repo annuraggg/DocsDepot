@@ -18,7 +18,6 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import React, { ReactElement, useEffect, useState } from "react";
-import "./Logs.css";
 import jsPDF from "jspdf";
 import { ChevronDownIcon } from "lucide-react";
 import Loader from "../../../components/Loader";

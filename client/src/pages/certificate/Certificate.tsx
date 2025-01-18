@@ -79,7 +79,7 @@ const Certificate = () => {
   };
 
   const addComment = async (
-    comment: Omit<Comment, "_id" | "createdAt">
+    _comment: Omit<Comment, "_id" | "createdAt">
   ): Promise<void> => {
     return Promise.resolve();
   };
