@@ -1,45 +1,34 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Card,
-  CardBody,
-  Text,
-  Flex,
-  useToast,
-} from "@chakra-ui/react";
+import { Box, Card, CardBody, Text, Flex, useToast } from "@chakra-ui/react";
 import Loader from "../../../components/Loader";
 import { Feedback as IFeedback } from "@shared-types/Feedback";
+import useAxios from "@/config/axios";
 
 const Feedback = () => {
   const [feedback, setFeedback] = useState<IFeedback[]>([]);
   const toast = useToast();
+  const axios = useAxios();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/feedback`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then((res) => {
-      res
-        .json()
-        .then((data) => {
-          setFeedback((prevFeedback) => [...prevFeedback, ...data.result]);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.log(err);
-          toast({
-            title: "Error",
-            description: "Error fetching feedback",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
+    axios
+      .get("/feedback")
+      .then((res) => {
+        setFeedback(res.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+        toast({
+          title: "Error",
+          description: "Error fetching feedback",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
         });
-    });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   if (!loading) {

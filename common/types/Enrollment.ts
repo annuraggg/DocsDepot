@@ -1,4 +1,5 @@
 interface Enrollment {
+  _id: string;
   userid: string;
   about: string;
   technical: string;

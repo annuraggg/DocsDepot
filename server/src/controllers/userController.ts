@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse";
 import User from "../models/User";
+import House from "../models/House";
 
 const getAllUsers = async (c: Context) => {
   try {
@@ -27,7 +28,8 @@ const getAllStudents = async (c: Context) => {
 const getAllFaculty = async (c: Context) => {
   try {
     const faculty = await User.find({ role: "F" }).lean();
-    return sendSuccess(c, 200, "Success", faculty);
+    const houses = await House.find().lean();
+    return sendSuccess(c, 200, "Success", {faculty, houses});
   } catch {
     return sendError(c, 500, "Internal Server Error");
   }

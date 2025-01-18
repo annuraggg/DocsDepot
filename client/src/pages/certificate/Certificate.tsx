@@ -19,6 +19,7 @@ import { CopyIcon } from "lucide-react";
 import CommentSection from "./CommentSection";
 import useUser from "@/config/user";
 import generatePDF, { usePDF } from "react-to-pdf";
+import ClassicTheme from "./ClassicTheme";
 
 const Certificate = () => {
   const axios = useAxios();
@@ -88,9 +89,13 @@ const Certificate = () => {
     <div className="p-8 h-[100vh] flex gap-10 w-full">
       <div
         id="certificate-print-area"
-        className="w-full bg-red-50 max-w-[70%] min-w-[70%]"
+        className="w-fullmax-w-[70%] min-w-[70%]"
       >
-        <GreenTheme certificate={certificate!} ref={targetRef} />
+        {user?.certificateTheme === "classic" ? (
+          <ClassicTheme certificate={certificate!} ref={targetRef} />
+        ) : (
+          <GreenTheme certificate={certificate!} ref={targetRef} />
+        )}
       </div>
       <div className="w-full">
         <Button

@@ -38,6 +38,7 @@ import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router";
 import { User } from "@shared-types/User";
 import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
+import useAxios from "@/config/axios";
 
 const Faculty = () => {
   const toast = useToast();
@@ -81,23 +82,16 @@ const Faculty = () => {
   } = useDisclosure();
   const cancelDeleteRef = React.useRef(null);
 
+  const axios = useAxios();
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty`, {
-      // ! CHANGE TO FACULTY
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        token: localStorage.getItem("token"),
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    axios
+      .get("/user/faculty")
+      .then((res) => {
         setLoading(false);
-        setFaculty(data.faculty);
-        setHouses(data.houses);
+
+        setFaculty(res.data.data.faculty);
+        setHouses(res.data.data.houses);
       })
       .catch((err) => {
         console.error(err);
@@ -113,8 +107,10 @@ const Faculty = () => {
 
   useEffect(() => {
     const filtered = faculty.filter((faculty) =>
-      Object.values(faculty).some((value) =>
-        typeof value === 'string' && value.toLowerCase().includes(searchQuery.toLowerCase())
+      Object.values(faculty).some(
+        (value) =>
+          typeof value === "string" &&
+          value.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
     seFilteredFaculty(filtered);
@@ -194,7 +190,9 @@ const Faculty = () => {
 
   const openEdit = (id: string) => {
     onOpen();
-    const faculty: User | undefined = filteredFaculty.find((faculty: User) => faculty.mid === id);
+    const faculty: User | undefined = filteredFaculty.find(
+      (faculty: User) => faculty.mid === id
+    );
     if (!faculty) return;
 
     setMid(faculty.mid);
@@ -403,10 +401,7 @@ const Faculty = () => {
                 <Box className="ipgroup" mt="10px">
                   <FormLabel>Gender</FormLabel>
 
-                  <RadioGroup
-                    value={gender}
-                    onChange={(e) => setGender(e)}
-                  >
+                  <RadioGroup value={gender} onChange={(e) => setGender(e)}>
                     <Flex gap="20px">
                       <Radio name="gender" value="Male">
                         Male
@@ -484,8 +479,7 @@ const Faculty = () => {
 
               <AlertDialogBody>
                 This faculty is a house coordinator. Please assign another house
-                coordinator immediately or before deleting to avoid
-                crashes.
+                coordinator immediately or before deleting to avoid crashes.
               </AlertDialogBody>
 
               <AlertDialogFooter>
@@ -514,7 +508,10 @@ const Faculty = () => {
               <Box>
                 <Table>
                   <Tbody>
-                    <CheckboxGroup value={perms} onChange={(e) => setPerms(e as string[])}>
+                    <CheckboxGroup
+                      value={perms}
+                      onChange={(e) => setPerms(e as string[])}
+                    >
                       <Tr>
                         <Td>
                           <Checkbox value="UFC" readOnly>
@@ -524,7 +521,10 @@ const Faculty = () => {
                         <Td>
                           <List>
                             <ListItem mb={2}>
-                              <ListIcon as={FileWarningIcon} color="yellow.500" />
+                              <ListIcon
+                                as={FileWarningIcon}
+                                color="yellow.500"
+                              />
                               Default permission - Cannot be changed
                             </ListItem>
                             <ListItem mb={2}>
@@ -610,7 +610,7 @@ const Faculty = () => {
                           </List>
                         </Td>
                       </Tr>
-                      { }
+                      {}
                       <Tr>
                         <Td>
                           <Checkbox value="RSP">

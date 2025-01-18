@@ -6,15 +6,31 @@ import {
   Card,
   CardBody,
   Container,
+  RadioGroup,
+  Radio,
 } from "@chakra-ui/react";
-import { Moon, Sun, Eye, EyeOff, Save, Shield } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  Eye,
+  EyeOff,
+  Save,
+  Shield,
+  PaintRoller,
+} from "lucide-react";
 import Loader from "../../../components/Loader";
 import useAxios from "@/config/axios";
+
+import ClassicCert from "@/assets/img/classic-cert.png";
+import GreenCert from "@/assets/img/green-cert.png";
+import Cookies from "js-cookie";
+import useUser from "@/config/user";
 
 const Settings = () => {
   const [toastDispatched, setToastDispatched] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const toast = useToast();
+  const user = useUser();
 
   const [show1, setShow1] = React.useState(false);
   const [show2, setShow2] = React.useState(false);
@@ -25,6 +41,7 @@ const Settings = () => {
   const [confirmPass, setConfirmPass] = React.useState("");
   const [err, setErr] = React.useState("");
   const [isButtonLoading, setIsButtonLoading] = React.useState(false);
+  const [certificateTheme, setCertificateTheme] = React.useState("classic");
 
   const axios = useAxios();
   const { colorMode, toggleColorMode } = useColorMode();
@@ -127,12 +144,20 @@ const Settings = () => {
   const setDark = () => {
     toggleColorMode();
 
-    axios.post("/auth/profile/theme", {
-      colorMode: colorMode === "dark" ? "light" : "dark",
-    });
+    axios
+      .post("/auth/profile/theme", {
+        colorMode: colorMode === "dark" ? "light" : "dark",
+      })
+      .then((res) => {
+        const token = res.data.data;
+        if (!token) return;
+
+        Cookies.set("token", token);
+      });
   };
 
   useEffect(() => {
+    setCertificateTheme(user?.certificateTheme || "classic");
     setLoading(false);
   }, []);
 
@@ -148,6 +173,20 @@ const Settings = () => {
       setToastDispatched(true);
     }
   }, [toastDispatched]);
+
+  const updateCertificateTheme = (theme: string) => {
+    setCertificateTheme(theme);
+    axios
+      .post("/auth/profile/certificate-theme", {
+        certificateTheme: theme,
+      })
+      .then((res) => {
+        const token = res.data.data;
+        if (!token) return;
+
+        Cookies.set("token", token);
+      });
+  };
 
   if (!loading) {
     return (
@@ -348,6 +387,39 @@ const Settings = () => {
                     </>
                   )}
                 </motion.button>
+              </div>
+              <div className="py-3 mt-5">
+                <div className="flex items-center gap-3 mb-6">
+                  <PaintRoller className="w-5 h-5 text-blue-500" />
+                  <h2
+                    className="text-xl font-semibold"
+                    style={{
+                      color: colorMode === "dark" ? "#ffffff" : "#1a202c",
+                    }}
+                  >
+                    Certificate Theme
+                  </h2>
+                </div>
+                <div className="flex justify-between items-center">
+                  <RadioGroup
+                    className="flex gap-4"
+                    onChange={updateCertificateTheme}
+                    value={certificateTheme}
+                  >
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={ClassicCert}
+                        alt="Classic Theme"
+                        className="mb-2"
+                      />
+                      <Radio value="classic">Classic Theme</Radio>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <img src={GreenCert} alt="Green Theme" className="mb-2" />
+                      <Radio value="green">Green Theme</Radio>
+                    </div>
+                  </RadioGroup>
+                </div>
               </div>
             </CardBody>
           </Card>

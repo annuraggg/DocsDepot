@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import StudentNavbar from "../navbars/StudentNavbar";
+import AdminNavbar from "../navbars/AdminNavbar";
 import { useEffect } from "react";
 import Cookies from "js-cookie";
 
@@ -14,7 +14,7 @@ const AdminLayout = () => {
 
   return (
     <div>
-      <StudentNavbar />
+      <AdminNavbar />
       <Outlet />
     </div>
   );

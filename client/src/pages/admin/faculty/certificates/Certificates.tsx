@@ -32,11 +32,16 @@ import { useNavigate } from "react-router";
 import Loader from "../../../../components/Loader";
 import { Certificate, Comment } from "@shared-types/Certificate";
 import useUser from "@/config/user";
+import useAxios from "@/config/axios";
 const Certificates = () => {
-  const [pendingCertificates, setPendingCertificates] = useState<Certificate[]>([]);
+  const [pendingCertificates, setPendingCertificates] = useState<Certificate[]>(
+    []
+  );
 
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<
+    Certificate[]
+  >([]);
 
   const [loading, setLoading] = useState(true);
   const [update, setUpdate] = useState(false);
@@ -46,35 +51,21 @@ const Certificates = () => {
   const [comments, setComments] = useState<Comment[]>([]);
 
   const navigate = useNavigate();
-  const user = useUser()
+  const user = useUser();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const toast = useToast();
+  const axios = useAxios();
 
   useEffect(() => {
-    fetch(
-      `${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/certificates`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    )
+    axios
+      .get("/certificates/faculty")
       .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setCertificates(data.certs);
-        setPendingCertificates(data.pendcerts);
-        setLoading(false);
+        setCertificates(res.data.data);
       })
       .catch((err) => {
         console.error(err);
-        setLoading(false);
-
         toast({
           title: "Error",
           description: "Something went wrong",
@@ -82,6 +73,9 @@ const Certificates = () => {
           duration: 5000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [update]);
 
@@ -103,7 +97,8 @@ const Certificates = () => {
     }
 
     fetch(
-      `${import.meta.env.VITE_BACKEND_ADDRESS
+      `${
+        import.meta.env.VITE_BACKEND_ADDRESS
       }/admin/faculty/certificates/update`,
       {
         method: "POST",
@@ -143,9 +138,7 @@ const Certificates = () => {
     setFilteredCertificates(certificates);
   }, [certificates]);
 
-  const search = (e:
-    | React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const search = (e: React.ChangeEvent<HTMLInputElement>) => {
     const keyword = e.target.value;
     if (keyword !== "") {
       const results = certificates.filter((certificate) => {
@@ -157,9 +150,7 @@ const Certificates = () => {
     }
   };
 
-  const filter = (e:
-    | string[]
-  ) => {
+  const filter = (e: string[]) => {
     const keyword = e; //is an array
     if (keyword.length !== 0) {
       const results = certificates.filter((certificate) => {
@@ -179,7 +170,7 @@ const Certificates = () => {
           <Table mt="50px" variant="striped">
             <Thead>
               <Tr>
-                <Th>Student Name</Th>
+                <Th>Faculty Name</Th>
                 <Th>Certificate Name</Th>
                 <Th>Certificate Type</Th>
                 <Th>Issuing Organization</Th>
@@ -243,7 +234,7 @@ const Certificates = () => {
           <Table mt="20px" variant="striped">
             <Thead>
               <Tr>
-                <Th>Student Name</Th>
+                <Th>Faculty Name</Th>
                 <Th>Certificate Name</Th>
                 <Th>Certificate Type</Th>
                 <Th>Issuing Organization</Th>
@@ -292,18 +283,19 @@ const Certificates = () => {
                 <option value="rejected">Reject Certificate</option>
               </Select>
 
-              {comments?.map(comment => {
+              {comments?.map((comment) => {
                 return (
                   <Textarea
                     placeholder="Comments"
                     value={comment.comment}
-                    onChange={(e) => setComments([
-                      ...comments,
-                      {
-                        comment: e.target.value,
-                        user: user?._id!,
-                      }
-                    ])
+                    onChange={(e) =>
+                      setComments([
+                        ...comments,
+                        {
+                          comment: e.target.value,
+                          user: user?._id!,
+                        },
+                      ])
                     }
                   />
                 );

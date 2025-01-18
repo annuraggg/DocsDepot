@@ -9,6 +9,8 @@ interface Token {
   perms?: string[];
   ay?: number;
   branch?: string;
+  certificateTheme?: string;
+  theme?: string;
 }
 
 export type { Token };
