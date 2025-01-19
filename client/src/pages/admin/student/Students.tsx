@@ -66,8 +66,6 @@ const Students = () => {
     axios
       .get("/user/students")
       .then((res) => {
-        console.log(res.data.data);
-        setLoading(false);
         setStudents(res.data.data);
       })
       .catch((err) => {
@@ -232,7 +230,7 @@ const Students = () => {
                 >
                   <Td>{student.mid}</Td>
                   <Td>{`${student.fname} ${student.lname}`}</Td>
-                  <Td>{student.academicDetails.academicYear}</Td>
+                  <Td>{student.academicDetails.admissionYear}</Td>
                   <Td>{student.social.email}</Td>
                   <Td>{student.house?.name || "N/A"}</Td>
                   <Td className="text-right">

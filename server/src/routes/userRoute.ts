@@ -13,5 +13,8 @@ app.put("/:id", userController.updateUser);
 app.delete("/:id", userController.deleteUser);
 app.post("/student", userController.createStudent);
 app.post("/faculty", userController.createFaculty);
+app.post("/student/bulk", userController.bulkCreateStudents);
+app.post("/faculty/bulk", userController.bulkCreateFaculty);
+app.delete("/bulk", userController.bulkDeleteUsers);a
 
 export default app;

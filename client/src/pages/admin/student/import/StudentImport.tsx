@@ -19,26 +19,26 @@ import {
   useColorModeValue,
   HStack,
   Text,
-  Badge,
-  Progress,
   TableContainer,
 } from "@chakra-ui/react";
 import Papa from "papaparse";
 import StudentAdd from "./StudentAdd";
 import useAxios from "@/config/axios";
 import { Database, Upload, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const StudentImport = () => {
   const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState([]);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
   const toast = useToast();
+  const navigate = useNavigate();
+  const axios = useAxios();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -51,17 +51,16 @@ const StudentImport = () => {
     });
   };
 
-  const handleModal = (value: boolean) => {
-    setAddIndividual(value);
-  };
-
   const startImport = () => {
     setAdding(true);
     tableData.forEach((row) => {
       if (row.length !== 5) {
         toast({
           title: "Error",
-          description: "Invalid CSV File",
+          description:
+            "Invalid CSV File with length " +
+            " at row " +
+            (tableData.indexOf(row) + 1),
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -73,7 +72,8 @@ const StudentImport = () => {
       if (row[0].length !== 8) {
         toast({
           title: "Error",
-          description: "Invalid Student ID",
+          description:
+            "Invalid Student ID at row " + (tableData.indexOf(row) + 1),
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -83,16 +83,9 @@ const StudentImport = () => {
       }
     });
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/students/import`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tableData }),
-    })
+    axios
+      .post("/user/student/bulk", { tableData })
       .then((res) => {
-        setAdding(false);
         if (res.status === 200) {
           toast({
             title: "Students Imported",
@@ -101,6 +94,8 @@ const StudentImport = () => {
             duration: 3000,
             isClosable: true,
           });
+
+          navigate("/admin/student");
         } else if (res.status === 409) {
           toast({
             title: "Error",
@@ -119,20 +114,11 @@ const StudentImport = () => {
           });
         }
       })
-      .catch((err) => {
-        console.error(err);
+      .finally(() => {
+        setTableData([]);
         setAdding(false);
-        toast({
-          title: "Error",
-          description: "Error in importing students",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
       });
   };
-
-  const axios = useAxios();
 
   useEffect(() => {
     axios
@@ -142,6 +128,13 @@ const StudentImport = () => {
       })
       .catch((err) => {
         console.error(err);
+        toast({
+          title: "Error",
+          description: err.response.data.message || "Something went wrong",   
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       });
   }, []);
 
@@ -209,24 +202,16 @@ const StudentImport = () => {
               {tableData.length > 0 && (
                 <Box width="full">
                   <HStack justify="space-between" mb={4}>
-                    <Badge
-                      colorScheme="blue"
+                    <Text
                       fontSize="md"
                       p={2}
                       borderRadius="md"
+                      display={"flex"}
+                      gap={2}
                     >
                       <Database />
                       {tableData.length} Records Loaded
-                    </Badge>
-                    {adding && (
-                      <Progress
-                        size="sm"
-                        width="200px"
-                        value={uploadProgress}
-                        colorScheme="green"
-                        borderRadius="full"
-                      />
-                    )}
+                    </Text>
                   </HStack>
 
                   <TableContainer
@@ -282,7 +267,9 @@ const StudentImport = () => {
         </Card>
       </VStack>
 
-      {addIndividual && <StudentAdd setModal={handleModal} houses={houses} />}
+      {addIndividual && (
+        <StudentAdd setModal={setAddIndividual} houses={houses} />
+      )}
     </Container>
   );
 };
