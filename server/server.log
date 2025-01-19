@@ -194,3 +194,8 @@
 [2025-01-19T12:34:38.418Z] INFO: MT: GET | PA: /logs | AU: Authenticated | ST: 200 | RT: 4.00 ms
 [2025-01-19T12:34:38.425Z] INFO: MT: GET | PA: /logs | AU: Authenticated | ST: 200 | RT: 3.00 ms
 [2025-01-19T12:34:52.084Z] INFO: MT: GET | PA: /logs | AU: Authenticated | ST: 200 | RT: 4.00 ms
+[2025-01-19T13:04:07.659Z] INFO: MT: POST | PA: /maintainance | AU: Authenticated | ST: 200 | RT: 2.00 ms
+[2025-01-19T13:04:07.665Z] INFO: MT: GET | PA: /logs | AU: Authenticated | ST: 200 | RT: 3.00 ms
+[2025-01-19T13:04:07.670Z] INFO: MT: POST | PA: /maintainance | AU: Authenticated | ST: 200 | RT: 2.00 ms
+[2025-01-19T13:04:07.673Z] INFO: MT: GET | PA: /logs | AU: Authenticated | ST: 200 | RT: 2.00 ms
+[2025-01-19T13:04:07.698Z] INFO: MT: GET | PA: /static/profile/64e9ba8eaeba5be8be479d00.https://universitykart.b-cdn.net//Content/upload/admin/xgguhkwb.zwq.jpg | AU: Unauthenticated | ST: 404 | RT: 0.00 ms
