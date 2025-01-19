@@ -179,12 +179,12 @@ const bulkCreateStudents = async (c: Context) => {
 };
 
 const bulkCreateFaculty = async (c: Context) => {
-  const body = await c.req.json();
+  const { tableData } = await c.req.json();
   const token = c.get("user") as Token;
 
   try {
     const faculty: IUser[] = [];
-    for (const f of body) {
+    for (const f of tableData) {
       const user = new User(f);
       const password = bcrypt.hashSync(
         process.env.DEFAULT_FACULTY_PASSWORD!,
@@ -199,7 +199,8 @@ const bulkCreateFaculty = async (c: Context) => {
       faculty.push(user as unknown as IUser);
     }
     return sendSuccess(c, 200, "Faculty created", faculty);
-  } catch {
+  } catch (err) {
+    console.log(err);
     return sendError(c, 500, "Internal Server Error");
   }
 };
@@ -220,6 +221,32 @@ const bulkDeleteUsers = async (c: Context) => {
   }
 };
 
+const resetPassword = async (c: Context) => {
+  const { mid } = await c.req.json();
+  const token = c.get("user") as Token;
+
+  console.log(mid);
+  try {
+    const user = await User.findOne({ mid });
+    if (!user) return sendError(c, 404, "User not found");
+
+    const gate = new UserKeeper(token, user);
+    await gate.reset();
+
+    const password = bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10);
+    user.password = password;
+    user.onboarding = user?.onboarding
+      ? { ...user.onboarding, defaultPW: true }
+      : { defaultPW: true, firstTime: true, approved: false };
+    await user.save();
+    return sendSuccess(c, 200, "Password reset", user);
+  } catch (err) {
+    console.log(err);
+
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 export default {
   getAllUsers,
   getAllStudents,
@@ -234,4 +261,5 @@ export default {
   bulkCreateStudents,
   bulkCreateFaculty,
   bulkDeleteUsers,
+  resetPassword,
 };

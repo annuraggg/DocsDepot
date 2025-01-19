@@ -3,19 +3,23 @@ import {
   Alert,
   Avatar,
   Box,
+  Button,
   Drawer,
   DrawerBody,
   DrawerCloseButton,
   DrawerContent,
   DrawerHeader,
   DrawerOverlay,
+  Input,
   Menu,
   MenuButton,
   MenuDivider,
   MenuItem,
   MenuList,
   Text,
+  Toast,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import {
   Bell,
@@ -35,13 +39,32 @@ import useUser from "@/config/user";
 import { Link } from "react-router";
 import Cookies from "js-cookie";
 import { Notification } from "@shared-types/Notification";
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+} from "@chakra-ui/react";
+import useAxios from "@/config/axios";
 
 const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isResetOpen,
+    onOpen: onResetOpen,
+    onClose: onResetClose,
+  } = useDisclosure();
   const [notifications, _setNotifications] = useState<Notification[]>([]);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMoodleId, setResetMoodleId] = useState("");
 
   const navigate = useNavigate();
   const user = useUser();
+  const toast = useToast();
+  const axios = useAxios();
 
   const logout = () => {
     localStorage.removeItem("chakra-ui-color-mode");
@@ -54,6 +77,38 @@ const Navbar = () => {
       domain: import.meta.env.VITE_COOKIE_DOMAIN2,
     });
     window.location.href = "/auth";
+  };
+
+  const resetPassword = () => {
+    setResetLoading(true);
+    axios
+      .post("/user/reset", {
+        mid: resetMoodleId,
+      })
+      .then(() => {
+        toast({
+          title: "Success",
+          description: "Password Reset Successfully",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        setResetMoodleId("");
+        onResetClose();
+      })
+      .catch((err) => {
+        console.error(err);
+        Toast({
+          title: "Error",
+          description: "Something went wrong",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setResetLoading(false);
+      });
   };
 
   return (
@@ -131,7 +186,7 @@ const Navbar = () => {
               <NavLink
                 icon={<Lock className="w-4 h-4" />}
                 text="Reset Password"
-                to="/admin/reset-password"
+                onclick={onResetOpen}
               />
 
               <NavLink
@@ -222,6 +277,30 @@ const Navbar = () => {
           </DrawerBody>
         </DrawerContent>
       </Drawer>
+
+      <Modal isOpen={isResetOpen} onClose={onResetClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Reset Member Password</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              placeholder="Member Moodle ID"
+              value={resetMoodleId}
+              onChange={(e) => setResetMoodleId(e.target.value)}
+            />
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={onResetClose}>
+              Close
+            </Button>
+            <Button isLoading={resetLoading} onClick={resetPassword}>
+              Reset
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 };
@@ -230,16 +309,17 @@ const Navbar = () => {
 interface NavLinkProps {
   icon: React.ReactNode;
   text: string;
-  to: string;
+  to?: string;
+  onclick?: () => void;
 }
 
-const NavLink = ({ icon, text, to }: NavLinkProps) => {
+const NavLink = ({ icon, text, to, onclick }: NavLinkProps) => {
   const navigate = useNavigate();
   return (
     <a
       className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
       onClick={() => {
-        navigate( to);
+        to ? navigate(to) : onclick && onclick();
       }}
     >
       {icon}

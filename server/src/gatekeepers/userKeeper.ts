@@ -68,6 +68,24 @@ class UserKeeper {
 
     throw new Error("Unauthorized");
   };
+
+  reset = async () => {
+    if (this.token.role === "F") {
+      if (this.token.perms?.includes("RSP") && this.user.role === "S") {
+        return "Success";
+      }
+
+      if (this.token.perms?.includes("RFP") && this.user.role === "F") {
+        return "Success";
+      }
+    }
+
+    if (this.token.role === "A") {
+      return "Success";
+    }
+
+    throw new Error("Unauthorized");
+  };
 }
 
 export default UserKeeper;

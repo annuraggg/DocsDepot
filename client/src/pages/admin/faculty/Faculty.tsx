@@ -36,7 +36,7 @@ import {
 } from "@chakra-ui/react";
 import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router";
-import { User } from "@shared-types/User";
+import { Gender, User } from "@shared-types/User";
 import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
 import useAxios from "@/config/axios";
 import { House } from "@shared-types/House";
@@ -154,7 +154,7 @@ const Faculty = () => {
           duration: 2000,
           isClosable: true,
         });
-        window.location.reload();
+        setFaculty(faculty.filter((faculty) => faculty._id !== delItem));
       } else {
         onDeleteClose();
         toast({
@@ -232,7 +232,15 @@ const Faculty = () => {
             duration: 2000,
             isClosable: true,
           });
-          window.location.reload();
+          const index = faculty.findIndex((faculty) => faculty._id === facOID);
+          faculty[index].mid = mid;
+          faculty[index].fname = fname;
+          faculty[index].lname = lname;
+          faculty[index].social.email = email;
+          faculty[index].gender = gender as Gender
+          faculty[index].permissions = perms;
+
+          setFaculty(faculty);
         } else {
           onClose();
           toast({

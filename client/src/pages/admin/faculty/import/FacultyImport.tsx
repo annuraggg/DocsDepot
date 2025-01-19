@@ -13,9 +13,10 @@ import {
   Tr,
   useToast,
 } from "@chakra-ui/react";
-import Papa from "papaparse"; 
+import Papa from "papaparse";
 import FacultyAdd from "./FacultyAdd";
 import { House } from "@shared-types/House";
+import useAxios from "@/config/axios";
 
 const FacultyImport = () => {
   const [tableData, setTableData] = useState<string[][]>([]);
@@ -23,10 +24,10 @@ const FacultyImport = () => {
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState<House[]>([]);
   const toast = useToast();
+  const axios = useAxios();
 
-  const handleFileUpload = (event:
-    | React.ChangeEvent<HTMLInputElement>
-    | React.DragEvent<HTMLDivElement>
+  const handleFileUpload = (
+    event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
   ) => {
     const input = event.target as HTMLInputElement;
     const file = input.files ? input.files[0] : null;
@@ -44,26 +45,20 @@ const FacultyImport = () => {
   };
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/houses`, {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setHouses(data);
+    axios
+      .get("/houses")
+      .then((res) => {
+        setHouses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
       });
   }, []);
 
   const startImport = () => {
     setAdding(true);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/import`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tableData }),
-    }).then((res) => {
+
+    axios.post("/user/faculty/bulk", { tableData }).then((res) => {
       console.error(res);
       setAdding(false);
       if (res.status === 200) {
@@ -96,7 +91,6 @@ const FacultyImport = () => {
 
   return (
     <>
-
       <Box className="FacultyImport">
         <Box className="main">
           <Box className="btn">
@@ -169,7 +163,11 @@ const FacultyImport = () => {
         </Box>
       </Box>
 
-      {addIndividual ? <FacultyAdd setModal={handleModal} h={{ houses }} /> : <></>}
+      {addIndividual ? (
+        <FacultyAdd setModal={handleModal} h={{ houses }} />
+      ) : (
+        <></>
+      )}
     </>
   );
 };

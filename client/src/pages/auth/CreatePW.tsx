@@ -92,7 +92,7 @@ const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
             description: "You may now log in!",
             status: "success",
           });
-          onOpen();
+          onClose();
         } else {
           toaster({
             title: "Error",
@@ -146,7 +146,6 @@ const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
                 />
                 <InputRightAddon>
                   {" "}
-                  endElement=
                   {
                     <Button h="1.75rem" size="sm" onClick={handleClick2}>
                       {show2 ? "Hide" : "Show"}

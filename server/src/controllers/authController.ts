@@ -68,6 +68,10 @@ const login = async (c: Context) => {
       if (firstTime) {
         token = "Invalid";
       } else {
+        const thisYear = new Date().getFullYear();
+        const admissionYear = findUser.academicDetails?.admissionYear ?? thisYear;
+        const academicYear = thisYear - admissionYear + 1;
+
         const data: Token = {
           _id: findUser._id.toString(),
           house: findUser.house.toString(),
@@ -75,9 +79,7 @@ const login = async (c: Context) => {
           mid,
           fname: findUser.fname,
           lname: findUser.lname,
-          ay: findUser.academicDetails?.academicYear
-            ? findUser.academicDetails?.academicYear
-            : undefined,
+          ay: academicYear,
           branch: findUser.academicDetails?.branch,
           role: "S",
           certificateTheme: findUser.settings?.certificateLayout || "classic",
@@ -121,7 +123,7 @@ const firstTimePassword = async (c: Context) => {
           {
             $set: {
               password: await bcrypt.hash(password, 10),
-              defaultPW: false,
+              "onboarding.defaultPW": false,
             },
           }
         );
@@ -133,8 +135,8 @@ const firstTimePassword = async (c: Context) => {
           mid,
           fname: user.fname,
           lname: user.lname,
-          ay: user.academicDetails?.academicYear
-            ? user.academicDetails?.academicYear
+          ay: user.academicDetails?.admissionYear
+            ? new Date().getFullYear() - user.academicDetails.admissionYear + 1
             : undefined,
           branch: user?.academicDetails?.branch,
           role: user.role,
@@ -345,7 +347,12 @@ const updateCertificateTheme = async (c: Context) => {
       process.env.JWT_SECRET!
     );
 
-    return sendSuccess(c, 200, "Certificate theme updated successfully", newToken);
+    return sendSuccess(
+      c,
+      200,
+      "Certificate theme updated successfully",
+      newToken
+    );
   } catch (error) {
     console.log(error);
     return sendError(c, 500, "Error updating certificate theme");

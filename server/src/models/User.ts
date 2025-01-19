@@ -50,7 +50,6 @@ const userSchema = new mongoose.Schema(
       defaultPW: {
         type: Boolean,
         default: false,
-        immutable: (doc) => doc.onboarding.defaultPW,
       },
     },
     permissions: { type: [String], default: [] },

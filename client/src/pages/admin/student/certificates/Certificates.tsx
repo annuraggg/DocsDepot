@@ -13,12 +13,12 @@ import {
 } from "@chakra-ui/react";
 
 import { useNavigate } from "react-router";
-import { Certificate } from "@shared-types/Certificate";
 import Loader from "@/components/Loader";
 import useAxios from "@/config/axios";
+import { ExtendedCertificate } from "@/types/ExtendedCertificate";
 
 const Certificates = () => {
-  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [certificates, setCertificates] = useState<ExtendedCertificate[]>([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const toast = useToast();
@@ -64,7 +64,7 @@ const Certificates = () => {
                 {certificates.map((certificate) => {
                   return (
                     <Tr key={certificate?._id}>
-                      <Td>{certificate?.name}</Td>
+                      <Td>{certificate?.user?.fname} {certificate?.user?.lname}</Td>
                       <Td>{certificate?.name}</Td>
                       <Td>
                         {certificate?.type.slice(0, 1).toUpperCase() +
