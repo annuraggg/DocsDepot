@@ -9,8 +9,8 @@ interface RegistrationTimeline {
 }
 
 interface EventTimeline {
-  start: Date;
-  end: Date;
+  start: string;
+  end: string;
 }
 
 type Mode = "online" | "offline";
@@ -29,7 +29,7 @@ interface Event {
   registerationType: RegistrationType;
   pointsAllocated: boolean;
   points: number;
-  participants: string[];
+  participants?: Array<any>;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,53 +1,57 @@
 import React, { useEffect } from "react";
+import { motion } from "framer-motion";
 import {
-  Box,
-  Divider,
-  Heading,
+  useColorMode,
+  useToast,
+  Card,
+  CardBody,
+  Container,
+  Switch,
   FormControl,
   FormLabel,
-  InputGroup,
-  Switch,
-  useToast,
+  Alert,
+  AlertIcon,
   Tabs,
   TabList,
   TabPanels,
   Tab,
-  useColorMode,
-  Button,
-  InputRightElement,
   TabPanel,
-  Text,
-  Input,
-  Alert,
+  Button,
+  Divider,
 } from "@chakra-ui/react";
+import {
+  Moon,
+  Sun,
+  Eye,
+  EyeOff,
+  Save,
+  Shield,
+  Settings2,
+  Server,
+  Database,
+} from "lucide-react";
 import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router";
 
 const Settings = () => {
   const [toastDispatched, setToastDispatched] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [maintenanceMode, setMaintenanceMode] = React.useState(false);
+  const [backupIsLoading, setBackupIsLoading] = React.useState(false);
   const toast = useToast();
-
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [show1, setShow1] = React.useState(false);
-  const handleClick1 = () => setShow1(!show1);
-
   const [show2, setShow2] = React.useState(false);
-  const handleClick2 = () => setShow2(!show2);
-
   const [show3, setShow3] = React.useState(false);
-  const handleClick3 = () => setShow3(!show3);
 
   const [oldPass, setOldPass] = React.useState("");
   const [newPass, setNewPass] = React.useState("");
   const [confirmPass, setConfirmPass] = React.useState("");
   const [err, setErr] = React.useState("");
-
-  const [mainMo, setMainMo] = React.useState(false);
   const [isButtonLoading, setIsButtonLoading] = React.useState(false);
 
-  const [backupIsLoading, setBackupIsLoading] = React.useState(false);
+  const { colorMode, toggleColorMode } = useColorMode();
 
   const validatePassMatch = (pass: string) => {
     setConfirmPass(pass);
@@ -73,6 +77,25 @@ const Settings = () => {
     } else {
       setErr("");
       setIsButtonLoading(true);
+
+      function isPasswordValid(password: string) {
+        if (password.length < 9) return false;
+        if (!/[A-Z]/.test(password)) return false;
+        if (!/[a-z]/.test(password)) return false;
+        if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)) return false;
+        if (!/\d/.test(password)) return false;
+        return true;
+      }
+
+      if (!isPasswordValid(newPass)) {
+        setErr(
+          "Password must contain at least 1 uppercase, 1 lowercase, 1 number, 1 special character and must be at least 9 characters long"
+        );
+        setToastDispatched(false);
+        setIsButtonLoading(false);
+        return;
+      }
+
       fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/updatePW`, {
         method: "POST",
         credentials: "include",
@@ -118,32 +141,50 @@ const Settings = () => {
     }
   };
 
-  const { colorMode, toggleColorMode } = useColorMode();
-  useEffect(() => {
-    setLoading(false);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/`, {
-      method: "GET",
-    }).then((res) => {
-      if (res.status === 503) {
-        setMainMo(true);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (toastDispatched) {
-      toast({
-        position: "bottom-left",
-        title: "Heads up! You Have Unsaved Changes. Save to Apply!",
-        status: "warning",
-        duration: 3000,
-        isClosable: true,
+  const generateBackup = () => {
+    setBackupIsLoading(true);
+    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/backups`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then(async (res) => {
+        if (res.status === 200) {
+          const blob = await res.blob();
+          const element = document.createElement("a");
+          element.href = URL.createObjectURL(blob);
+          const date = new Date();
+          const dateString = `${date.getFullYear()}-${date.getMonth() + 1
+            }-${date.getDate()}`;
+          const timeString = `${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
+          element.download = `Backup-${dateString}-${timeString}.zip`;
+          document.body.appendChild(element);
+          element.click();
+          setBackupIsLoading(false);
+          toast({
+            title: "Backup Generated Successfully!",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          throw new Error("Backup generation failed");
+        }
+      })
+      .catch(() => {
+        setBackupIsLoading(false);
+        toast({
+          title: "Backup Generation Failed!",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       });
-      setToastDispatched(true);
-    }
-  }, [toastDispatched]);
+  };
 
-  const toggleMaintainaceMode = (mode: boolean) => {
+  const toggleMaintenanceMode = (mode: boolean) => {
     fetch(
       `${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/maintainanceMode`,
       {
@@ -156,16 +197,16 @@ const Settings = () => {
       }
     ).then((res) => {
       if (res.status === 200) {
-        setMainMo(!mainMo);
+        setMaintenanceMode(!maintenanceMode);
         toast({
-          title: "Maintainance Mode Toggled!",
+          title: "Maintenance Mode Toggled!",
           status: "success",
           duration: 3000,
           isClosable: true,
         });
       } else {
         toast({
-          title: "Maintainance Mode Toggle Failed!",
+          title: "Maintenance Mode Toggle Failed!",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -173,219 +214,218 @@ const Settings = () => {
       }
     });
   };
-  const generateBackup = () => {
-    setBackupIsLoading(true);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/backups`, {
-      method: "POST", // Keep it as POST if that's how your server handles backups
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(async (res) => {
-        if (res.status === 200) {
-          const blob = await res.blob(); // Get the response as a blob
 
-          // Create a download link for the ZIP file
-          const element = document.createElement("a");
-          element.href = URL.createObjectURL(blob);
-          const date = new Date();
-          const dateString = `${date.getFullYear()}-${date.getMonth() + 1
-            }-${date.getDate()}`;
-          const timeString = `${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-          element.download = `Scriptopia_backup-${dateString}-${timeString}.zip`;
+  useEffect(() => {
+    setLoading(false);
+    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/`, {
+      method: "GET",
+    }).then((res) => {
+      if (res.status === 503) {
+        setMaintenanceMode(true);
+      }
+    });
+  }, []);
 
-          document.body.appendChild(element); // Required for this to work in Firefox
-          element.click();
-          setBackupIsLoading(false);
+  if (loading) return <Loader />;
 
-          toast({
-            title: "Backup Generated Successfully!",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Backup Generation Failed!",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-      })
-      .catch((error) => {
-        setBackupIsLoading(false);
-        console.error("Error generating backup:", error);
-        toast({
-          title: "Backup Generation Failed!",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
+  return (
+    <Container maxW="container.lg" py={8}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="w-full shadow-xl rounded-xl">
+          <CardBody className="p-8">
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-3">
+                <Settings2 className="w-6 h-6 text-blue-500" />
+                <h1 className="text-3xl font-bold">Settings</h1>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                onClick={toggleColorMode}
+              >
+                {colorMode === "dark" ? (
+                  <Sun className="w-6 h-6 text-yellow-500" />
+                ) : (
+                  <Moon className="w-6 h-6 text-gray-600" />
+                )}
+              </motion.button>
+            </div>
 
-        // Handle the error and show a message to the user, if needed
-      });
-  };
-
-  const setDark = () => {
-    toggleColorMode();
-
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/updateTheme`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        theme: colorMode === "dark" ? "light" : "dark",
-      }),
-    }).then(() => { });
-    window.location.reload();
-  };
-
-  if (!loading) {
-    return (
-      <>
-        <Box className="AdminSettings">
-          <Box className="wrapper">
-            <Heading alignSelf="flex-start">Settings</Heading>
-            <Tabs
-              variant="enclosed"
-              alignSelf="flex-start"
-              display="flex"
-              justifyContent="space-between"
-              flexDirection="column"
-              width="100%"
-            >
-              <TabList mb="1em">
-                <Tab>Admin Settings</Tab>
-                <Tab>Server Settings</Tab>
+            <Tabs variant="enclosed" className="mt-6">
+              <TabList className="mb-4">
+                <Tab className="flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Admin Settings
+                </Tab>
+                <Tab className="flex items-center gap-2">
+                  <Server className="w-4 h-4" />
+                  Server Settings
+                </Tab>
               </TabList>
+
               <TabPanels>
-                <TabPanel display="flex" flexDirection="column" gap="30px">
-                  <FormControl
-                    display="flex"
-                    alignItems="center"
-                    className="formcontrol"
-                    justifyContent="space-between"
-                  >
-                    <FormLabel htmlFor="dark-mode">Dark Mode</FormLabel>
-                    <Switch
-                      id="dark-mode"
-                      onChange={() =>
-                        setDark()
-                      }
-                      isChecked={colorMode === "dark" ? true : false}
-                    />
-                  </FormControl>
-                  <Divider />
-                  <FormControl display="flex" flexDirection="column" gap="20px">
-                    <Text>Change Password</Text>
-                    <InputGroup size="md">
-                      <Input
-                        pr="4.5rem"
-                        type={show1 ? "text" : "password"}
-                        placeholder="Enter Old Password"
-                        onChange={(e) => setOldPass(e.target.value)}
-                      />
-                      <InputRightElement width="4.5rem">
-                        <Button h="1.75rem" size="sm" onClick={handleClick1}>
-                          {show1 ? "Hide" : "Show"}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-                    <InputGroup size="md">
-                      <Input
-                        pr="4.5rem"
-                        type={show2 ? "text" : "password"}
-                        placeholder="Enter New Password"
-                        onChange={(e) => setNewPass(e.target.value)}
-                      />
-                      <InputRightElement width="4.5rem">
-                        <Button h="1.75rem" size="sm" onClick={handleClick2}>
-                          {show2 ? "Hide" : "Show"}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-                    <InputGroup size="md">
-                      <Input
-                        pr="4.5rem"
-                        type={show3 ? "text" : "password"}
-                        placeholder="Confirm New Password"
-                        onChange={(e) => validatePassMatch(e.target.value)}
-                      />
-                      <InputRightElement width="4.5rem">
-                        <Button h="1.75rem" size="sm" onClick={handleClick3}>
-                          {show3 ? "Hide" : "Show"}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-                    <Text color="red">{err}</Text>
-                  </FormControl>
-                  <Button
-                    isLoading={isButtonLoading}
-                    alignSelf="flex-end"
-                    colorScheme="green"
-                    isDisabled={!toastDispatched}
-                    onClick={() => {
-                      sendNewPass();
-                    }}
-                  >
-                    Save
-                  </Button>
+                <TabPanel>
+                  <div className="space-y-6">
+                    <Divider />
+
+                    <div className="space-y-4">
+                      <h2 className="text-xl font-semibold flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-blue-500" />
+                        Change Password
+                      </h2>
+
+                      <div className="space-y-4">
+                        <div className="relative">
+                          <input
+                            type={show1 ? "text" : "password"}
+                            placeholder="Enter Old Password"
+                            value={oldPass}
+                            onChange={(e) => setOldPass(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          />
+                          <button
+                            onClick={() => setShow1(!show1)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2"
+                          >
+                            {show1 ? (
+                              <EyeOff className="w-5 h-5 text-gray-500" />
+                            ) : (
+                              <Eye className="w-5 h-5 text-gray-500" />
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="relative">
+                          <input
+                            type={show2 ? "text" : "password"}
+                            placeholder="Enter New Password"
+                            value={newPass}
+                            onChange={(e) => setNewPass(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          />
+                          <button
+                            onClick={() => setShow2(!show2)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2"
+                          >
+                            {show2 ? (
+                              <EyeOff className="w-5 h-5 text-gray-500" />
+                            ) : (
+                              <Eye className="w-5 h-5 text-gray-500" />
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="relative">
+                          <input
+                            type={show3 ? "text" : "password"}
+                            placeholder="Confirm New Password"
+                            value={confirmPass}
+                            onChange={(e) => validatePassMatch(e.target.value)}
+                            className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                          />
+                          <button
+                            onClick={() => setShow3(!show3)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2"
+                          >
+                            {show3 ? (
+                              <EyeOff className="w-5 h-5 text-gray-500" />
+                            ) : (
+                              <Eye className="w-5 h-5 text-gray-500" />
+                            )}
+                          </button>
+                        </div>
+
+                        {err && (
+                          <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-red-500 text-sm"
+                          >
+                            {err}
+                          </motion.p>
+                        )}
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        disabled={!toastDispatched || isButtonLoading}
+                        onClick={sendNewPass}
+                        className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-500 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                      >
+                        {isButtonLoading ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Save className="w-5 h-5" />
+                            Save Changes
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
+                  </div>
                 </TabPanel>
-                <TabPanel display="flex" flexDirection="column" gap="30px">
-                  <Button
-                    variant="solid"
-                    colorScheme="green"
-                    onClick={() => {
-                      Navigate("/admin/logs");
-                    }}
-                  >
-                    Check Server Logs
-                  </Button>
-                  <Button
-                    colorScheme="blue"
-                    onClick={generateBackup}
-                    isLoading={backupIsLoading}
-                  >
-                    Generate Backup
-                  </Button>
-                  <Divider />
-                  <FormControl
-                    display="flex"
-                    alignItems="center"
-                    className="formcontrol"
-                  >
-                    <FormLabel htmlFor="maintainance-mode" mb="0">
-                      Maintainance Mode KillSwitch
-                    </FormLabel>
-                    <Switch
-                      id="maintainance-mode"
-                      onChange={(e) => {
-                        toggleMaintainaceMode(e.target.checked);
-                      }}
-                      isChecked={mainMo ? true : false}
-                    />
-                  </FormControl>
-                  <Alert status="error">
-                    <Text>
-                      This will toggle the maintainance mode. This is a
-                      dangerous operation and should only be used when the
-                      maintainance is required.
-                    </Text>
-                  </Alert>
+
+                <TabPanel>
+                  <div className="space-y-6">
+                    <Button
+                      leftIcon={<Server className="w-5 h-5" />}
+                      colorScheme="blue"
+                      onClick={() => navigate("/admin/logs")}
+                      className="w-full"
+                    >
+                      Check Server Logs
+                    </Button>
+
+                    <Button
+                      leftIcon={<Database className="w-5 h-5" />}
+                      colorScheme="green"
+                      onClick={generateBackup}
+                      isLoading={backupIsLoading}
+                      className="w-full"
+                    >
+                      Generate Backup
+                    </Button>
+                    <Divider />
+
+                    <FormControl display="flex" alignItems="center">
+                      <FormLabel htmlFor="maintenance-mode" mb="0">
+                        Maintenance Mode
+                      </FormLabel>
+                      <Switch
+                        id="maintenance-mode"
+                        isChecked={maintenanceMode}
+                        onChange={(e) =>
+                          toggleMaintenanceMode(e.target.checked)
+                        }
+                      />
+                    </FormControl>
+
+                    <Alert status="error" className="mt-4">
+                      <AlertIcon />
+                      <div className="flex flex-col">
+                        <span className="font-medium">Warning!</span>
+                        <span className="text-sm">
+                          Enabling maintenance mode will make the site
+                          inaccessible to regular users. Only use this during
+                          system maintenance or updates.
+                        </span>
+                      </div>
+                    </Alert>
+                  </div>
                 </TabPanel>
               </TabPanels>
             </Tabs>
-          </Box>
-        </Box>
-      </>
-    );
-  } else {
-    return <Loader />;
-  }
+          </CardBody>
+        </Card>
+      </motion.div>
+    </Container>
+  );
 };
 
 export default Settings;

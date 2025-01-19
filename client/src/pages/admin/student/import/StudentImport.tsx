@@ -12,18 +12,29 @@ import {
   Thead,
   Tr,
   useToast,
+  Container,
+  Heading,
+  VStack,
+  useColorModeValue,
+  Text,
+  HStack,
 } from "@chakra-ui/react";
+import { motion } from "framer-motion";
+import { Upload, UserPlus, FileSpreadsheet } from "lucide-react";
 import Papa from "papaparse";
 import StudentAdd from "./StudentAdd";
 
-const StudentImport = () => {
+const MotionBox = motion(Box);
 
+const StudentImport = () => {
   const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState([]);
 
   const toast = useToast();
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -143,84 +154,122 @@ const StudentImport = () => {
   }, []);
 
   return (
-    <>
-      <Box className="StudentImport">
-        <Box className="main">
-          <Box className="btn">
+    <Container maxW="container.xl" py={8}>
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <VStack spacing={8} align="stretch">
+          <Box>
+            <Heading size="lg" mb={2}>Student Management</Heading>
+            <Text color="gray.600">Import or add individual students to the system</Text>
+          </Box>
+
+          <HStack spacing={4} justify="flex-start">
             <Button
+              leftIcon={<UserPlus />}
               colorScheme="blue"
-              onClick={() => {
-                setAddIndividual(true);
-              }}
+              onClick={() => setAddIndividual(true)}
+              size="md"
+              shadow="md"
+              _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+              transition="all 0.2s"
             >
               Add Individual
             </Button>
-            <label htmlFor="file-upload" className="custom-file-upload">
-              Upload .CSV
-            </label>
-          </Box>
-          <Alert status="warning">
-            <AlertIcon className="hide" />
+            <Button
+              as="label"
+              htmlFor="file-upload"
+              leftIcon={<FileSpreadsheet />}
+              colorScheme="purple"
+              size="md"
+              shadow="md"
+              _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+              transition="all 0.2s"
+              cursor="pointer"
+            >
+              Upload CSV
+            </Button>
+          </HStack>
 
+          <Alert
+            status="warning"
+            variant="left-accent"
+            borderRadius="md"
+            shadow="sm"
+          >
+            <AlertIcon />
             <AlertDescription>
-              Please Upload a .CSV file with the following columns in the same
-              order as shown below. Please make sure that the first row of the
-              .CSV file DOES NOT contain the column names. No Blank Rows are to
-              be present in the .CSV file.
+              Please upload a CSV file with columns in order: Student ID, First Name, Last Name,
+              Gender, Email. First row should not contain column names. No blank rows allowed.
             </AlertDescription>
           </Alert>
+
           <input
             id="file-upload"
             type="file"
             accept=".csv"
             onChange={handleFileUpload}
+            style={{ display: "none" }}
           />
 
-          <Box className="table">
-            <Table variant="striped">
-              <Thead>
-                <Tr
-                  position="sticky"
-                  top={0}
-                  zIndex="sticky"
-                  backgroundColor="#F7F6FA"
-                >
-                  <Th>Student ID</Th>
-                  <Th>First Name</Th>
-                  <Th>Last Name</Th>
-                  <Th>Gender</Th>
-                  <Th>Email</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {tableData.map((row, index) => (
-                  <Tr key={index}>
-                    {row.map((cell, index) => (
-                      <Td key={index}>{cell}</Td>
-                    ))}
+          <MotionBox
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            bg={bgColor}
+            borderRadius="lg"
+            shadow="xl"
+            overflow="hidden"
+            border="1px"
+            borderColor={borderColor}
+          >
+            <Box overflowX="auto">
+              <Table variant="simple">
+                <Thead>
+                  <Tr bg={useColorModeValue("gray.50", "gray.900")}>
+                    <Th>Student ID</Th>
+                    <Th>First Name</Th>
+                    <Th>Last Name</Th>
+                    <Th>Gender</Th>
+                    <Th>Email</Th>
                   </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-          <Box className="footer">
-            <Button
-              colorScheme="green"
-              onClick={startImport}
-              isLoading={adding}
-            >
-              Import
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+                </Thead>
+                <Tbody>
+                  {tableData.map((row, index) => (
+                    <Tr key={index}>
+                      {row.map((cell, cellIndex) => (
+                        <Td key={cellIndex}>{cell}</Td>
+                      ))}
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+          </MotionBox>
 
-      {addIndividual ? (
-        <StudentAdd setModal={handleModal} houses={houses} />
-      ) : (
-        <></>
-      )}
-    </>
+          {tableData.length > 0 && (
+            <Box display="flex" justifyContent="flex-end">
+              <Button
+                leftIcon={<Upload />}
+                colorScheme="green"
+                onClick={startImport}
+                isLoading={adding}
+                size="lg"
+                shadow="md"
+                _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
+                transition="all 0.2s"
+              >
+                Import Students
+              </Button>
+            </Box>
+          )}
+        </VStack>
+      </MotionBox>
+
+      {addIndividual && <StudentAdd setModal={handleModal} houses={houses} />}
+    </Container>
   );
 };
 

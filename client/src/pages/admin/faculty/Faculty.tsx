@@ -2,57 +2,83 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
-  FormLabel,
+  Container,
+  Flex,
+  Heading,
+  HStack,
   Input,
-  Table,
-  Tbody,
-  Td,
-  Th,
+  InputGroup,
+  InputLeftElement,
+  Text,
+  useDisclosure,
+  useToast,
+  VStack,
+  FormControl,
+  FormLabel,
+  Stack,
+  Checkbox,
+  CheckboxGroup,
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalFooter,
   ModalBody,
-  useDisclosure,
-  AlertDialog,
-  useToast,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
   ModalCloseButton,
-  Thead,
-  Tr,
-  Flex,
-  Radio,
-  RadioGroup,
-  Checkbox,
-  CheckboxGroup,
-  List,
-  ListItem,
-  ListIcon,
 } from "@chakra-ui/react";
-import Loader from "../../../components/Loader";
+import { motion } from "framer-motion";
+import { Filter, Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router";
-import { User } from "@shared-types/User";
-import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
 import useAxios from "@/config/axios";
-import { House } from "@shared-types/House";
+import Loader from "../../../components/Loader";
+import FacultyTable from "./FacultyTable";
+import EditModal from "./EditModal";
+import PermissionsModal from "./PermissionsModal";
+import DeleteAlert from "./DeleteAlert";
+import { User } from "@shared-types/User";
+
+const MotionBox = motion(Box);
+
+interface FilterState {
+  gender: string[];
+  department: string[];
+  permissions: string[];
+}
 
 const Faculty = () => {
   const toast = useToast();
+  const navigate = useNavigate();
+  const axios = useAxios();
+  const cancelRef = React.useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [faculty, setFaculty] = useState<User[]>([]);
-  const navigate = useNavigate();
-
+  const [filteredFaculty, setFilteredFaculty] = useState<User[]>([]);
+  const [houses, setHouses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredFaculty, seFilteredFaculty] = useState<User[]>([]);
-  const [houses, setHouses] = useState<House[]>([]);
+  const [filters, setFilters] = useState<FilterState>({
+    gender: [],
+    department: [],
+    permissions: [],
+  });
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = React.useRef(null);
+  const [state, setState] = useState({
+    delItem: "",
+    mid: "",
+    fname: "",
+    lname: "",
+    email: "",
+    gender: "",
+    facOID: "",
+    perms: ["UFC"],
+    houses: [],
+  });
+
+  const {
+    isOpen: isEditOpen,
+    onOpen: onEditOpen,
+    onClose: onEditClose,
+  } = useDisclosure();
 
   const {
     isOpen: isPermsOpen,
@@ -61,38 +87,25 @@ const Faculty = () => {
   } = useDisclosure();
 
   const {
-    isOpen: isAlertDeleteOpen,
-    onOpen: onAlertDeleteOpen,
-    onClose: onAlertDeleteClose,
-  } = useDisclosure();
-
-  const [delItem, setDelItem] = useState({});
-  const [mid, setMid] = useState("");
-  const [fname, setFname] = useState("");
-  const [lname, setLname] = useState("");
-  const [email, setEmail] = useState("");
-  const [gender, setGender] = useState("");
-  const [facOID, setFacOID] = useState("");
-
-  const [perms, setPerms] = React.useState(["UFC"]);
-
-  const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
     onClose: onDeleteClose,
   } = useDisclosure();
-  const cancelDeleteRef = React.useRef(null);
 
-  const axios = useAxios();
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
 
   useEffect(() => {
     axios
       .get("/user/faculty")
       .then((res) => {
         setLoading(false);
-
         setFaculty(res.data.data.faculty);
         setHouses(res.data.data.houses);
+        setFilteredFaculty(res.data.data.faculty);
       })
       .catch((err) => {
         console.error(err);
@@ -104,28 +117,33 @@ const Faculty = () => {
           isClosable: true,
         });
       });
-  }, [searchQuery]);
+  }, []);
 
   useEffect(() => {
-    const filtered = faculty.filter((faculty) =>
-      Object.values(faculty).some(
-        (value) =>
-          typeof value === "string" &&
-          value.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
-    seFilteredFaculty(filtered);
-  }, [searchQuery, faculty]);
+    const filtered = faculty.filter((fac) => {
+      const matchesSearch = [fac.fname, fac.lname, fac.social.email]
+        .some((value) => value.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesGender = filters.gender.length === 0 || filters.gender.includes(fac.gender);
+      const matchesDepartment = filters.department.length === 0 || filters.department.includes(fac.academicDetails.branch);
+      const matchesPermissions = filters.permissions.length === 0 ||
+        filters.permissions.some(perm => fac.permissions.includes(perm));
+
+      return matchesSearch && matchesGender && matchesDepartment && matchesPermissions;
+    });
+
+    setFilteredFaculty(filtered);
+  }, [searchQuery, faculty, filters]);
 
   const deleteCustomer = (id: string) => {
-    setDelItem(id);
+    setState(prev => ({ ...prev, delItem: id }));
     onDeleteOpen();
   };
 
   const alertDelete = () => {
     let fac: User = {} as User;
     faculty.filter((faculty: User) => {
-      if (faculty.mid === delItem) {
+      if (faculty.mid === state.delItem) {
         fac = faculty;
       }
     });
@@ -136,17 +154,17 @@ const Faculty = () => {
       fac?.permissions?.includes("HCO2") ||
       fac?.permissions?.includes("HCO3")
     ) {
-      onAlertDeleteOpen();
+      onDeleteOpen();
     } else {
       confirmDelete();
     }
   };
 
   const confirmDelete = () => {
-    axios.delete(`/user/${delItem}`).then((res) => {
+    axios.delete(`/user/${state.delItem}`).then((res) => {
       if (res.data.success) {
         onDeleteClose();
-        setSearchQuery("");
+        setState(prev => ({ ...prev, searchQuery: "" }));
         toast({
           title: "Success",
           description: "Faculty deleted successfully",
@@ -169,19 +187,22 @@ const Faculty = () => {
   };
 
   const openEdit = (id: string) => {
-    onOpen();
+    onEditOpen();
     const faculty: User | undefined = filteredFaculty.find(
       (faculty: User) => faculty.mid === id
     );
     if (!faculty) return;
 
-    setMid(faculty.mid);
-    setFname(faculty.fname);
-    setLname(faculty.lname);
-    setEmail(faculty.social.email);
-    setGender(faculty.gender);
-    setFacOID(faculty._id);
-    setPerms(faculty.permissions);
+    setState(prev => ({
+      ...prev,
+      mid: faculty.mid,
+      fname: faculty.fname,
+      lname: faculty.lname,
+      email: faculty.social.email,
+      gender: faculty.gender,
+      facOID: faculty._id,
+      perms: faculty.permissions,
+    }));
   };
 
   const updateFaculty = () => {
@@ -197,11 +218,10 @@ const Faculty = () => {
           }
         }
       }
-
       return true;
     }
 
-    if (!checkElements(perms)) {
+    if (!checkElements(state.perms)) {
       toast({
         title: "Error",
         description: "Please select only one house coordinator",
@@ -213,18 +233,18 @@ const Faculty = () => {
     }
 
     axios
-      .put(`/user/${facOID}`, {
-        mid: mid,
-        fname: fname,
-        lname: lname,
-        email: email,
-        gender: gender,
-        permissions: perms,
+      .put(`/user/${state.facOID}`, {
+        mid: state.mid,
+        fname: state.fname,
+        lname: state.lname,
+        email: state.email,
+        gender: state.gender,
+        permissions: state.perms,
       })
       .then((res) => {
         if (res.data.success) {
-          onClose();
-          setSearchQuery("");
+          onEditClose();
+          setState(prev => ({ ...prev, searchQuery: "" }));
           toast({
             title: "Success",
             description: "Faculty updated successfully",
@@ -234,7 +254,7 @@ const Faculty = () => {
           });
           window.location.reload();
         } else {
-          onClose();
+          onEditClose();
           toast({
             title: "Error",
             description: "Something went wrong",
@@ -246,7 +266,7 @@ const Faculty = () => {
       })
       .catch((err) => {
         console.error(err);
-        onClose();
+        onEditClose();
         toast({
           title: "Error",
           description: "Something went wrong",
@@ -257,427 +277,184 @@ const Faculty = () => {
       });
   };
 
-  useEffect(() => {
-    console.log(perms);
-  }, [perms]);
+  const setFacultyData = (data: any) => {
+    setState(prev => ({
+      ...prev,
+      ...data
+    }));
+  };
 
   if (loading) return <Loader />;
-  else
-    return (
-      <>
-        <Box className="AdminStudents">
-          <Box className="filters">
-            <Button onClick={() => navigate("/admin/faculty/add")}>Add Faculty</Button>
-            <Box className="filters">
-              <Box className="ipgroup">
-                <FormLabel>Search</FormLabel>
-                <Input
-                  placeholder="Search By Name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </Box>
-            </Box>
-          </Box>
 
-          <Box className="table">
-            <Table variant="striped">
-              <Thead>
-                <Tr
-                  position="sticky"
-                  top="0px"
-                  className="tabletop"
-                  zIndex="sticky"
-                  backgroundColor="#F7F6FA"
-                >
-                  <Th>Moodle ID</Th>
-                  <Th>Name</Th>
-                  <Th>Branch</Th>
-                  <Th>Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {filteredFaculty.map((faculty) => (
-                  <Tr key={faculty.mid}>
-                    <Td
-                      onClick={() =>
-                        navigate(`/profile/faculty/${faculty.mid}`)
-                      }
-                      textDecor="underline"
-                      cursor="pointer"
-                    >
-                      {faculty.mid}
-                    </Td>
-                    <Td>
-                      {faculty.fname} {faculty.lname}
-                    </Td>
-                    <Td>IT</Td>
-                    <Td>
-                      <Box className="actions">
-                        <Box
-                          className="action"
-                          cursor="pointer"
-                          onClick={() => openEdit(faculty.mid)}
-                        >
-                          Edit
-                        </Box>
-                        <Box
-                          className="action"
-                          cursor="pointer"
-                          onClick={() => deleteCustomer(faculty._id)}
-                        >
-                          Delete
-                        </Box>
-                      </Box>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-        </Box>
+  const uniqueDepartments = Array.from(
+    new Set(faculty.map((fac) => fac.academicDetails.branch))
+  );
 
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)/" />
+  const permissionOptions = [
+    { value: "UFC", label: "Faculty" },
+    { value: "HCO0", label: "House 1 Coordinator" },
+    { value: "HCO1", label: "House 2 Coordinator" },
+    { value: "HCO2", label: "House 3 Coordinator" },
+    { value: "HCO3", label: "House 4 Coordinator" },
+  ];
+
+  return (
+    <Container maxW="container.xl" py={8}>
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Flex justify="space-between" align="center" mb={8}>
+          <Box>
+            <Heading size="xl" mb={2}>
+              Faculty Management
+            </Heading>
+            <Text color="gray.500">
+              Manage and monitor all faculty information
+            </Text>
+          </Box>
+          <HStack spacing={4}>
+            <Button
+              leftIcon={<Filter />}
+              variant="outline"
+              onClick={onFilterOpen}
+              size="md"
+            >
+              Filters
+            </Button>
+            <Button
+              leftIcon={<Plus />}
+              colorScheme="blue"
+              onClick={() => navigate("/admin/faculty/add")}
+              size="md"
+            >
+              Add Faculty
+            </Button>
+          </HStack>
+        </Flex>
+
+        <InputGroup size="lg" mb={4}>
+          <InputLeftElement pointerEvents="none">
+            <Search />
+          </InputLeftElement>
+          <Input
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </InputGroup>
+
+        <FacultyTable
+          filteredFaculty={filteredFaculty}
+          openEdit={openEdit}
+          deleteCustomer={deleteCustomer}
+        />
+
+        <Modal isOpen={isFilterOpen} onClose={onFilterClose} size="xl">
+          <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Edit Faculty</ModalHeader>
+            <ModalHeader>Filter Faculty</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <Box className="form">
-                <Flex gap="20px" mt="10px">
-                  <Box className="ipgroup">
-                    <FormLabel>First Name</FormLabel>
-                    <Input
-                      placeholder="First Name"
-                      value={fname}
-                      onChange={(e) => setFname(e.target.value)}
-                    />
-                  </Box>
-                  <Box className="ipgroup">
-                    <FormLabel>Last Name</FormLabel>
-                    <Input
-                      placeholder="Last Name"
-                      value={lname}
-                      onChange={(e) => setLname(e.target.value)}
-                    />
-                  </Box>
-                </Flex>
-                <Box className="ipgroup" mt="10px">
-                  <FormLabel>Email</FormLabel>
-                  <Input
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </Box>
+              <VStack spacing={6} align="stretch">
+                <FormControl>
+                  <FormLabel fontWeight="medium">Gender</FormLabel>
+                  <CheckboxGroup
+                    value={filters.gender}
+                    onChange={(values) => setFilters({ ...filters, gender: values as string[] })}
+                  >
+                    <Stack direction="row" spacing={4}>
+                      <Checkbox value="M">Male</Checkbox>
+                      <Checkbox value="F">Female</Checkbox>
+                    </Stack>
+                  </CheckboxGroup>
+                </FormControl>
 
-                <Box className="ipgroup" mt="10px">
-                  <FormLabel>Gender</FormLabel>
+                <FormControl>
+                  <FormLabel fontWeight="medium">Department</FormLabel>
+                  <CheckboxGroup
+                    value={filters.department}
+                    onChange={(values) => setFilters({ ...filters, department: values as string[] })}
+                  >
+                    <Stack direction="row" spacing={4} wrap="wrap">
+                      {uniqueDepartments.map((dept) => (
+                        <Checkbox key={dept} value={dept}>
+                          {dept}
+                        </Checkbox>
+                      ))}
+                    </Stack>
+                  </CheckboxGroup>
+                </FormControl>
 
-                  <RadioGroup value={gender} onChange={(e) => setGender(e)}>
-                    <Flex gap="20px">
-                      <Radio name="gender" value="Male">
-                        Male
-                      </Radio>
-                      <Radio name="gender" value="Female">
-                        Female
-                      </Radio>
-                      <Radio name="gender" value="Others">
-                        Others
-                      </Radio>
-                    </Flex>
-                  </RadioGroup>
-                </Box>
-              </Box>
+                <FormControl>
+                  <FormLabel fontWeight="medium">Role</FormLabel>
+                  <CheckboxGroup
+                    value={filters.permissions}
+                    onChange={(values) => setFilters({ ...filters, permissions: values as string[] })}
+                  >
+                    <Stack direction="row" spacing={4} wrap="wrap">
+                      {permissionOptions.map((option) => (
+                        <Checkbox key={option.value} value={option.value}>
+                          {option.label}
+                        </Checkbox>
+                      ))}
+                    </Stack>
+                  </CheckboxGroup>
+                </FormControl>
+              </VStack>
             </ModalBody>
-
             <ModalFooter>
-              <Button colorScheme="blue" mr={3}>
-                Close
-              </Button>
               <Button
-                onClick={() => {
-                  onClose();
-                  onPermsOpen();
-                }}
-                colorScheme="red"
+                variant="ghost"
                 mr={3}
+                onClick={() => setFilters({
+                  gender: [],
+                  department: [],
+                  permissions: [],
+                })}
               >
-                Configure Permissions
+                Clear All
               </Button>
-              <Button variant="ghost" onClick={() => updateFaculty()}>
-                Update
+              <Button colorScheme="blue" onClick={onFilterClose}>
+                Apply Filters
               </Button>
             </ModalFooter>
           </ModalContent>
         </Modal>
 
-        <AlertDialog
-          isOpen={isDeleteOpen}
-          leastDestructiveRef={cancelDeleteRef}
-          onClose={onDeleteClose}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete Faculty
-              </AlertDialogHeader>
+        <EditModal
+          isOpen={isEditOpen}
+          onClose={onEditClose}
+          onPermsOpen={onPermsOpen}
+          facultyData={{
+            fname: state.fname,
+            lname: state.lname,
+            email: state.email,
+            gender: state.gender,
+          }}
+          setFacultyData={setFacultyData}
+          updateFaculty={updateFaculty}
+        />
 
-              <AlertDialogBody>
-                Are you sure? You can't undo this action afterwards.
-              </AlertDialogBody>
-
-              <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={onDeleteClose}>
-                  Cancel
-                </Button>
-                <Button colorScheme="red" onClick={alertDelete} ml={3}>
-                  Delete
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
-
-        <AlertDialog
-          isOpen={isAlertDeleteOpen}
-          leastDestructiveRef={cancelDeleteRef}
-          onClose={onAlertDeleteClose}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete House Coordinator
-              </AlertDialogHeader>
-
-              <AlertDialogBody>
-                This faculty is a house coordinator. Please assign another house
-                coordinator immediately or before deleting to avoid crashes.
-              </AlertDialogBody>
-
-              <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={onAlertDeleteClose}>
-                  Cancel
-                </Button>
-                <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-                  Delete
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
-
-        <Modal
+        <PermissionsModal
           isOpen={isPermsOpen}
           onClose={onPermsClose}
-          size="3xl"
-          scrollBehavior="inside"
-        >
-          <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)" />
-          <ModalContent>
-            <ModalHeader>Faculty Permissions</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Box>
-                <Table>
-                  <Tbody>
-                    <CheckboxGroup
-                      value={perms}
-                      onChange={(e) => setPerms(e as string[])}
-                    >
-                      <Tr>
-                        <Td>
-                          <Checkbox value="UFC" readOnly>
-                            Upload Faculty Certificates
-                          </Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={FileWarningIcon}
-                                color="yellow.500"
-                              />
-                              Default permission - Cannot be changed
-                            </ListItem>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Add their own certifications to the system
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                      <Tr>
-                        <Td>
-                          <Checkbox value="MHI">Manage Events</Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Create Events
-                            </ListItem>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Update Events
-                            </ListItem>
-                            <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Manage / Edit Events
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                    </CheckboxGroup>
+          onEditOpen={onEditOpen}
+          houses={state.houses}
+          perms={state.perms}
+          setPerms={(newPerms) => setState(prev => ({ ...prev, perms: newPerms }))}
+        />
 
-                    <Tr>
-                      <Td>
-                        <RadioGroup
-                          value={
-                            perms.find((perm) => perm.startsWith("HCO")) || ""
-                          }
-                          onChange={(value) => {
-                            setPerms((prev) =>
-                              [
-                                ...prev.filter(
-                                  (perm) => !perm.startsWith("HCO")
-                                ),
-                                value,
-                              ].filter(Boolean)
-                            );
-                          }}
-                        >
-                          <Flex direction="column" gap={3}>
-                            {houses.map((house, index) => (
-                              <Radio key={index} value={`HCO${index}`}>
-                                House Coordinator - {house.name}
-                              </Radio>
-                            ))}
-                            <Radio value="">None</Radio>
-                          </Flex>
-                        </RadioGroup>
-                      </Td>{" "}
-                      <Td>
-                        <List>
-                          <ListItem>
-                            <ListIcon as={CheckCircleIcon} color="green.500" />
-                            Manage House Profile
-                          </ListItem>{" "}
-                          <ListItem>
-                            <ListIcon as={CheckCircleIcon} color="green.500" />
-                            Manage House Members
-                          </ListItem>
-                        </List>
-                      </Td>
-                    </Tr>
-
-                    <CheckboxGroup
-                      value={perms.filter((perm) => !perm.startsWith("HCO"))}
-                      onChange={(values) => {
-                        const nonHCOValues = values.filter(
-                          (value) => !(value as string).startsWith("HCO")
-                        );
-                        setPerms([...nonHCOValues].map(String));
-                      }}
-                    >
-                      <Tr>
-                        <Td>
-                          <Checkbox value="SND">Send Notifications</Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Send Global Notifications to Users
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                      <Tr>
-                        <Td>
-                          <Checkbox value="RSP">
-                            Reset Student Password
-                          </Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Assist in resetting student passwords when
-                              necessary
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                      <Tr>
-                        <Td>
-                          <Checkbox value="AES">Add/Edit Student</Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Add Students to the system
-                            </ListItem>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Delete Students from the system
-                            </ListItem>
-                            <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Edit Student Profiles
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                    </CheckboxGroup>
-                  </Tbody>
-                </Table>
-              </Box>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                colorScheme="green"
-                onClick={() => {
-                  onPermsClose();
-                  onOpen();
-                }}
-              >
-                Set
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </>
-    );
+        <DeleteAlert
+          isOpen={isDeleteOpen}
+          onClose={onDeleteClose}
+          onConfirm={alertDelete}
+          cancelRef={cancelRef}
+        />
+      </MotionBox>
+    </Container>
+  );
 };
 
 export default Faculty;

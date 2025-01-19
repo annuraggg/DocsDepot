@@ -48,14 +48,14 @@ export const Events = () => {
     const date = new Date();
     const filtered = events.filter((event) => {
       const isActive = filters.includes('active') &&
-        new Date(event.eventStarts) <= date &&
-        new Date(event.eventEnds) >= date;
+        new Date(event.eventTimeline.start) <= date &&
+        new Date(event.eventTimeline.end) >= date;
       
       const isUpcoming = filters.includes('upcoming') &&
-        new Date(event.eventStarts) > date;
+        new Date(event.eventTimeline.start) > date;
       
       const isExpired = filters.includes('expired') &&
-        new Date(event.eventEnds) < date;
+        new Date(event.eventTimeline.end) < date;
 
       return isActive || isUpcoming || isExpired;
     });
@@ -95,7 +95,11 @@ export const Events = () => {
         <EventFilters
           onSearch={handleSearch}
           onFilterChange={handleFilterChange}
+          onModeFilterChange={() => {}}
+          onPointsFilterChange={() => {}}
           selectedFilters={selectedFilters}
+          selectedMode=""
+          pointsRange={[0, 100]}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

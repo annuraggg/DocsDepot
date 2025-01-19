@@ -9,14 +9,17 @@ import {
   ModalCloseButton,
   Button,
   useDisclosure,
-  Box,
   Radio,
   RadioGroup,
   Stack,
   Input,
   useToast,
-  Checkbox,
-  CheckboxGroup,
+  VStack,
+  FormControl,
+  FormLabel,
+  InputGroup,
+  InputLeftElement,
+  Box,
   List,
   ListItem,
   ListIcon,
@@ -24,11 +27,17 @@ import {
   Tbody,
   Tr,
   Td,
+  Checkbox,
+  CheckboxGroup,
   Flex,
+  useColorModeValue,
 } from "@chakra-ui/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, Mail, Hash, Shield, CheckCircle, AlertTriangle } from "lucide-react";
 import { House } from "@shared-types/House";
-import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
 import useAxios from "@/config/axios";
+
+const MotionModalContent = motion(ModalContent);
 
 interface FacultyAddProps {
   setModal: (value: boolean) => void;
@@ -43,7 +52,6 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
     onClose: setPermClose,
   } = useDisclosure();
   const [gender, setGender] = React.useState("Male");
-
   const [fname, setFname] = React.useState("");
   const [lname, setLname] = React.useState("");
   const [moodleid, setMoodleid] = React.useState("");
@@ -52,16 +60,14 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const [houses, setHouses] = React.useState<House[]>([]);
 
   const toast = useToast();
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   useEffect(() => {
     const houseObjects = h.houses.map((house: House) => house);
     setHouses(houseObjects);
     onOpen();
   }, []);
-
-  useEffect(() => {
-    console.error(perms);
-  }, [perms]);
 
   const setClose = () => {
     setModal(false);
@@ -84,16 +90,12 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
     function checkElements(arr: string | string[]) {
       const elementsToCheck = ["HCO0", "HCO1", "HCO2", "HCO3"];
       let count = 0;
-
       for (const element of elementsToCheck) {
         if (arr.includes(element)) {
           count++;
-          if (count > 1) {
-            return false;
-          }
+          if (count > 1) return false;
         }
       }
-
       return true;
     }
 
@@ -144,73 +146,119 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   };
 
   return (
-    <>
-      <Modal isOpen={isOpen} onClose={setClose}>
-        <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)" />
-        <ModalContent>
-          <ModalHeader>Add Faculty</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Box className="StudentModal">
-              <Box className="flex">
-                <Input
-                  type="text"
-                  placeholder="First Name"
-                  value={fname}
-                  onChange={(e) => {
-                    setFname(e?.target?.value);
-                  }}
-                />
-                <Input
-                  type="text"
-                  placeholder="Last Name"
-                  value={lname}
-                  onChange={(e) => setLname(e?.target?.value)}
-                />
-              </Box>
-              <Input
-                type="text"
-                placeholder="Moodle ID"
-                value={moodleid}
-                onChange={(e) => setMoodleid(e?.target?.value)}
-              />
-              <Input
-                type="text"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e?.target?.value)}
-              />
+    <AnimatePresence>
+      {isOpen && (
+        <Modal isOpen={isOpen} onClose={setClose} size="xl">
+          <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+          <MotionModalContent
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            mx={4}
+          >
+            <ModalHeader fontSize="2xl">Add New Faculty</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={6}>
+                <Stack direction={["column", "row"]} spacing={4} w="full">
+                  <FormControl>
+                    <FormLabel>First Name</FormLabel>
+                    <InputGroup>
+                      <InputLeftElement>
+                        <User size={18} />
+                      </InputLeftElement>
+                      <Input
+                        placeholder="First Name"
+                        value={fname}
+                        onChange={(e) => setFname(e.target.value)}
+                      />
+                    </InputGroup>
+                  </FormControl>
 
-              <RadioGroup onChange={setGender} value={gender}>
-                <Stack direction="row">
-                  <Radio value="M">Male</Radio>
-                  <Radio value="F">Female</Radio>
-                  <Radio value="O">Others</Radio>
+                  <FormControl>
+                    <FormLabel>Last Name</FormLabel>
+                    <InputGroup>
+                      <InputLeftElement>
+                        <User size={18} />
+                      </InputLeftElement>
+                      <Input
+                        placeholder="Last Name"
+                        value={lname}
+                        onChange={(e) => setLname(e.target.value)}
+                      />
+                    </InputGroup>
+                  </FormControl>
                 </Stack>
-              </RadioGroup>
-            </Box>
-          </ModalBody>
 
-          <ModalFooter>
-            <Button
-              mr={3}
-              colorScheme="red"
-              onClick={() => {
-                onClose();
-                openPerms();
-              }}
-            >
-              Configure Permissions
-            </Button>
-            <Button colorScheme="blue" mr={3} onClick={setClose}>
-              Close
-            </Button>
-            <Button colorScheme="green" onClick={addFaculty}>
-              Add
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+                <FormControl>
+                  <FormLabel>Moodle ID</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <Hash size={18} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Moodle ID"
+                      value={moodleid}
+                      onChange={(e) => setMoodleid(e.target.value)}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Email</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <Mail size={18} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Gender</FormLabel>
+                  <RadioGroup onChange={setGender} value={gender}>
+                    <Stack direction="row" spacing={6}>
+                      <Radio value="M" colorScheme="blue">
+                        Male
+                      </Radio>
+                      <Radio value="F" colorScheme="pink">
+                        Female
+                      </Radio>
+                      <Radio value="O" colorScheme="purple">
+                        Others
+                      </Radio>
+                    </Stack>
+                  </RadioGroup>
+                </FormControl>
+              </VStack>
+            </ModalBody>
+
+            <ModalFooter gap={3}>
+              <Button
+                leftIcon={<Shield size={18} />}
+                colorScheme="purple"
+                onClick={() => {
+                  onClose();
+                  openPerms();
+                }}
+              >
+                Configure Permissions
+              </Button>
+              <Button variant="ghost" onClick={setClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="blue" onClick={addFaculty}>
+                Add Faculty
+              </Button>
+            </ModalFooter>
+          </MotionModalContent>
+        </Modal>
+      )}
 
       <Modal
         isOpen={isPermOpen}
@@ -218,14 +266,26 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
         size="3xl"
         scrollBehavior="inside"
       >
-        <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)" />
-        <ModalContent>
-          <ModalHeader>Faculty Permissions</ModalHeader>
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <MotionModalContent
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+        >
+          <ModalHeader fontSize="2xl">Faculty Permissions</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <CheckboxGroup>
-              <Box overflowX="auto" scrollBehavior="smooth">
-                <Table>
+            <Box
+              bg={bgColor}
+              borderRadius="lg"
+              shadow="xl"
+              border="1px"
+              borderColor={borderColor}
+              p={4}
+            >
+              <CheckboxGroup>
+                <Table variant="simple">
                   <Tbody>
                     <CheckboxGroup
                       value={perms}
@@ -233,24 +293,18 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                     >
                       <Tr>
                         <Td>
-                          <Checkbox value="UFC" readOnly>
+                          <Checkbox value="UFC" isDisabled defaultChecked>
                             Upload Faculty Certificates
                           </Checkbox>
                         </Td>
                         <Td>
-                          <List>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={FileWarningIcon}
-                                color="yellow.500"
-                              />
+                          <List spacing={2}>
+                            <ListItem>
+                              <ListIcon as={AlertTriangle} color="yellow.500" />
                               Default permission - Cannot be changed
                             </ListItem>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
+                            <ListItem>
+                              <ListIcon as={CheckCircle} color="green.500" />
                               Add their own certifications to the system
                             </ListItem>
                           </List>
@@ -261,51 +315,16 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                           <Checkbox value="MHI">Manage Events</Checkbox>
                         </Td>
                         <Td>
-                          <List>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Create Events
-                            </ListItem>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Update Events
-                            </ListItem>
+                          <List spacing={2}>
                             <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Manage / Edit Events
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                      <Tr>
-                        <Td>
-                          <Checkbox value="SND">Send Notifications</Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Send Global Notifications to Users
+                              <ListIcon as={CheckCircle} color="green.500" />
+                              Create and Update Events
                             </ListItem>
                           </List>
                         </Td>
                       </Tr>
                       <RadioGroup
-                        value={
-                          perms.find((perm) => perm.startsWith("HCO")) || ""
-                        }
+                        value={perms.find((perm) => perm.startsWith("HCO")) || ""}
                         onChange={(value) => {
                           setPerms((prev) =>
                             [
@@ -317,68 +336,18 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                       >
                         <Flex direction="column" gap={3}>
                           {houses.map((house, index) => (
-                            <Radio key={index} value={`HCO${index}`}>
+                            <Radio key={index} value={`HCO${index}`} colorScheme="blue">
                               House Coordinator - {house.name}
                             </Radio>
                           ))}
-                          <Radio value="">None</Radio>
+                          <Radio value="" colorScheme="blue">None</Radio>
                         </Flex>
-                      </RadioGroup>{" "}
-                      F
-                      <Tr>
-                        <Td>
-                          <Checkbox value="RSP">
-                            Reset Student Password
-                          </Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Assist in resetting student passwords when
-                              necessary
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                      <Tr>
-                        <Td>
-                          <Checkbox value="AES">Add/Edit Student</Checkbox>
-                        </Td>
-                        <Td>
-                          <List>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Add Students to the system
-                            </ListItem>
-                            <ListItem mb={2}>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Delete Students from the system
-                            </ListItem>
-                            <ListItem>
-                              <ListIcon
-                                as={CheckCircleIcon}
-                                color="green.500"
-                              />
-                              Edit Student Profiles
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
+                      </RadioGroup>
                     </CheckboxGroup>
                   </Tbody>
                 </Table>
-              </Box>
-            </CheckboxGroup>
+              </CheckboxGroup>
+            </Box>
           </ModalBody>
 
           <ModalFooter>
@@ -388,13 +357,14 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                 setPermClose();
                 onOpen();
               }}
+              leftIcon={<CheckCircle size={18} />}
             >
-              Set
+              Set Permissions
             </Button>
           </ModalFooter>
-        </ModalContent>
+        </MotionModalContent>
       </Modal>
-    </>
+    </AnimatePresence>
   );
 };
 
