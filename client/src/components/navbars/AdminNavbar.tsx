@@ -1,25 +1,32 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router";
 import {
-  Alert,
-  Avatar,
   Box,
-  Button,
-  Drawer,
-  DrawerBody,
-  DrawerCloseButton,
-  DrawerContent,
-  DrawerHeader,
-  DrawerOverlay,
-  Input,
+  Text,
+  MenuItem,
   Menu,
   MenuButton,
-  MenuDivider,
-  MenuItem,
   MenuList,
-  Text,
-  Toast,
+  MenuDivider,
+  Alert,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  DrawerCloseButton,
+  Avatar,
   useDisclosure,
   useToast,
+  Button,
+  Input,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from "@chakra-ui/react";
 import {
   Bell,
@@ -31,33 +38,45 @@ import {
   Building,
   Award,
   Lock,
+  Settings,
+  UserCircle,
+  MessageSquare,
   ChevronDown,
 } from "lucide-react";
-import { useNavigate } from "react-router";
-import Logo from "@/assets/img/logo.png";
-import useUser from "@/config/user";
-import { Link } from "react-router";
-import Cookies from "js-cookie";
 import { Notification } from "@shared-types/Notification";
-import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-} from "@chakra-ui/react";
+import useUser from "@/config/user";
 import useAxios from "@/config/axios";
+import Cookies from "js-cookie";
+import Logo from "@/assets/img/logo.png";
 
-const Navbar = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isResetOpen,
-    onOpen: onResetOpen,
-    onClose: onResetClose,
-  } = useDisclosure();
-  const [notifications, _setNotifications] = useState<Notification[]>([]);
+// Helper component for navigation links
+interface NavLinkProps {
+  icon: React.ReactNode;
+  text: string;
+  to?: string;
+  onClick?: () => void;
+}
+
+const NavLink = ({ icon, text, to, onClick }: NavLinkProps) => {
+  const navigate = useNavigate();
+  return (
+    <a
+      className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
+      onClick={() => {
+        to ? navigate(to) : onClick?.();
+      }}
+    >
+      {icon}
+      <span className="ml-2">{text}</span>
+    </a>
+  );
+};
+
+interface AdminNavbarProps {
+  notifications?: Notification[];
+}
+
+const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMoodleId, setResetMoodleId] = useState("");
 
@@ -66,49 +85,54 @@ const Navbar = () => {
   const toast = useToast();
   const axios = useAxios();
 
+  const {
+    isOpen: isNotificationOpen,
+    onOpen: onNotificationOpen,
+    onClose: onNotificationClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isResetOpen,
+    onOpen: onResetOpen,
+    onClose: onResetClose,
+  } = useDisclosure();
+
   const logout = () => {
     localStorage.removeItem("chakra-ui-color-mode");
-    Cookies.remove("token", {
-      path: "/",
-      domain: import.meta.env.VITE_COOKIE_DOMAIN,
-    });
-    Cookies.remove("token", {
-      path: "/",
-      domain: import.meta.env.VITE_COOKIE_DOMAIN2,
+    [
+      import.meta.env.VITE_COOKIE_DOMAIN,
+      import.meta.env.VITE_COOKIE_DOMAIN2,
+    ].forEach((domain) => {
+      Cookies.remove("token", { path: "/", domain });
     });
     window.location.href = "/auth";
   };
 
-  const resetPassword = () => {
+  const resetPassword = async () => {
     setResetLoading(true);
-    axios
-      .post("/user/reset", {
-        mid: resetMoodleId,
-      })
-      .then(() => {
-        toast({
-          title: "Success",
-          description: "Password Reset Successfully",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        setResetMoodleId("");
-        onResetClose();
-      })
-      .catch((err) => {
-        console.error(err);
-        Toast({
-          title: "Error",
-          description: "Something went wrong",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      })
-      .finally(() => {
-        setResetLoading(false);
+    try {
+      await axios.post("/user/reset", { mid: resetMoodleId });
+      toast({
+        title: "Success",
+        description: "Password Reset Successfully",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
       });
+      setResetMoodleId("");
+      onResetClose();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   return (
@@ -117,14 +141,10 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Left section with logo and nav links */}
           <div className="flex items-center">
-            <div
-              className="cursor-pointer"
-              onClick={() => {
-                navigate("/student");
-              }}
-            >
+            <div className="cursor-pointer" onClick={() => navigate("/admin")}>
               <img src={Logo} className="w-24" alt="Logo" />
             </div>
+
             {/* Desktop Navigation */}
             <div className="hidden md:flex ml-10 space-x-8">
               <NavLink
@@ -157,26 +177,18 @@ const Navbar = () => {
               <Menu>
                 <MenuButton
                   as="button"
-                  className="flex flex-row items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-900"
+                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
                 >
-                  <div className="flex items-center">
-                    <Award className="w-4 h-4" />
-                    <span className="ml-2">Certificates</span>
-                    <ChevronDown className="w-4 h-4 ml-1" />
-                  </div>
+                  <Award className="w-4 h-4" />
+                  <span className="mx-2">Certificates</span>
+                  <ChevronDown className="w-4 h-4" />
                 </MenuButton>
                 <MenuList>
-                  <MenuItem
-                    onClick={() => {
-                      navigate("/admin/certificates");
-                    }}
-                  >
+                  <MenuItem onClick={() => navigate("/admin/certificates")}>
                     Student Certificates
                   </MenuItem>
                   <MenuItem
-                    onClick={() => {
-                      navigate("/admin/faculty/certificates");
-                    }}
+                    onClick={() => navigate("/admin/faculty/certificates")}
                   >
                     Faculty Certificates
                   </MenuItem>
@@ -186,7 +198,7 @@ const Navbar = () => {
               <NavLink
                 icon={<Lock className="w-4 h-4" />}
                 text="Reset Password"
-                onclick={onResetOpen}
+                onClick={onResetOpen}
               />
 
               <NavLink
@@ -199,51 +211,51 @@ const Navbar = () => {
 
           {/* Right section with notifications and profile */}
           <div className="flex items-center space-x-4">
-            {/* Profile Section */}
             <Menu>
               <Box className="flex items-center gap-5">
                 <Bell
                   size={20}
                   className="cursor-pointer"
-                  onClick={() => onOpen()}
+                  onClick={onNotificationOpen}
                 />
                 <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
-                  <Text className=" text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
-                    {user?.fname + " " + user?.lname}
+                  <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
+                    {user?.fname} {user?.lname}
                   </Text>
-                  {user?.profilePicture ? (
-                    <MenuButton value="profile">
-                      <Avatar
-                        size="sm"
-                        src={
-                          import.meta.env.VITE_API_URL +
-                          "/static/profile/" +
-                          user?._id +
-                          "." +
-                          user?.profilePicture
-                        }
-                        className="border border-gray-300"
-                      />
-                    </MenuButton>
-                  ) : (
-                    <MenuButton value="profile">
-                      <Avatar
-                        size="sm"
-                        className="border border-gray-300"
-                      ></Avatar>
-                    </MenuButton>
-                  )}
+                  <MenuButton value="profile">
+                    <Avatar
+                      size="sm"
+                      src={
+                        user?.profilePicture
+                          ? `${import.meta.env.VITE_API_URL}/static/profile/${
+                              user._id
+                            }.${user.profilePicture}`
+                          : undefined
+                      }
+                      className="border border-gray-300"
+                    />
+                  </MenuButton>
                 </Box>
               </Box>
+
               <MenuList>
                 <Link to="/admin/settings">
-                  <MenuItem value="settings">Settings</MenuItem>
+                  <MenuItem value="settings">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </MenuItem>
                 </Link>
                 <Link to="/profile">
-                  <MenuItem value="profile">Profile</MenuItem>
+                  <MenuItem value="profile">
+                    <UserCircle className="w-4 h-4 mr-2" />
+                    Profile
+                  </MenuItem>
                 </Link>
                 <Link to="/feedback">
-                  <MenuItem value="feedback">Feedback</MenuItem>
+                  <MenuItem value="feedback">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Feedback
+                  </MenuItem>
                 </Link>
                 <MenuDivider />
                 <MenuItem value="logout" onClick={logout}>
@@ -255,16 +267,17 @@ const Navbar = () => {
         </div>
       </div>
 
-      <Drawer isOpen={isOpen} onClose={onClose}>
+      {/* Notifications Drawer */}
+      <Drawer isOpen={isNotificationOpen} onClose={onNotificationClose}>
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
           <DrawerHeader>Notifications</DrawerHeader>
           <DrawerBody>
-            {notifications?.length === 0 ? (
+            {notifications.length === 0 ? (
               <Alert>No Notifications</Alert>
             ) : (
-              notifications?.map((notification) => (
+              notifications.map((notification) => (
                 <Alert
                   status={notification.scope ? "info" : "warning"}
                   key={notification._id}
@@ -278,6 +291,7 @@ const Navbar = () => {
         </DrawerContent>
       </Drawer>
 
+      {/* Reset Password Modal */}
       <Modal isOpen={isResetOpen} onClose={onResetClose}>
         <ModalOverlay />
         <ModalContent>
@@ -290,7 +304,6 @@ const Navbar = () => {
               onChange={(e) => setResetMoodleId(e.target.value)}
             />
           </ModalBody>
-
           <ModalFooter>
             <Button colorScheme="blue" mr={3} onClick={onResetClose}>
               Close
@@ -305,27 +318,4 @@ const Navbar = () => {
   );
 };
 
-// Helper component for navigation links
-interface NavLinkProps {
-  icon: React.ReactNode;
-  text: string;
-  to?: string;
-  onclick?: () => void;
-}
-
-const NavLink = ({ icon, text, to, onclick }: NavLinkProps) => {
-  const navigate = useNavigate();
-  return (
-    <a
-      className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
-      onClick={() => {
-        to ? navigate(to) : onclick && onclick();
-      }}
-    >
-      {icon}
-      <span className="ml-2">{text}</span>
-    </a>
-  );
-};
-
-export default Navbar;
+export default AdminNavbar;
