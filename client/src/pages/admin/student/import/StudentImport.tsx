@@ -17,25 +17,22 @@ import {
   useColorModeValue,
   Text,
   HStack,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { Upload, UserPlus, FileSpreadsheet } from "lucide-react";
 import Papa from "papaparse";
+import { useNavigate } from "react-router";
+import useAxios from "@/config/axios";
 import StudentAdd from "./StudentAdd";
 
 const MotionBox = motion(Box);
-import useAxios from "@/config/axios";
-import { Database, Upload, UserPlus } from "lucide-react";
-import { useNavigate } from "react-router";
 
 const StudentImport = () => {
   const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState([]);
-
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   const toast = useToast();
   const bgColor = useColorModeValue("white", "gray.800");
@@ -140,6 +137,10 @@ const StudentImport = () => {
         });
       });
   }, []);
+
+  const handleModal = (value: boolean) => {
+    setAddIndividual(value);
+  };
 
   return (
     <Container maxW="container.xl" py={8}>

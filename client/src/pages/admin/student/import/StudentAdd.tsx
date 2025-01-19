@@ -34,6 +34,7 @@ interface StudentAddProps {
 }
 
 const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
+  const [houses, setHouses] = React.useState<House[]>(initialHouses);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [gender, setGender] = React.useState("Male");
   const [fname, setFname] = React.useState("");

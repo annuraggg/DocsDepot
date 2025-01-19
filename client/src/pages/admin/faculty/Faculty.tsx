@@ -172,7 +172,7 @@ const Faculty = () => {
           duration: 2000,
           isClosable: true,
         });
-        setFaculty(faculty.filter((faculty) => faculty._id !== delItem));
+        setFaculty(faculty.filter((faculty) => faculty._id !== state.delItem));
       } else {
         onDeleteClose();
         toast({
@@ -252,13 +252,13 @@ const Faculty = () => {
             duration: 2000,
             isClosable: true,
           });
-          const index = faculty.findIndex((faculty) => faculty._id === facOID);
-          faculty[index].mid = mid;
-          faculty[index].fname = fname;
-          faculty[index].lname = lname;
-          faculty[index].social.email = email;
-          faculty[index].gender = gender as Gender
-          faculty[index].permissions = perms;
+          const index = faculty.findIndex((faculty) => faculty._id === state.facOID);
+          faculty[index].mid = state.mid;
+          faculty[index].fname = state.fname;
+          faculty[index].lname = state.lname;
+          faculty[index].social.email = state.email;
+          faculty[index].gender = state.gender as Gender
+          faculty[index].permissions = state.perms;
 
           setFaculty(faculty);
         } else {

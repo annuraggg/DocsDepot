@@ -199,3 +199,60 @@
 [2025-01-19T13:04:07.670Z] INFO: MT: POST | PA: /maintainance | AU: Authenticated | ST: 200 | RT: 2.00 ms
 [2025-01-19T13:04:07.673Z] INFO: MT: GET | PA: /logs | AU: Authenticated | ST: 200 | RT: 2.00 ms
 [2025-01-19T13:04:07.698Z] INFO: MT: GET | PA: /static/profile/64e9ba8eaeba5be8be479d00.https://universitykart.b-cdn.net//Content/upload/admin/xgguhkwb.zwq.jpg | AU: Unauthenticated | ST: 404 | RT: 0.00 ms
+[2025-01-19T13:52:11.985Z] INFO: Server is running on port 3000
+[2025-01-19T13:52:12.791Z] INFO: Connected to MongoDB
+[2025-01-19T15:05:58.108Z] INFO: MT: POST | PA: /maintainance | AU: Authenticated | ST: 200 | RT: 45.00 ms
+[2025-01-19T15:05:58.130Z] INFO: MT: POST | PA: /maintainance | AU: Authenticated | ST: 200 | RT: 4.00 ms
+[2025-01-19T15:05:58.417Z] INFO: MT: GET | PA: /static/profile/64e9ba8eaeba5be8be479d00.https://universitykart.b-cdn.net//Content/upload/admin/xgguhkwb.zwq.jpg | AU: Unauthenticated | ST: 404 | RT: 6.00 ms
+[2025-01-19T15:06:04.254Z] INFO: MT: GET | PA: /static/profile/64e9ba8eaeba5be8be479d00.https://universitykart.b-cdn.net//Content/upload/admin/xgguhkwb.zwq.jpg | AU: Unauthenticated | ST: 404 | RT: 2.00 ms
+[2025-01-19T15:06:04.377Z] INFO: MT: GET | PA: /houses | AU: Authenticated | ST: 200 | RT: 295.00 ms
+[2025-01-19T15:06:04.449Z] INFO: MT: GET | PA: /houses | AU: Authenticated | ST: 200 | RT: 56.00 ms
+[2025-01-19T15:06:07.304Z] INFO: MT: GET | PA: /events | AU: Authenticated | ST: 200 | RT: 48.00 ms
+[2025-01-19T15:06:07.352Z] INFO: MT: GET | PA: /events | AU: Authenticated | ST: 200 | RT: 41.00 ms
+[2025-01-19T15:06:15.229Z] INFO: MT: GET | PA: /static/profile/64e9ba8eaeba5be8be479d00.https://universitykart.b-cdn.net//Content/upload/admin/xgguhkwb.zwq.jpg | AU: Unauthenticated | ST: 404 | RT: 1.00 ms
+[2025-01-19T15:06:15.326Z] INFO: MT: GET | PA: /user/students | AU: Authenticated | ST: 200 | RT: 130.00 ms
+[2025-01-19T15:06:15.433Z] INFO: MT: GET | PA: /user/students | AU: Authenticated | ST: 200 | RT: 104.00 ms
+[2025-01-19T15:06:20.808Z] INFO: MT: GET | PA: /user/faculty | AU: Authenticated | ST: 200 | RT: 57.00 ms
+[2025-01-19T15:06:20.879Z] INFO: MT: GET | PA: /user/faculty | AU: Authenticated | ST: 200 | RT: 65.00 ms
+[2025-01-19T15:06:25.917Z] INFO: MT: GET | PA: /certificates/student | AU: Authenticated | ST: 200 | RT: 94.00 ms
+[2025-01-19T15:06:25.979Z] INFO: MT: GET | PA: /certificates/student | AU: Authenticated | ST: 200 | RT: 57.00 ms
+[2025-01-19T15:06:27.918Z] INFO: MT: GET | PA: /certificates/faculty | AU: Authenticated | ST: 200 | RT: 113.00 ms
+[2025-01-19T15:06:27.998Z] INFO: MT: GET | PA: /certificates/faculty | AU: Authenticated | ST: 200 | RT: 76.00 ms
+[2025-01-19T15:06:30.168Z] INFO: MT: GET | PA: /feedback | AU: Authenticated | ST: 200 | RT: 57.00 ms
+[2025-01-19T15:06:30.248Z] INFO: MT: GET | PA: /feedback | AU: Authenticated | ST: 200 | RT: 74.00 ms
+[2025-01-19T15:06:35.860Z] INFO: MT: GET | PA: /user/faculty | AU: Authenticated | ST: 200 | RT: 69.00 ms
+[2025-01-19T15:06:35.959Z] INFO: MT: GET | PA: /user/faculty | AU: Authenticated | ST: 200 | RT: 96.00 ms
+[2025-01-19T15:06:38.141Z] INFO: MT: GET | PA: /houses | AU: Authenticated | ST: 200 | RT: 42.00 ms
+[2025-01-19T15:06:38.201Z] INFO: MT: GET | PA: /houses | AU: Authenticated | ST: 200 | RT: 55.00 ms
+[2025-01-19T15:07:13.680Z] WARN: Internal Server Error
+[2025-01-19T15:07:13.683Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 30.00 ms
+[2025-01-19T15:07:17.947Z] WARN: Internal Server Error
+[2025-01-19T15:07:17.949Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 5.00 ms
+[2025-01-19T15:07:18.385Z] WARN: Internal Server Error
+[2025-01-19T15:07:18.387Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 3.00 ms
+[2025-01-19T15:07:18.730Z] WARN: Internal Server Error
+[2025-01-19T15:07:18.732Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 4.00 ms
+[2025-01-19T15:07:36.589Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 6.00 ms
+[2025-01-19T15:07:36.587Z] WARN: Internal Server Error
+[2025-01-19T15:07:38.737Z] WARN: Internal Server Error
+[2025-01-19T15:07:38.739Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 4.00 ms
+[2025-01-19T15:07:47.367Z] WARN: Internal Server Error
+[2025-01-19T15:07:47.369Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 5.00 ms
+[2025-01-19T15:07:48.452Z] WARN: Internal Server Error
+[2025-01-19T15:07:48.453Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 6.00 ms
+[2025-01-19T15:07:48.627Z] WARN: Internal Server Error
+[2025-01-19T15:07:48.629Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 6.00 ms
+[2025-01-19T15:07:48.775Z] WARN: Internal Server Error
+[2025-01-19T15:07:48.776Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 4.00 ms
+[2025-01-19T15:07:48.896Z] WARN: Internal Server Error
+[2025-01-19T15:07:48.899Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 4.00 ms
+[2025-01-19T15:07:49.258Z] WARN: Internal Server Error
+[2025-01-19T15:07:49.260Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 3.00 ms
+[2025-01-19T15:07:49.390Z] WARN: Internal Server Error
+[2025-01-19T15:07:49.391Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 3.00 ms
+[2025-01-19T15:07:49.764Z] WARN: Internal Server Error
+[2025-01-19T15:07:49.765Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 3.00 ms
+[2025-01-19T15:07:50.466Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 5.00 ms
+[2025-01-19T15:07:50.465Z] WARN: Internal Server Error
+[2025-01-19T15:07:50.866Z] WARN: Internal Server Error
+[2025-01-19T15:07:50.868Z] INFO: MT: POST | PA: /user/faculty | AU: Authenticated | ST: 500 | RT: 3.00 ms
