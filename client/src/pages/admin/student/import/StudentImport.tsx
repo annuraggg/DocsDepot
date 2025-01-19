@@ -8,20 +8,35 @@ import {
   Th,
   Alert,
   AlertIcon,
-  AlertDescription,
   Thead,
   Tr,
   useToast,
+  Container,
+  VStack,
+  Card,
+  CardBody,
+  Heading,
+  useColorModeValue,
+  HStack,
+  Text,
+  Badge,
+  Progress,
+  TableContainer,
 } from "@chakra-ui/react";
 import Papa from "papaparse";
 import StudentAdd from "./StudentAdd";
+import useAxios from "@/config/axios";
+import { Database, Upload, UserPlus } from "lucide-react";
 
 const StudentImport = () => {
-
   const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   const toast = useToast();
 
@@ -117,110 +132,158 @@ const StudentImport = () => {
       });
   };
 
+  const axios = useAxios();
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/students`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setHouses(data.houses);
+    axios
+      .get("/houses")
+      .then((res) => {
+        setHouses(res.data.data);
       })
       .catch((err) => {
         console.error(err);
-        toast({
-          title: "Error",
-          description: "Error fetching students",
-          status: "error",
-          duration: 2000,
-          isClosable: true,
-        });
       });
   }, []);
 
   return (
-    <>
-      <Box className="StudentImport">
-        <Box className="main">
-          <Box className="btn">
-            <Button
-              colorScheme="blue"
-              onClick={() => {
-                setAddIndividual(true);
-              }}
-            >
-              Add Individual
-            </Button>
-            <label htmlFor="file-upload" className="custom-file-upload">
-              Upload .CSV
-            </label>
-          </Box>
-          <Alert status="warning">
-            <AlertIcon className="hide" />
+    <Container maxW="7xl" py={8}>
+      <VStack spacing={8} align="stretch">
+        <Card>
+          <CardBody>
+            <VStack spacing={6}>
+              <Heading size="lg" color={useColorModeValue("gray.700", "white")}>
+                Student Import Dashboard
+              </Heading>
 
-            <AlertDescription>
-              Please Upload a .CSV file with the following columns in the same
-              order as shown below. Please make sure that the first row of the
-              .CSV file DOES NOT contain the column names. No Blank Rows are to
-              be present in the .CSV file.
-            </AlertDescription>
-          </Alert>
-          <input
-            id="file-upload"
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
-          />
-
-          <Box className="table">
-            <Table variant="striped">
-              <Thead>
-                <Tr
-                  position="sticky"
-                  top={0}
-                  zIndex="sticky"
-                  backgroundColor="#F7F6FA"
+              <HStack spacing={4} width="full" justify="flex-start">
+                <Button
+                  leftIcon={<UserPlus />}
+                  colorScheme="blue"
+                  size="lg"
+                  onClick={() => setAddIndividual(true)}
+                  variant="solid"
+                  px={8}
                 >
-                  <Th>Student ID</Th>
-                  <Th>First Name</Th>
-                  <Th>Last Name</Th>
-                  <Th>Gender</Th>
-                  <Th>Email</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {tableData.map((row, index) => (
-                  <Tr key={index}>
-                    {row.map((cell, index) => (
-                      <Td key={index}>{cell}</Td>
-                    ))}
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-          <Box className="footer">
-            <Button
-              colorScheme="green"
-              onClick={startImport}
-              isLoading={adding}
-            >
-              Import
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+                  Add Individual
+                </Button>
 
-      {addIndividual ? (
-        <StudentAdd setModal={handleModal} houses={houses} />
-      ) : (
-        <></>
-      )}
-    </>
+                <Button
+                  as="label"
+                  htmlFor="file-upload"
+                  leftIcon={<Upload />}
+                  colorScheme="teal"
+                  size="lg"
+                  cursor="pointer"
+                  px={8}
+                >
+                  Upload CSV
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+                </Button>
+              </HStack>
+
+              <Alert
+                status="warning"
+                variant="left-accent"
+                borderRadius="md"
+                bg={useColorModeValue("orange.50", "orange.900")}
+              >
+                <AlertIcon />
+                <VStack align="start" spacing={2}>
+                  <Text fontWeight="bold">CSV File Requirements:</Text>
+                  <Text>
+                    • Columns must be in order: Student ID, First Name, Last
+                    Name, Gender, Email
+                    <br />
+                    • First row should NOT contain column headers
+                    <br />• No blank rows allowed
+                  </Text>
+                </VStack>
+              </Alert>
+
+              {tableData.length > 0 && (
+                <Box width="full">
+                  <HStack justify="space-between" mb={4}>
+                    <Badge
+                      colorScheme="blue"
+                      fontSize="md"
+                      p={2}
+                      borderRadius="md"
+                    >
+                      <Database />
+                      {tableData.length} Records Loaded
+                    </Badge>
+                    {adding && (
+                      <Progress
+                        size="sm"
+                        width="200px"
+                        value={uploadProgress}
+                        colorScheme="green"
+                        borderRadius="full"
+                      />
+                    )}
+                  </HStack>
+
+                  <TableContainer
+                    border="1px"
+                    borderColor={borderColor}
+                    borderRadius="lg"
+                    maxH="50vh"
+                    overflowY="auto"
+                    bg={bgColor}
+                    boxShadow="sm"
+                  >
+                    <Table variant="simple">
+                      <Thead position="sticky" top={0} bg={bgColor} zIndex={1}>
+                        <Tr>
+                          <Th>Student ID</Th>
+                          <Th>First Name</Th>
+                          <Th>Last Name</Th>
+                          <Th>Gender</Th>
+                          <Th>Email</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {tableData.map((row, index) => (
+                          <Tr key={index}>
+                            {row.map((cell, i) => (
+                              <Td key={i}>{cell}</Td>
+                            ))}
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              )}
+
+              {tableData.length > 0 && (
+                <HStack width="full" justify="flex-end" pt={4}>
+                  <Button
+                    leftIcon={<Database />}
+                    colorScheme="green"
+                    size="lg"
+                    onClick={startImport}
+                    isLoading={adding}
+                    loadingText="Importing..."
+                    px={8}
+                  >
+                    Import Students
+                  </Button>
+                </HStack>
+              )}
+            </VStack>
+          </CardBody>
+        </Card>
+      </VStack>
+
+      {addIndividual && <StudentAdd setModal={handleModal} houses={houses} />}
+    </Container>
   );
 };
 

@@ -25,7 +25,7 @@ interface StudentAddProps {
   houses: House[];
 }
 
-const StudentAdd = ({ setModal }: StudentAddProps) => {
+const StudentAdd = ({ setModal, houses }: StudentAddProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [gender, setGender] = React.useState("Male");
 
@@ -34,22 +34,12 @@ const StudentAdd = ({ setModal }: StudentAddProps) => {
   const [moodleid, setMoodleid] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [house, setHouse] = React.useState("");
-  const [houses, setHouses] = React.useState<House[]>([]);
 
   const toast = useToast();
   const axios = useAxios();
 
   useEffect(() => {
     onOpen();
-    axios
-      .get("/houses")
-      .then((res) => {
-        console.log(res.data.data);
-        setHouses(res.data.data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
   }, []);
 
   const setClose = () => {
@@ -129,8 +119,8 @@ const StudentAdd = ({ setModal }: StudentAddProps) => {
           <ModalHeader>Add Student</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Box className="StudentModal">
-              <Box className="flex">
+            <Box className="flex items-center justify-center gap-3 flex-col">
+              <Box className="flex gap-3">
                 <Input
                   type="text"
                   placeholder="First Name"
