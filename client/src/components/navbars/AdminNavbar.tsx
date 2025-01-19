@@ -33,8 +33,6 @@ import {
   Home,
   Users,
   Calendar,
-  UserCheck,
-  Briefcase,
   Building,
   Award,
   Lock,
@@ -42,6 +40,7 @@ import {
   UserCircle,
   MessageSquare,
   ChevronDown,
+  User,
 } from "lucide-react";
 import { Notification } from "@shared-types/Notification";
 import useUser from "@/config/user";
@@ -162,16 +161,29 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
                 text="Events"
                 to="/events"
               />
-              <NavLink
-                icon={<UserCheck className="w-4 h-4" />}
-                text="Students"
-                to="/admin/students"
-              />
-              <NavLink
-                icon={<Briefcase className="w-4 h-4" />}
-                text="Faculty"
-                to="/admin/faculty"
-              />
+
+              <Menu>
+                <MenuButton
+                  as="button"
+                  className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
+                >
+                  <div className="flex items-center justify-center">
+                    <User className="w-4 h-4" />
+                    <span className="mx-2">Members</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem onClick={() => navigate("/admin/students")}>
+                    Students
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => navigate("/admin/faculty")}
+                  >
+                    Faculty
+                  </MenuItem>
+                </MenuList>
+              </Menu>
 
               {/* Certificates Dropdown */}
               <Menu>
@@ -179,9 +191,11 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
                   as="button"
                   className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
                 >
-                  <Award className="w-4 h-4" />
-                  <span className="mx-2">Certificates</span>
-                  <ChevronDown className="w-4 h-4" />
+                  <div className="flex items-center justify-center">
+                    <Award className="w-4 h-4" />
+                    <span className="mx-2">Certificates</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </div>
                 </MenuButton>
                 <MenuList>
                   <MenuItem onClick={() => navigate("/admin/certificates")}>
