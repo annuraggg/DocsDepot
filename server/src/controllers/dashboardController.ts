@@ -32,7 +32,6 @@ const getStudentDashboard = async (c: Context) => {
       certifications,
     });
   } catch (error) {
-    console.log(error);
     return sendError(c, 500, "Error fetching dashboard data");
   }
 };

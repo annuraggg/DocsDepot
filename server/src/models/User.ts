@@ -2,21 +2,26 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    mid: { type: String, required: true, unique: true },
+    mid: { type: String, required: true, unique: true, immutable: true },
     password: { type: String, required: true },
     fname: { type: String, required: true },
     lname: { type: String, required: true },
     profilePicture: { type: String, default: "" },
     gender: { type: String, enum: ["M", "F", "O"], required: true },
-    role: { type: String, enum: ["A", "S", "F"], required: true }, // A for Admin, S for Student
+    role: {
+      type: String,
+      enum: ["A", "S", "F"],
+      required: true,
+      immutable: true,
+    }, // A for Admin, S for Student and F for Faculty
 
     house: { type: mongoose.Types.ObjectId, default: null, ref: "House" },
 
     academicDetails: {
-      academicYear: { type: Number },
-      isDSE: { type: Boolean, default: false },
-      branch: { type: String, default: "" },
-      admissionYear: { type: Number },
+      isDSE: { type: Boolean, default: false, immutable: true },
+      branch: { type: String, default: "", immutable: true },
+      admissionYear: { type: Number, immutable: true },
+      yearBacklog: { type: Number, default: 0 },
     },
     social: {
       email: { type: String, default: "", unique: true },
@@ -32,12 +37,22 @@ const userSchema = new mongoose.Schema(
       },
     },
     onboarding: {
-      firstTime: { type: Boolean, default: false },
-      approved: { type: Boolean, default: false },
-      defaultPW: { type: Boolean, default: false },
+      firstTime: {
+        type: Boolean,
+        default: false,
+        immutable: (doc) => doc.onboarding.firstTime,
+      },
+      approved: {
+        type: Boolean,
+        default: false,
+        immutable: (doc) => doc.onboarding.approved,
+      },
+      defaultPW: {
+        type: Boolean,
+        default: false,
+      },
     },
     permissions: { type: [String], default: [] },
-    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

@@ -66,44 +66,101 @@
   .house-page {
     @apply min-h-screen bg-gray-50;
   }
-  
+
   .house-section {
     @apply bg-white rounded-xl shadow-lg p-6;
   }
-  
+
   .house-title {
     @apply text-2xl font-semibold mb-4;
   }
-  
+
   .house-subtitle {
     @apply text-sm text-gray-500;
   }
-  
+
   .house-card {
     @apply bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-200;
   }
-  
+
   .house-button {
     @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
   }
-  
+
   .house-button-primary {
     @apply house-button bg-blue-600 text-white hover:bg-blue-700;
   }
-  
+
   .house-button-secondary {
     @apply house-button bg-gray-100 text-gray-700 hover:bg-gray-200;
   }
-  
+
   .house-input {
     @apply w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent;
   }
-  
+
   .house-modal {
     @apply bg-white rounded-xl shadow-2xl;
   }
-  
+
   .house-modal-overlay {
     @apply bg-black/40 backdrop-blur-sm;
+  }
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Russo+One&display=swap");
+
+.loader .spinner {
+  animation: fadeInAnimation 0.5s;
+}
+
+.loader svg {
+  font-family: "Russo One", sans-serif;
+  width: 100%;
+  height: 100%;
+  animation: grow 0.5s forwards 1.5s;
+}
+.loader svg text {
+  text-transform: uppercase;
+  font-family: "Russo One", sans-serif;
+  stroke-width: 2;
+  stroke: #365fa0;
+  animation-timing-function: ease-out;
+  animation: stroke 2s forwards;
+  font-size: 200px;
+}
+
+@keyframes stroke {
+  0% {
+    fill: rgba(72, 138, 20, 0);
+    stroke: rgba(54, 95, 160, 1);
+    stroke-dashoffset: 25%;
+    stroke-dasharray: 0 50%;
+    stroke-width: 2;
+  }
+  70% {
+    fill: rgba(72, 138, 20, 0);
+    stroke: rgba(54, 95, 160, 1);
+  }
+  80% {
+    fill: rgba(72, 138, 20, 0);
+    stroke: rgba(54, 95, 160, 1);
+    stroke-width: 3;
+  }
+  100% {
+    fill: rgba(72, 138, 204, 1);
+    stroke: rgba(54, 95, 160, 0);
+    stroke-dashoffset: -25%;
+    stroke-dasharray: 50% 0;
+    stroke-width: 0;
+  }
+}
+
+@keyframes grow {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
   }
 }

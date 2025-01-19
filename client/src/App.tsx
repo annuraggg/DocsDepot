@@ -28,6 +28,7 @@ import AdminStudentCertificates from "./pages/admin/student/certificates/Certifi
 import AdminFeedback from "./pages/admin/feedback/Feedback";
 import AdminFacultyCertificates from "./pages/admin/faculty/certificates/Certificates";
 import AdminLayout from "./components/layouts/AdminLayout.js";
+import SelectiveLayout from "./components/layouts/SelectiveLayout.js";
 
 function App() {
   const studentRoutes = [
@@ -50,17 +51,21 @@ function App() {
     { path: "faculty/certificates", element: <AdminFacultyCertificates /> },
   ];
 
-  const router = createBrowserRouter([
-    { path: "*", element: <FourZeroFour /> },
-    { path: "/feedback", element: <Feedback /> },
-    { path: "/auth", element: <Auth /> },
+  const selectiveRoutes = [
     { path: "/certificates/:id", element: <Certificate /> },
     { path: "/events", element: <Events /> },
     { path: "/events/:id", element: <Event /> },
     { path: "/profile/:id", element: <StudentProfile /> },
     { path: "/houses", element: <Houses /> },
     { path: "/houses/:id", element: <House /> },
+  ];
 
+  const router = createBrowserRouter([
+    { path: "*", element: <FourZeroFour /> },
+    { path: "/feedback", element: <Feedback /> },
+    { path: "/auth", element: <Auth /> },
+
+    { path: "/", element: <SelectiveLayout />, children: selectiveRoutes },
     { path: "/student", element: <StudentLayout />, children: studentRoutes },
     { path: "/admin", element: <AdminLayout />, children: adminRoutes },
     // { path: "/profile/:id/generate/report", element: <Report /> },

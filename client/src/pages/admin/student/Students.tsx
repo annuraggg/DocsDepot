@@ -128,7 +128,8 @@ const Students = () => {
           duration: 2000,
           isClosable: true,
         });
-      });
+      })
+      .finally(() => setLoading(false));
   }, [update]);
 
   useEffect(() => {

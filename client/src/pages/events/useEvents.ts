@@ -25,6 +25,7 @@ export const useEvents = () => {
   }, []);
 
   const fetchEvents = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get("/events");
       if (response.status === 200) {

@@ -35,6 +35,7 @@ import { Award, Building2, Calendar, ChevronRight, Filter } from "lucide-react";
 import { Certificate } from "@shared-types/Certificate";
 import Loader from "@/components/Loader";
 import useAxios from "@/config/axios";
+import { ExtendedCertificate } from "@/types/ExtendedCertificate";
 
 const StudentCertificates = () => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);

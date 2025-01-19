@@ -26,6 +26,7 @@ import FacultyAdd from "./FacultyAdd";
 import { House } from "@shared-types/House";
 
 const MotionBox = motion(Box);
+import useAxios from "@/config/axios";
 
 const FacultyImport = () => {
   const [tableData, setTableData] = useState<string[][]>([]);
@@ -36,16 +37,20 @@ const FacultyImport = () => {
   const toast = useToast();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
+  const axios = useAxios();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-    const file = files[0];
-    Papa.parse(file, {
-      complete: (result) => {
-        setTableData(result.data as string[][]);
-      },
-    });
+  const handleFileUpload = (
+    event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
+  ) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
+    if (file) {
+      Papa.parse(file, {
+        complete: (result) => {
+          setTableData(result.data as string[][]);
+        },
+      });
+    }
   };
 
   const handleModal = (value: boolean) => {
@@ -53,26 +58,20 @@ const FacultyImport = () => {
   };
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/houses`, {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setHouses(data);
+    axios
+      .get("/houses")
+      .then((res) => {
+        setHouses(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
       });
   }, []);
 
   const startImport = () => {
     setAdding(true);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/faculty/import`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tableData }),
-    }).then((res) => {
+
+    axios.post("/user/faculty/bulk", { tableData }).then((res) => {
       setAdding(false);
       if (res.status === 200) {
         toast({
@@ -228,8 +227,12 @@ const FacultyImport = () => {
         </VStack>
       </MotionBox>
 
-      {addIndividual && <FacultyAdd setModal={handleModal} h={{ houses }} />}
-    </Container>
+      {addIndividual ? (
+        <FacultyAdd setModal={handleModal} h={{ houses }} />
+      ) : (
+        <></>
+      )}
+    </>
   );
 };
 

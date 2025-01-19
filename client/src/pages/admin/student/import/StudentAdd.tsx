@@ -41,7 +41,6 @@ const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
   const [moodleid, setMoodleid] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [house, setHouse] = React.useState("");
-  const [houses, setHouses] = React.useState<House[]>([]);
 
   const toast = useToast();
   const axios = useAxios();

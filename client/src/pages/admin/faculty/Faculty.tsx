@@ -35,7 +35,7 @@ import FacultyTable from "./FacultyTable";
 import EditModal from "./EditModal";
 import PermissionsModal from "./PermissionsModal";
 import DeleteAlert from "./DeleteAlert";
-import { User } from "@shared-types/User";
+import { Gender, User } from "@shared-types/User";
 
 const MotionBox = motion(Box);
 
@@ -172,7 +172,7 @@ const Faculty = () => {
           duration: 2000,
           isClosable: true,
         });
-        window.location.reload();
+        setFaculty(faculty.filter((faculty) => faculty._id !== delItem));
       } else {
         onDeleteClose();
         toast({
@@ -252,7 +252,15 @@ const Faculty = () => {
             duration: 2000,
             isClosable: true,
           });
-          window.location.reload();
+          const index = faculty.findIndex((faculty) => faculty._id === facOID);
+          faculty[index].mid = mid;
+          faculty[index].fname = fname;
+          faculty[index].lname = lname;
+          faculty[index].social.email = email;
+          faculty[index].gender = gender as Gender
+          faculty[index].permissions = perms;
+
+          setFaculty(faculty);
         } else {
           onEditClose();
           toast({

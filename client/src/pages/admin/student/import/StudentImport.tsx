@@ -8,7 +8,6 @@ import {
   Th,
   Alert,
   AlertIcon,
-  AlertDescription,
   Thead,
   Tr,
   useToast,
@@ -25,6 +24,9 @@ import Papa from "papaparse";
 import StudentAdd from "./StudentAdd";
 
 const MotionBox = motion(Box);
+import useAxios from "@/config/axios";
+import { Database, Upload, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router";
 
 const StudentImport = () => {
   const [tableData, setTableData] = useState<string[][]>([]);
@@ -32,9 +34,14 @@ const StudentImport = () => {
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState([]);
 
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+
   const toast = useToast();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
+  const navigate = useNavigate();
+  const axios = useAxios();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -47,17 +54,16 @@ const StudentImport = () => {
     });
   };
 
-  const handleModal = (value: boolean) => {
-    setAddIndividual(value);
-  };
-
   const startImport = () => {
     setAdding(true);
     tableData.forEach((row) => {
       if (row.length !== 5) {
         toast({
           title: "Error",
-          description: "Invalid CSV File",
+          description:
+            "Invalid CSV File with length " +
+            " at row " +
+            (tableData.indexOf(row) + 1),
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -69,7 +75,8 @@ const StudentImport = () => {
       if (row[0].length !== 8) {
         toast({
           title: "Error",
-          description: "Invalid Student ID",
+          description:
+            "Invalid Student ID at row " + (tableData.indexOf(row) + 1),
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -79,16 +86,9 @@ const StudentImport = () => {
       }
     });
 
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/students/import`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ tableData }),
-    })
+    axios
+      .post("/user/student/bulk", { tableData })
       .then((res) => {
-        setAdding(false);
         if (res.status === 200) {
           toast({
             title: "Students Imported",
@@ -97,6 +97,8 @@ const StudentImport = () => {
             duration: 3000,
             isClosable: true,
           });
+
+          navigate("/admin/student");
         } else if (res.status === 409) {
           toast({
             title: "Error",
@@ -115,39 +117,25 @@ const StudentImport = () => {
           });
         }
       })
-      .catch((err) => {
-        console.error(err);
+      .finally(() => {
+        setTableData([]);
         setAdding(false);
-        toast({
-          title: "Error",
-          description: "Error in importing students",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
       });
   };
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/students`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setHouses(data.houses);
+    axios
+      .get("/houses")
+      .then((res) => {
+        setHouses(res.data.data);
       })
       .catch((err) => {
         console.error(err);
         toast({
           title: "Error",
-          description: "Error fetching students",
+          description: err.response.data.message || "Something went wrong",   
           status: "error",
-          duration: 2000,
+          duration: 3000,
           isClosable: true,
         });
       });
