@@ -5,9 +5,9 @@ import type { Context } from "hono";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Token } from "scriptopia-types/Token.js";
-import { Certificate as ICertificate } from "scriptopia-types/Certificate.js";
-import { User } from "scriptopia-types/User.js";
+import { Token } from "docsdepot-types/Token.js";
+import { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
+import { User } from "docsdepot-types/User.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,7 +41,10 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const getCertificates = async (c: Context) => {
   try {
-    const certificates = await Certificate.find({}).populate("user").lean();
+    const certificates = await Certificate.find({})
+      .populate("user")
+      .populate("comments.user")
+      .lean();
 
     if (!certificates) {
       return sendSuccess(c, 200, "No certificates found", []);
@@ -61,7 +64,10 @@ const getCertificates = async (c: Context) => {
 const getCertificateById = async (c: Context) => {
   try {
     const { id } = c.req.param();
-    const certificate = await Certificate.findById(id).populate("user").lean();
+    const certificate = await Certificate.findById(id)
+      .populate("user")
+      .populate("comments.user")
+      .lean();
 
     if (!certificate) {
       return sendError(c, 200, "Certificate not found", []);
@@ -79,6 +85,7 @@ const getCertificatesByUserId = async (c: Context) => {
     const { id } = c.req.param();
     const certificates = await Certificate.find({ user: id ? id : _id })
       .populate("user")
+      .populate("comments.user")
       .lean();
 
     if (!certificates) {
@@ -367,9 +374,31 @@ const downloadCertificate = async (c: Context) => {
   }
 };
 
+const commentOnCertificate = async (c: Context) => {
+  try {
+    const { id } = c.req.param();
+    const { comment } = await c.req.json();
+    const certificate = await Certificate.findById(id);
+
+    if (!certificate) {
+      return sendError(c, 404, "Certificate not found", []);
+    }
+
+    certificate.comments.push(comment);
+    await certificate.save();
+
+    return sendSuccess(c, 200, "Comment added successfully", certificate);
+  } catch (error) {
+    return sendError(c, 500, "Error adding comment", error);
+  }
+};
+
 const getStudentCertificates = async (c: Context) => {
   try {
-    const certificates = await Certificate.find().populate("user").lean();
+    const certificates = await Certificate.find()
+      .populate("user")
+      .populate("comments.user")
+      .lean();
 
     if (!certificates) {
       return sendSuccess(c, 200, "No certificates found", []);
@@ -436,4 +465,5 @@ export default {
   downloadCertificate,
   getStudentCertificates,
   getFacultyCertificates,
+  commentOnCertificate,
 };

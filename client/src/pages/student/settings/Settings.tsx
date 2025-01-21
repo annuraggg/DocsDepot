@@ -95,48 +95,29 @@ const Settings = () => {
           oldPass: oldPass.toString(),
           newPass: newPass.toString(),
         })
-        .then(async (res) => {
-          setIsButtonLoading(false);
-          if (res.status === 401) {
-            toast({
-              title: "Password Change Failed! Old Password is Incorrect",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          } else {
-            return await res.data;
-          }
-        })
-        .then((data) => {
-          if (data.success === true) {
-            toast({
-              title: "Password Changed Successfully!",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-            setOldPass("");
-            setNewPass("");
-            setConfirmPass("");
-            setToastDispatched(false);
-          } else {
-            toast({
-              title: "Password Change Failed!",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
+        .then(() => {
+          toast({
+            title: "Password Changed Successfully!",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          setOldPass("");
+          setNewPass("");
+          setConfirmPass("");
+          setToastDispatched(false);
         })
         .catch((err) => {
           console.log(err);
           toast({
-            title: "Password Change Failed!",
+            title: err?.response?.data.message || "Password Change Failed!",
             status: "error",
             duration: 3000,
             isClosable: true,
           });
+        })
+        .finally(() => {
+          setIsButtonLoading(false);
         });
     }
   };
@@ -153,6 +134,9 @@ const Settings = () => {
         if (!token) return;
 
         Cookies.set("token", token);
+      })
+      .catch((err) => {
+        console.log(err);
       });
   };
 
@@ -185,6 +169,15 @@ const Settings = () => {
         if (!token) return;
 
         Cookies.set("token", token);
+      })
+      .catch((err) => {
+        console.log(err);
+        toast({
+          title: err?.response?.data.message || "Theme Change Failed!",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       });
   };
 

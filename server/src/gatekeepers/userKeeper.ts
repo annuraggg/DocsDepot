@@ -1,5 +1,5 @@
-import { Token } from "scriptopia-types/Token";
-import { User } from "scriptopia-types/User";
+import { Token } from "docsdepot-types/Token";
+import { User } from "docsdepot-types/User";
 
 class UserKeeper {
   token: Token;

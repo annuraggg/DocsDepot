@@ -19,4 +19,6 @@ app.put("/:id", certificationController.updateCertificate);
 
 app.delete("/:id", certificationController.deleteCertificate);
 
+app.post("/:id/comment", certificationController.commentOnCertificate);
+
 export default app;

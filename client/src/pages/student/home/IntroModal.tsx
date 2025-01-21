@@ -220,7 +220,7 @@ const IntroModal = () => {
           {page === 1 ? (
             <ModalBody className="IntroModal">
               <Box className="sec1">
-                <Heading>Welcome to Scriptopia Connect!</Heading>
+                <Heading>Welcome to DocsDepot!</Heading>
                 <Box className="Images">
                   {" "}
                   <Image src={Intro1} />

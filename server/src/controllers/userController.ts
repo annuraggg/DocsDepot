@@ -3,9 +3,9 @@ import { sendError, sendSuccess } from "../utils/sendResponse";
 import User from "../models/User";
 import House from "../models/House";
 import bcrypt from "bcrypt";
-import { User as IUser } from "scriptopia-types/User";
+import { User as IUser } from "docsdepot-types/User";
 import UserKeeper from "../gatekeepers/userKeeper";
-import { Token } from "scriptopia-types/Token";
+import { Token } from "docsdepot-types/Token";
 
 const getAllUsers = async (c: Context) => {
   try {

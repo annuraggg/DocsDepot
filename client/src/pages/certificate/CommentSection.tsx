@@ -5,11 +5,9 @@ import {
   Text,
   Textarea,
   Button,
-  Avatar,
   Flex,
   Alert,
   AlertIcon,
-  useToast,
   Card,
   CardBody,
   CardHeader,
@@ -18,10 +16,19 @@ import {
 import type { Comment } from "@shared-types/Certificate";
 import { ExtendedCertificate as Certificate } from "@/types/ExtendedCertificate";
 import useUser from "@/config/user";
+import { User } from "@shared-types/User";
+
+interface ExtendedComment extends Omit<Comment, "user"> {
+  user: User | string;
+}
+
+interface ExtendedCertificate extends Omit<Certificate, "comments"> {
+  comments: ExtendedComment[];
+}
 
 interface CommentSectionProps {
-  certificate: Certificate;
-  onCommentAdd: (comment: Omit<Comment, "_id" | "createdAt">) => Promise<void>;
+  certificate: ExtendedCertificate;
+  onCommentAdd: (comment: ExtendedComment) => Promise<void>;
 }
 
 const CommentSection: React.FC<CommentSectionProps> = ({
@@ -30,7 +37,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 }) => {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const toast = useToast();
   const user = useUser();
 
   const handleSubmitComment = async (e: React.FormEvent) => {
@@ -43,21 +49,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       await onCommentAdd({
         comment: newComment,
         user: user._id,
-      });
-      setNewComment("");
-      toast({
-        title: "Comment posted",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-    } catch (error) {
-      toast({
-        title: "Error posting comment",
-        description: "Please try again later",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
       });
     } finally {
       setIsSubmitting(false);
@@ -131,16 +122,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                   _hover={{ borderColor: "gray.300" }}
                 >
                   <Flex>
-                    <Avatar
-                      size="sm"
-                      name={comment?.user}
-                      mr={3}
-                      bg="blue.500"
-                    />
                     <Box flex="1">
                       <Flex justify="space-between" align="baseline">
                         <Text fontWeight="medium" color="gray.700">
-                          {comment?.user}
+                          {typeof comment.user === 'object' ? `${comment.user.fname} ${comment.user.lname}` : ''}
                         </Text>
                         <Text fontSize="sm" color="gray.500">
                           {formatDate(comment?.createdAt?.toString())}

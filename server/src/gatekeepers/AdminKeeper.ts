@@ -1,4 +1,4 @@
-import { Token } from "scriptopia-types/Token";
+import { Token } from "docsdepot-types/Token";
 
 class AdminKeeper {
   token: Token;

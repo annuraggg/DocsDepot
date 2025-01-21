@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import logger from "../utils/logger.js";
 import type { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse.js";
-import { Token } from "scriptopia-types/Token.js";
+import { Token } from "docsdepot-types/Token.js";
 import House from "../models/House.js";
 import Certificate from "../models/Certificate.js";
 

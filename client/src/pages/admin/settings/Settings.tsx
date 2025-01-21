@@ -18,6 +18,9 @@ import {
   TabPanel,
   Button,
   Divider,
+  RadioGroup,
+  Radio,
+  Progress,
 } from "@chakra-ui/react";
 import {
   Moon,
@@ -29,15 +32,20 @@ import {
   Settings2,
   Server,
   Database,
+  PaintRoller,
 } from "lucide-react";
 import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router";
+import useAxios from "@/config/axios";
+import ClassicCert from "@/assets/img/classic-cert.png";
+import GreenCert from "@/assets/img/green-cert.png";
+import Cookies from "js-cookie";
 
 const Settings = () => {
   const [toastDispatched, setToastDispatched] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [maintenanceMode, setMaintenanceMode] = React.useState(false);
-  const [backupIsLoading, setBackupIsLoading] = React.useState(false);
+  const [certificateTheme, setCertificateTheme] = React.useState("classic");
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -50,6 +58,9 @@ const Settings = () => {
   const [confirmPass, setConfirmPass] = React.useState("");
   const [err, setErr] = React.useState("");
   const [isButtonLoading, setIsButtonLoading] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const axios = useAxios();
 
   const { colorMode, toggleColorMode } = useColorMode();
 
@@ -96,87 +107,166 @@ const Settings = () => {
         return;
       }
 
-      fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/updatePW`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ oldPass, newPass }),
-      })
-        .then(async (res) => {
-          setIsButtonLoading(false);
-          if (res.status === 401) {
-            toast({
-              title: "Password Change Failed! Old Password is Incorrect",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          } else {
-            return await res.json();
-          }
+      axios
+        .post("/auth/profile/password", {
+          oldPass: oldPass.toString(),
+          newPass: newPass.toString(),
         })
-        .then((data) => {
-          if (data.success === true) {
-            toast({
-              title: "Password Changed Successfully!",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-            setOldPass("");
-            setNewPass("");
-            setConfirmPass("");
-            setToastDispatched(false);
-          } else {
-            toast({
-              title: "Password Change Failed!",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
-        });
-    }
-  };
-
-  const generateBackup = () => {
-    setBackupIsLoading(true);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/backups`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(async (res) => {
-        if (res.status === 200) {
-          const blob = await res.blob();
-          const element = document.createElement("a");
-          element.href = URL.createObjectURL(blob);
-          const date = new Date();
-          const dateString = `${date.getFullYear()}-${date.getMonth() + 1
-            }-${date.getDate()}`;
-          const timeString = `${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-          element.download = `Backup-${dateString}-${timeString}.zip`;
-          document.body.appendChild(element);
-          element.click();
-          setBackupIsLoading(false);
+        .then(() => {
           toast({
-            title: "Backup Generated Successfully!",
+            title: "Password Changed Successfully!",
             status: "success",
             duration: 3000,
             isClosable: true,
           });
-        } else {
-          throw new Error("Backup generation failed");
-        }
-      })
-      .catch(() => {
-        setBackupIsLoading(false);
+          setOldPass("");
+          setNewPass("");
+          setConfirmPass("");
+          setToastDispatched(false);
+        })
+        .catch((err) => {
+          console.log(err);
+          toast({
+            title: err?.response?.data.message || "Password Change Failed!",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsButtonLoading(false);
+        });
+    }
+  };
+
+  const generateBackup = async () => {
+    try {
+      setIsLoading(true);
+      setProgress(0);
+
+      if ("EventSource" in window) {
+        const token = Cookies.get("token")!;
+        const url = `${
+          import.meta.env.VITE_API_URL
+        }/backup/backup-with-progress/${encodeURIComponent(token)}`;
+        const eventSource = new EventSource(url);
+
+        eventSource.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          setProgress(data.progress);
+
+          switch (data.status) {
+            case "started":
+              toast({
+                title: "Creating Backup",
+                description: "Please wait while we prepare your backup...",
+                status: "info",
+                duration: 3000,
+                isClosable: true,
+              });
+              break;
+
+            case "completed":
+              eventSource.close();
+              if (data.fileData && data.fileName) {
+                // Convert base64 to blob
+                const binaryData = atob(data.fileData);
+                const bytes = new Uint8Array(binaryData.length);
+                for (let i = 0; i < binaryData.length; i++) {
+                  bytes[i] = binaryData.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: "application/zip" });
+
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = data.fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                toast({
+                  title: "Backup Downloaded!",
+                  status: "success",
+                  duration: 3000,
+                  isClosable: true,
+                });
+              }
+              setIsLoading(false);
+              setProgress(0);
+              break;
+
+            case "error":
+              eventSource.close();
+              toast({
+                title: "Backup Failed",
+                description:
+                  data.error || "An error occurred while creating the backup",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              });
+              setIsLoading(false);
+              setProgress(0);
+              break;
+          }
+        };
+
+        eventSource.onerror = () => {
+          eventSource.close();
+          toast({
+            title: "Connection Error",
+            description: "Failed to connect to backup service",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          setIsLoading(false);
+          setProgress(0);
+        };
+      } else {
         toast({
-          title: "Backup Generation Failed!",
+          title: "Browser Not Supported",
+          description:
+            "Your browser doesn't support automatic progress tracking",
+          status: "warning",
+          duration: 5000,
+          isClosable: true,
+        });
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Backup error:", error);
+      toast({
+        title: "Backup Failed",
+        description: "An error occurred while creating the backup",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setIsLoading(false);
+      setProgress(0);
+    }
+  };
+
+  const toggleMaintenanceMode = (mode: boolean) => {
+    axios
+      .post("/maintainance", { mode })
+      .then((res) => {
+        setMaintenanceMode(mode);
+        toast({
+          title: res.data.message || "Maintenance Mode Toggled!",
+          status: res.status === 200 ? "success" : "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        toast({
+          title:
+            err?.response?.data.message || "Maintenance Mode Toggle Failed!",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -184,47 +274,61 @@ const Settings = () => {
       });
   };
 
-  const toggleMaintenanceMode = (mode: boolean) => {
-    fetch(
-      `${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/maintainanceMode`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ mode }),
-      }
-    ).then((res) => {
-      if (res.status === 200) {
-        setMaintenanceMode(!maintenanceMode);
-        toast({
-          title: "Maintenance Mode Toggled!",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        toast({
-          title: "Maintenance Mode Toggle Failed!",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    });
+  const setDark = () => {
+    toggleColorMode();
+
+    axios
+      .post("/auth/profile/theme", {
+        colorMode: colorMode === "dark" ? "light" : "dark",
+      })
+      .then((res) => {
+        const token = res.data.data;
+        if (!token) return;
+
+        Cookies.set("token", token);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   useEffect(() => {
     setLoading(false);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/`, {
-      method: "GET",
-    }).then((res) => {
-      if (res.status === 503) {
-        setMaintenanceMode(true);
-      }
-    });
+    axios
+      .get("/maintainance")
+      .then(() => {
+        setMaintenanceMode(false);
+      })
+      .catch((err) => {
+        if (err.response.status === 503) {
+          setMaintenanceMode(true);
+          return;
+        }
+      });
   }, []);
+
+  const updateCertificateTheme = (theme: string) => {
+    setCertificateTheme(theme);
+    axios
+      .post("/auth/profile/certificate-theme", {
+        certificateTheme: theme,
+      })
+      .then((res) => {
+        const token = res.data.data;
+        if (!token) return;
+
+        Cookies.set("token", token);
+      })
+      .catch((err) => {
+        console.log(err);
+        toast({
+          title: err?.response?.data.message || "Theme Change Failed!",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      });
+  };
 
   if (loading) return <Loader />;
 
@@ -246,7 +350,7 @@ const Settings = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-                onClick={toggleColorMode}
+                onClick={setDark}
               >
                 {colorMode === "dark" ? (
                   <Sun className="w-6 h-6 text-yellow-500" />
@@ -368,6 +472,44 @@ const Settings = () => {
                         )}
                       </motion.button>
                     </div>
+
+                    <div className="py-3 mt-5">
+                      <div className="flex items-center gap-3 mb-6">
+                        <PaintRoller className="w-5 h-5 text-blue-500" />
+                        <h2
+                          className="text-xl font-semibold"
+                          style={{
+                            color: colorMode === "dark" ? "#ffffff" : "#1a202c",
+                          }}
+                        >
+                          Certificate Theme
+                        </h2>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <RadioGroup
+                          className="flex gap-4"
+                          onChange={updateCertificateTheme}
+                          value={certificateTheme}
+                        >
+                          <div className="flex flex-col items-center">
+                            <img
+                              src={ClassicCert}
+                              alt="Classic Theme"
+                              className="mb-2"
+                            />
+                            <Radio value="classic">Classic Theme</Radio>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <img
+                              src={GreenCert}
+                              alt="Green Theme"
+                              className="mb-2"
+                            />
+                            <Radio value="green">Green Theme</Radio>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    </div>
                   </div>
                 </TabPanel>
 
@@ -386,11 +528,26 @@ const Settings = () => {
                       leftIcon={<Database className="w-5 h-5" />}
                       colorScheme="green"
                       onClick={generateBackup}
-                      isLoading={backupIsLoading}
+                      isLoading={isLoading}
                       className="w-full"
                     >
                       Generate Backup
                     </Button>
+
+                    {isLoading && (
+                      <div className="mt-4">
+                        <Progress
+                          value={progress}
+                          size="lg"
+                          colorScheme="blue"
+                          borderRadius="lg"
+                          hasStripe
+                          isAnimated
+                        />
+                        <p className="text-sm mt-2 text-center">{`${progress}% completed`}</p>
+                      </div>
+                    )}
+
                     <Divider />
 
                     <FormControl display="flex" alignItems="center">
