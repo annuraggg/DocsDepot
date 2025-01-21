@@ -20,6 +20,11 @@ import CommentSection from "./CommentSection";
 import useUser from "@/config/user";
 import generatePDF, { usePDF } from "react-to-pdf";
 import ClassicTheme from "./ClassicTheme";
+import { User } from "@shared-types/User";
+
+interface ExtendedComment extends Omit<Comment, "user"> {
+  user: User | string;
+}
 
 const Certificate = () => {
   const axios = useAxios();
@@ -79,10 +84,29 @@ const Certificate = () => {
     link.click();
   };
 
-  const addComment = async (
-    _comment: Omit<Comment, "_id" | "createdAt">
-  ): Promise<void> => {
-    return Promise.resolve();
+  const addComment = async (comment: ExtendedComment) => {
+    axios
+      .post(`/certificates/${certificate!._id}/comment`, {
+        comment: comment,
+      })
+      .then(() => {
+        toast({
+          title: "Comment posted",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        toast({
+          title: "Error posting comment",
+          description: "Please try again later",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      });
   };
 
   return (
