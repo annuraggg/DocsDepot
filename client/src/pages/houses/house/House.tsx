@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router';
-import { Card, CardBody, useDisclosure } from '@chakra-ui/react';
+import { Button, Card, CardBody, FormControl, FormLabel, Input, InputGroup, InputLeftElement, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Select, Stack, useDisclosure, VStack } from '@chakra-ui/react';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import { useToast } from '../../../components/useToast';
@@ -11,7 +11,7 @@ import { Token } from '@shared-types/Token';
 
 import { HouseBanner } from './HouseBanner';
 import { HouseProfile } from './HouseProfile';
-import { HouseSocialLinks } from './HouseSocialLinks';
+import { SocialLinks } from './SocialLinks';
 import { HouseStats } from './HouseStats';
 import { MembersTable } from './MembersTable';
 import { SettingsModal } from './SettingsModal';
@@ -19,6 +19,7 @@ import { ImageEditorModal } from './ImageEditorModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import AvatarEditor from 'react-avatar-editor';
 import { User } from '@shared-types/User';
+import { Hash, Home, Mail, RadioIcon, UserIcon, UserPlus } from 'lucide-react';
 
 interface ExtendedHouse extends Omit<IHouse, 'members' | 'facultyCordinator' | 'studentCordinator'> {
   members: User[];
@@ -29,6 +30,23 @@ interface ExtendedHouse extends Omit<IHouse, 'members' | 'facultyCordinator' | '
 export const House: React.FC = () => {
   const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
   const [decoded, setDecoded] = React.useState<Token>({} as Token);
+
+  const [socialLinks, setSocialLinks] = React.useState({
+    instagram: '',
+    twitter: '',
+    linkedin: ''
+  });
+
+  const [isViewAllMembersOpen, setIsViewAllMembersOpen] = React.useState(false);
+  const [isAddMemberOpen, setIsAddMemberOpen] = React.useState(false);
+  const [selectedMember, setSelectedMember] = React.useState<User | null>(null);
+
+  const [fname, setFname] = React.useState('');
+  const [lname, setLname] = React.useState('');
+  const [moodleid, setMoodleid] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [selectedHouse, setSelectedHouse] = React.useState('');
+  const [gender, setGender] = React.useState('');
 
   // Form state
   const [houseName, setHouseName] = React.useState('');
@@ -110,6 +128,7 @@ export const House: React.FC = () => {
         setHouseDesc(house.desc);
         setBanner(house.banner);
         setLogo(house.logo);
+        setSocialLinks(house.socialLinks || {});
       }
     } catch (error) {
       toast('Failed to fetch house data', 'Failed to fetch house data', 'error');
@@ -123,6 +142,23 @@ export const House: React.FC = () => {
   };
 
   const handleUpdateHouse = async () => {
+
+    try {
+      const response = await axios.put(`/houses/${houseID}`, {
+        name: houseName,
+        color: houseColor,
+        abstract: houseAbstract,
+        desc: houseDesc,
+        socialLinks
+      });
+      if (response.status === 200) {
+        toast('Success', 'House updated successfully', 'success');
+        onSettingsClose();
+        fetchHouseData();
+      }
+    } catch (error) {
+      toast('Error', 'Failed to update house', 'error');
+    }
   };
 
   const handleSaveLogo = async () => {
@@ -132,6 +168,20 @@ export const House: React.FC = () => {
   };
 
   const handleDeleteMember = async (member: User) => {
+  };
+
+  const getTopMembers = (members: User[], limit?: number) => {
+    const sortedMembers = [...members].sort((a, b) =>
+      (b.totalPoints || 0) - (a.totalPoints || 0)
+    );
+    return limit ? sortedMembers.slice(0, limit) : sortedMembers;
+  };
+
+  const handleSocialLinksChange = (type: 'instagram' | 'twitter' | 'linkedin', value: string) => {
+    setSocialLinks(prev => ({
+      ...prev,
+      [type]: value
+    }));
   };
 
   return (
@@ -158,7 +208,6 @@ export const House: React.FC = () => {
                   logo={house?.logo || ''}
                   name={house?.name || ''}
                   facCord={house?.facultyCordinator || {} as User}
-                  editPrivilege={editPrivilege}
                   onSelectLogo={() => { }}
                   onLogoChange={() => { }}
                   onSettingsOpen={onSettingsOpen}
@@ -168,7 +217,7 @@ export const House: React.FC = () => {
             </div>
 
             <div className="pt-5 px-8 pb-8">
-              <HouseSocialLinks />
+              <SocialLinks />
 
               <h2 className="text-xl font-semibold mb-3">
                 {house?.abstract}
@@ -185,12 +234,33 @@ export const House: React.FC = () => {
           <div className="lg:col-span-2">
             <Card className="shadow-xl">
               <CardBody>
-                <h3 className="text-xl font-semibold mb-4">Members</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold">Top Members</h3>
+                  <div className="space-x-2">
+                    <Button
+                      size="sm"
+                      leftIcon={<UserPlus size={16} />}
+                      onClick={() => setIsAddMemberOpen(true)}
+                    >
+                      Add Member
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsViewAllMembersOpen(true)}
+                    >
+                      View All
+                    </Button>
+                  </div>
+                </div>
                 <MembersTable
-                  members={house?.members || []}
+                  members={getTopMembers(house?.members || [], 3)}
                   editPrivilege={editPrivilege}
                   onMemberClick={(id) => navigate(`/profile/${id}`)}
-                  onDeleteClick={handleDeleteMember}
+                  onDeleteClick={(member) => {
+                    setSelectedMember(member);
+                    onDeleteOpen();
+                  }}
                 />
               </CardBody>
             </Card>
@@ -220,6 +290,7 @@ export const House: React.FC = () => {
         onColorChange={setHouseColor}
         onAbstractChange={setHouseAbstract}
         onDescChange={setHouseDesc}
+        onSocialLinksChange={handleSocialLinksChange}
         onSave={handleUpdateHouse}
       />
 
@@ -252,6 +323,145 @@ export const House: React.FC = () => {
         title="Remove Member"
         description="Are you sure you want to remove this member? This action cannot be undone."
       />
+
+      <Modal
+        isOpen={isViewAllMembersOpen}
+        onClose={() => setIsViewAllMembersOpen(false)}
+        size="4xl"
+      >
+        <ModalContent>
+          <ModalHeader>All Members</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <MembersTable
+              members={getTopMembers(house?.members || [])}
+              editPrivilege={editPrivilege}
+              onMemberClick={(id) => navigate(`/profile/${id}`)}
+              onDeleteClick={(member) => {
+                setSelectedMember(member);
+                onDeleteOpen();
+              }}
+            />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)}>
+        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+        <ModalContent as={motion.div}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 } as any}
+          mx={4}
+        >
+          <ModalHeader fontSize="2xl">Add New Student</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={6}>
+              <Stack direction={["column", "row"]} spacing={4} w="full">
+                <FormControl>
+                  <FormLabel>First Name</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <UserIcon size={18} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="First Name"
+                      value={fname}
+                      onChange={(e) => setFname(e.target.value)}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl>
+                  <FormLabel>Last Name</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <UserIcon size={18} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Last Name"
+                      value={lname}
+                      onChange={(e) => setLname(e.target.value)}
+                    />
+                  </InputGroup>
+                </FormControl>
+              </Stack>
+
+              <FormControl>
+                <FormLabel>Moodle ID</FormLabel>
+                <InputGroup>
+                  <InputLeftElement>
+                    <Hash size={18} />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Moodle ID"
+                    value={moodleid}
+                    onChange={(e) => setMoodleid(e.target.value)}
+                  />
+                </InputGroup>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Email</FormLabel>
+                <InputGroup>
+                  <InputLeftElement>
+                    <Mail size={18} />
+                  </InputLeftElement>
+                  <Input
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </InputGroup>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>House</FormLabel>
+                <InputGroup>
+                  <InputLeftElement>
+                    <Home size={18} />
+                  </InputLeftElement>
+                  <Select
+                    placeholder="Select a House"
+                    onChange={(e) => setSelectedHouse(e.target.value)}
+                    value={selectedHouse}
+                    pl={10}
+                  >
+                  </Select>
+                </InputGroup>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>Gender</FormLabel>
+                <RadioGroup onChange={setGender} value={gender}>
+                  <Stack direction="row" spacing={6}>
+                    <Radio value="M" colorScheme="blue">Male</Radio>
+                    <Radio value="F" colorScheme="pink">Female</Radio>
+                    <Radio value="O" colorScheme="purple">Others</Radio>
+                  </Stack>
+                </RadioGroup>
+              </FormControl>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter gap={3}>
+            <Button variant="ghost" onClick={() => setIsAddMemberOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={() => {
+                setIsAddMemberOpen(false);
+              }}
+              leftIcon={<UserPlus size={18} />}
+            >
+              Add Student
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </motion.div>
   );
 };

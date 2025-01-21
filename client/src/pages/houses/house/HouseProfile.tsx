@@ -8,7 +8,6 @@ interface HouseProfileProps {
   logo: string;
   name: string;
   facCord: User;
-  editPrivilege: boolean;
   onSelectLogo: () => void;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSettingsOpen: () => void;
@@ -19,12 +18,17 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
   logo,
   name,
   facCord,
-  editPrivilege,
   onSelectLogo,
   onLogoChange,
   onSettingsOpen,
   navigateToProfile,
 }) => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleCameraClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -40,44 +44,38 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
             className="w-36 h-36 border-4 border-white rounded-full shadow-lg"
             color="primary"
           />
-          {editPrivilege && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full backdrop-blur-sm"
-              onClick={onSelectLogo}
-            >
-              <Camera className="w-4 h-4 text-white" />
-              <input
-                type="file"
-                id="logofile"
-                className="hidden"
-                accept="image/*"
-                onChange={onLogoChange}
-              />
-            </motion.button>
-          )}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full backdrop-blur-sm"
+            onClick={handleCameraClick}
+          >
+            <Camera className="w-4 h-4 text-white" />
+          </motion.button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept="image/*"
+            onChange={onLogoChange}
+          />
         </div>
 
         <div className="mb-6">
-          <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-bold text-white drop-shadow-lg">
+          <div className="flex items-center gap-3 drop-shadow-2xl">
+            <h1 className="text-4xl font-bold text-white drop-shadow-xl ">
               {name} House
             </h1>
-            {editPrivilege && (
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                onClick={onSettingsOpen}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-              >
-                <Settings className="w-6 h-6 text-white" />
-              </motion.button>
-            )}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              onClick={onSettingsOpen}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
+              <Settings className="w-6 h-6 text-blue-500" />
+            </motion.button>
           </div>
           <div className="flex gap-2 mt-3">
-
             <Button
-              key={facCord.mid}
               size="sm"
               variant="ghost"
               className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
@@ -85,7 +83,6 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
             >
               @{facCord.fname} {facCord.lname}
             </Button>
-              
           </div>
         </div>
       </div>

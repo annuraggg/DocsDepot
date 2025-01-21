@@ -13,21 +13,21 @@ import {
   Text,
   Box
 } from '@chakra-ui/react';
-import { Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { User } from '@shared-types/User';
 
 interface MembersTableProps {
   members: User[];
-  editPrivilege: boolean;
   onMemberClick: (id: string) => void;
   onDeleteClick: (member: User) => void;
+  onEditClick: (member: User) => void;
 }
 
 export const MembersTable: React.FC<MembersTableProps> = ({
   members,
-  editPrivilege,
   onMemberClick,
   onDeleteClick,
+  onEditClick,
 }) => {
   return (
     <Box overflowX="auto" mt={4}>
@@ -38,12 +38,12 @@ export const MembersTable: React.FC<MembersTableProps> = ({
             <Th>NAME</Th>
             <Th>MOODLE ID</Th>
             <Th>POINTS</Th>
-            {editPrivilege && <Th>ACTIONS</Th>}
+            <Th>ACTIONS</Th>
           </Tr>
         </Thead>
         <Tbody>
           {members.map((member, index) => (
-            <Tr 
+            <Tr
               key={member.mid}
               cursor="pointer"
               _hover={{ bg: 'gray.50' }}
@@ -69,22 +69,32 @@ export const MembersTable: React.FC<MembersTableProps> = ({
               </Td>
               <Td>{member.mid}</Td>
               {/* <Td>{member.totalPoints}</Td> */}
-              {editPrivilege && (
-                <Td>
+              <Td>
+                <HStack spacing={2}>
+                  <Button
+                    size="sm"
+                    colorScheme="blue"
+                    variant="ghost"
+                    leftIcon={<Edit size={16} />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditClick(member);
+                    }}
+                  >
+                  </Button>
                   <Button
                     size="sm"
                     colorScheme="red"
                     variant="ghost"
                     leftIcon={<Trash2 size={16} />}
-                    onClick={(e: React.MouseEvent) => {
+                    onClick={(e) => {
                       e.stopPropagation();
                       onDeleteClick(member);
                     }}
                   >
-                    Remove
                   </Button>
-                </Td>
-              )}
+                </HStack>
+              </Td>
             </Tr>
           ))}
         </Tbody>

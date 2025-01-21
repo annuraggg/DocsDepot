@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Instagram, Linkedin, Twitter } from 'lucide-react';
 
-export const HouseSocialLinks: React.FC = () => {
+export const SocialLinks: React.FC = () => {
   return (
     <div className="flex gap-4 mb-8 mt-24">
       <motion.a

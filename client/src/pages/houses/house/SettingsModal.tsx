@@ -15,11 +15,12 @@ import {
   Text,
   Box,
   InputGroup,
+  InputLeftElement,
   InputRightElement,
   FormControl,
   FormLabel,
 } from "@chakra-ui/react";
-import { Settings, Star, Lock } from "lucide-react";
+import { Settings, Star, Lock, Instagram, Twitter, Linkedin } from "lucide-react";
 import { ChromePicker } from "react-color";
 
 interface SettingsModalProps {
@@ -30,10 +31,16 @@ interface SettingsModalProps {
   houseAbstract: string;
   houseDesc: string;
   isAdmin: boolean;
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+  };
   onNameChange: (value: string) => void;
   onColorChange: (value: string) => void;
   onAbstractChange: (value: string) => void;
   onDescChange: (value: string) => void;
+  onSocialLinksChange?: (type: 'instagram' | 'twitter' | 'linkedin', value: string) => void;
   onSave: () => void;
 }
 
@@ -45,13 +52,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   houseAbstract,
   houseDesc,
   isAdmin,
+  socialLinks = {}, // Provide default empty object
   onNameChange,
   onColorChange,
   onAbstractChange,
   onDescChange,
+  onSocialLinksChange = () => {}, // Provide default no-op function
   onSave,
 }) => {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
+
+  // Safely access social links with defaults
+  const {
+    instagram = '',
+    twitter = '',
+    linkedin = ''
+  } = socialLinks;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered>
@@ -83,20 +99,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <FormLabel>House Name</FormLabel>
                 <InputGroup>
                   {!isAdmin && (
-                    <Box
-                      position="absolute"
-                      left={3}
-                      top="50%"
-                      transform="translateY(-50%)"
-                      zIndex={1}
-                    >
+                    <InputLeftElement>
                       <Lock size={16} />
-                    </Box>
+                    </InputLeftElement>
                   )}
                   <Input
                     value={houseName}
                     onChange={(e) => onNameChange(e.target.value)}
-                    pl={!isAdmin ? 10 : 4}
                   />
                 </InputGroup>
               </FormControl>
@@ -147,6 +156,53 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 rows={6}
               />
             </FormControl>
+
+            {/* Social Links Section */}
+            <Box>
+              <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                Social Links
+              </Text>
+              <VStack spacing={3}>
+                <FormControl>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <Instagram size={18} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Instagram URL"
+                      value={instagram}
+                      onChange={(e) => onSocialLinksChange('instagram', e.target.value)}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <Twitter size={18} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Twitter URL"
+                      value={twitter}
+                      onChange={(e) => onSocialLinksChange('twitter', e.target.value)}
+                    />
+                  </InputGroup>
+                </FormControl>
+
+                <FormControl>
+                  <InputGroup>
+                    <InputLeftElement>
+                      <Linkedin size={18} />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="LinkedIn URL"
+                      value={linkedin}
+                      onChange={(e) => onSocialLinksChange('linkedin', e.target.value)}
+                    />
+                  </InputGroup>
+                </FormControl>
+              </VStack>
+            </Box>
           </VStack>
         </ModalBody>
 

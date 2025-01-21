@@ -45,6 +45,15 @@ interface User {
   settings: Settings;
   onboarding: Onboarding;
   permissions: string[];
+  points?: {
+    [year: string]: {
+      [month: string]: {
+        internal: number;
+        external: number;
+        events: number;
+      };
+    };
+  };
   createdAt: Date;
   updatedAt: Date;
 }
