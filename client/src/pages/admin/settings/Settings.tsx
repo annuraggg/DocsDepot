@@ -20,6 +20,7 @@ import {
   Divider,
   RadioGroup,
   Radio,
+  Progress,
 } from "@chakra-ui/react";
 import {
   Moon,
@@ -44,7 +45,6 @@ const Settings = () => {
   const [toastDispatched, setToastDispatched] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [maintenanceMode, setMaintenanceMode] = React.useState(false);
-  const [backupIsLoading, setBackupIsLoading] = React.useState(false);
   const [certificateTheme, setCertificateTheme] = React.useState("classic");
   const toast = useToast();
   const navigate = useNavigate();
@@ -58,6 +58,8 @@ const Settings = () => {
   const [confirmPass, setConfirmPass] = React.useState("");
   const [err, setErr] = React.useState("");
   const [isButtonLoading, setIsButtonLoading] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(false);
   const axios = useAxios();
 
   const { colorMode, toggleColorMode } = useColorMode();
@@ -137,48 +139,116 @@ const Settings = () => {
     }
   };
 
-  const generateBackup = () => {
-    setBackupIsLoading(true);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/backups`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(async (res) => {
-        if (res.status === 200) {
-          const blob = await res.blob();
-          const element = document.createElement("a");
-          element.href = URL.createObjectURL(blob);
-          const date = new Date();
-          const dateString = `${date.getFullYear()}-${
-            date.getMonth() + 1
-          }-${date.getDate()}`;
-          const timeString = `${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
-          element.download = `Backup-${dateString}-${timeString}.zip`;
-          document.body.appendChild(element);
-          element.click();
-          setBackupIsLoading(false);
+  const generateBackup = async () => {
+    try {
+      setIsLoading(true);
+      setProgress(0);
+
+      if ("EventSource" in window) {
+        const token = Cookies.get("token")!;
+        const url = `${
+          import.meta.env.VITE_API_URL
+        }/backup/backup-with-progress/${encodeURIComponent(token)}`;
+        const eventSource = new EventSource(url);
+
+        eventSource.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          setProgress(data.progress);
+
+          switch (data.status) {
+            case "started":
+              toast({
+                title: "Creating Backup",
+                description: "Please wait while we prepare your backup...",
+                status: "info",
+                duration: 3000,
+                isClosable: true,
+              });
+              break;
+
+            case "completed":
+              eventSource.close();
+              if (data.fileData && data.fileName) {
+                // Convert base64 to blob
+                const binaryData = atob(data.fileData);
+                const bytes = new Uint8Array(binaryData.length);
+                for (let i = 0; i < binaryData.length; i++) {
+                  bytes[i] = binaryData.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: "application/zip" });
+
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = data.fileName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                toast({
+                  title: "Backup Downloaded!",
+                  status: "success",
+                  duration: 3000,
+                  isClosable: true,
+                });
+              }
+              setIsLoading(false);
+              setProgress(0);
+              break;
+
+            case "error":
+              eventSource.close();
+              toast({
+                title: "Backup Failed",
+                description:
+                  data.error || "An error occurred while creating the backup",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              });
+              setIsLoading(false);
+              setProgress(0);
+              break;
+          }
+        };
+
+        eventSource.onerror = () => {
+          eventSource.close();
           toast({
-            title: "Backup Generated Successfully!",
-            status: "success",
-            duration: 3000,
+            title: "Connection Error",
+            description: "Failed to connect to backup service",
+            status: "error",
+            duration: 5000,
             isClosable: true,
           });
-        } else {
-          throw new Error("Backup generation failed");
-        }
-      })
-      .catch(() => {
-        setBackupIsLoading(false);
+          setIsLoading(false);
+          setProgress(0);
+        };
+      } else {
         toast({
-          title: "Backup Generation Failed!",
-          status: "error",
-          duration: 3000,
+          title: "Browser Not Supported",
+          description:
+            "Your browser doesn't support automatic progress tracking",
+          status: "warning",
+          duration: 5000,
           isClosable: true,
         });
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Backup error:", error);
+      toast({
+        title: "Backup Failed",
+        description: "An error occurred while creating the backup",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
       });
+      setIsLoading(false);
+      setProgress(0);
+    }
   };
 
   const toggleMaintenanceMode = (mode: boolean) => {
@@ -226,7 +296,7 @@ const Settings = () => {
     setLoading(false);
     axios
       .get("/maintainance")
-      .then((res) => {
+      .then(() => {
         setMaintenanceMode(false);
       })
       .catch((err) => {
@@ -458,11 +528,26 @@ const Settings = () => {
                       leftIcon={<Database className="w-5 h-5" />}
                       colorScheme="green"
                       onClick={generateBackup}
-                      isLoading={backupIsLoading}
+                      isLoading={isLoading}
                       className="w-full"
                     >
                       Generate Backup
                     </Button>
+
+                    {isLoading && (
+                      <div className="mt-4">
+                        <Progress
+                          value={progress}
+                          size="lg"
+                          colorScheme="blue"
+                          borderRadius="lg"
+                          hasStripe
+                          isAnimated
+                        />
+                        <p className="text-sm mt-2 text-center">{`${progress}% completed`}</p>
+                      </div>
+                    )}
+
                     <Divider />
 
                     <FormControl display="flex" alignItems="center">

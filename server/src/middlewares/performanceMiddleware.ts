@@ -6,6 +6,11 @@ const performanceLogger = createMiddleware(async (c, next) => {
   const start = hrtime.bigint();
 
   return next().then(() => {
+    // Exceptions
+    if (c.req.path.startsWith("/static")) return;
+    if (c.req.path.startsWith("/maintainance")) return;
+    if (c.req.path.startsWith("/backup/backup-with-progress/")) return;
+
     const end = hrtime.bigint();
     const durationMs = Number((end - start) / BigInt(1_000_000)).toFixed(2);
     const isAuthenticated = !!c.get("user")?.mid;

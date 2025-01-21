@@ -23,7 +23,6 @@ const toggleMaintainance = async (c: Context) => {
 
 const getMaintainanceMode = async (c: Context) => {
   try {
-    console.log("Maintainance mode fetched: ", maintainanceMode);
     if (maintainanceMode === true) {
       return sendSuccess(c, 503, "Maintainance mode fetched successfully", {
         mode: maintainanceMode,

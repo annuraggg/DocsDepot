@@ -21,6 +21,7 @@ import dashboardRoutes from "../routes/dashboardRoutes.js";
 import userRoutes from "../routes/userRoute.js";
 import logRoutes from "../routes/logRoutes.js";
 import maintainanceRoute from "../routes/maintainanceRoute.js";
+import backupRoute from "../routes/backupRoute.js";
 
 const app = new Hono();
 const port = parseInt(process.env.PORT!);
@@ -51,6 +52,7 @@ app.route("/dashboard", dashboardRoutes);
 app.route("/user", userRoutes)
 app.route("/logs", logRoutes)
 app.route("/maintainance", maintainanceRoute)
+app.route("/backup", backupRoute)
 
 app.use('/static/*', serveStatic({ root: './src/' }))
 
