@@ -5,9 +5,9 @@ import type { Context } from "hono";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Token } from "scriptopia-types/Token.js";
-import { Certificate as ICertificate } from "scriptopia-types/Certificate.js";
-import { User } from "scriptopia-types/User.js";
+import { Token } from "docsdepot-types/Token.js";
+import { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
+import { User } from "docsdepot-types/User.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

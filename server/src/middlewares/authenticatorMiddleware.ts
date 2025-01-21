@@ -1,4 +1,4 @@
-import { Token } from "scriptopia-types/Token.js";
+import { Token } from "docsdepot-types/Token.js";
 import { createMiddleware } from "hono/factory";
 import jwt from "jsonwebtoken";
 
