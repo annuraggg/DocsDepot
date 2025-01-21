@@ -75,20 +75,29 @@ function App() {
   const maintainanceModeRouter = createBrowserRouter([
     { path: "*", element: <Maintainance /> },
     { path: "/auth", element: <Auth /> },
+    { path: "/admin", element: <AdminLayout />, children: adminRoutes },
   ]);
 
   const [maintainenaceMode, setMaintainenaceMode] = useState(false);
 
   useEffect(() => {
     const axios = useAxios();
+    console.log("Checking maintainance mode");
 
-    axios.post("/maintainance").catch((err) => {
-      if (err.response.status === 503) {
-        setMaintainenaceMode(true);
-        return;
-      }
-      console.log(err);
-    });
+    axios
+      .get("/maintainance")
+      .then((d) => {
+        console.log("Maintainance mode is off");
+        console.log(d);
+      })
+      .catch((err) => {
+        console.log(err);
+        if (err.response.status === 503) {
+          setMaintainenaceMode(true);
+          return;
+        }
+        console.log(err);
+      });
   }, []);
 
   return (

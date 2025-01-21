@@ -18,6 +18,8 @@ import {
   TabPanel,
   Button,
   Divider,
+  RadioGroup,
+  Radio,
 } from "@chakra-ui/react";
 import {
   Moon,
@@ -29,15 +31,21 @@ import {
   Settings2,
   Server,
   Database,
+  PaintRoller,
 } from "lucide-react";
 import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router";
+import useAxios from "@/config/axios";
+import ClassicCert from "@/assets/img/classic-cert.png";
+import GreenCert from "@/assets/img/green-cert.png";
+import Cookies from "js-cookie";
 
 const Settings = () => {
   const [toastDispatched, setToastDispatched] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [maintenanceMode, setMaintenanceMode] = React.useState(false);
   const [backupIsLoading, setBackupIsLoading] = React.useState(false);
+  const [certificateTheme, setCertificateTheme] = React.useState("classic");
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -50,6 +58,7 @@ const Settings = () => {
   const [confirmPass, setConfirmPass] = React.useState("");
   const [err, setErr] = React.useState("");
   const [isButtonLoading, setIsButtonLoading] = React.useState(false);
+  const axios = useAxios();
 
   const { colorMode, toggleColorMode } = useColorMode();
 
@@ -96,47 +105,34 @@ const Settings = () => {
         return;
       }
 
-      fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/updatePW`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ oldPass, newPass }),
-      })
-        .then(async (res) => {
-          setIsButtonLoading(false);
-          if (res.status === 401) {
-            toast({
-              title: "Password Change Failed! Old Password is Incorrect",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          } else {
-            return await res.json();
-          }
+      axios
+        .post("/auth/profile/password", {
+          oldPass: oldPass.toString(),
+          newPass: newPass.toString(),
         })
-        .then((data) => {
-          if (data.success === true) {
-            toast({
-              title: "Password Changed Successfully!",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-            setOldPass("");
-            setNewPass("");
-            setConfirmPass("");
-            setToastDispatched(false);
-          } else {
-            toast({
-              title: "Password Change Failed!",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
+        .then(() => {
+          toast({
+            title: "Password Changed Successfully!",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          setOldPass("");
+          setNewPass("");
+          setConfirmPass("");
+          setToastDispatched(false);
+        })
+        .catch((err) => {
+          console.log(err);
+          toast({
+            title: err?.response?.data.message || "Password Change Failed!",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        })
+        .finally(() => {
+          setIsButtonLoading(false);
         });
     }
   };
@@ -156,8 +152,9 @@ const Settings = () => {
           const element = document.createElement("a");
           element.href = URL.createObjectURL(blob);
           const date = new Date();
-          const dateString = `${date.getFullYear()}-${date.getMonth() + 1
-            }-${date.getDate()}`;
+          const dateString = `${date.getFullYear()}-${
+            date.getMonth() + 1
+          }-${date.getDate()}`;
           const timeString = `${date.getHours()}-${date.getMinutes()}-${date.getSeconds()}`;
           element.download = `Backup-${dateString}-${timeString}.zip`;
           document.body.appendChild(element);
@@ -185,46 +182,83 @@ const Settings = () => {
   };
 
   const toggleMaintenanceMode = (mode: boolean) => {
-    fetch(
-      `${import.meta.env.VITE_BACKEND_ADDRESS}/admin/profile/maintainanceMode`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ mode }),
-      }
-    ).then((res) => {
-      if (res.status === 200) {
-        setMaintenanceMode(!maintenanceMode);
+    axios
+      .post("/maintainance", { mode })
+      .then((res) => {
+        setMaintenanceMode(mode);
         toast({
-          title: "Maintenance Mode Toggled!",
-          status: "success",
+          title: res.data.message || "Maintenance Mode Toggled!",
+          status: res.status === 200 ? "success" : "error",
           duration: 3000,
           isClosable: true,
         });
-      } else {
+      })
+      .catch((err) => {
         toast({
-          title: "Maintenance Mode Toggle Failed!",
+          title:
+            err?.response?.data.message || "Maintenance Mode Toggle Failed!",
           status: "error",
           duration: 3000,
           isClosable: true,
         });
-      }
-    });
+      });
+  };
+
+  const setDark = () => {
+    toggleColorMode();
+
+    axios
+      .post("/auth/profile/theme", {
+        colorMode: colorMode === "dark" ? "light" : "dark",
+      })
+      .then((res) => {
+        const token = res.data.data;
+        if (!token) return;
+
+        Cookies.set("token", token);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   useEffect(() => {
     setLoading(false);
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/`, {
-      method: "GET",
-    }).then((res) => {
-      if (res.status === 503) {
-        setMaintenanceMode(true);
-      }
-    });
+    axios
+      .get("/maintainance")
+      .then((res) => {
+        setMaintenanceMode(false);
+      })
+      .catch((err) => {
+        if (err.response.status === 503) {
+          setMaintenanceMode(true);
+          return;
+        }
+      });
   }, []);
+
+  const updateCertificateTheme = (theme: string) => {
+    setCertificateTheme(theme);
+    axios
+      .post("/auth/profile/certificate-theme", {
+        certificateTheme: theme,
+      })
+      .then((res) => {
+        const token = res.data.data;
+        if (!token) return;
+
+        Cookies.set("token", token);
+      })
+      .catch((err) => {
+        console.log(err);
+        toast({
+          title: err?.response?.data.message || "Theme Change Failed!",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      });
+  };
 
   if (loading) return <Loader />;
 
@@ -246,7 +280,7 @@ const Settings = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-                onClick={toggleColorMode}
+                onClick={setDark}
               >
                 {colorMode === "dark" ? (
                   <Sun className="w-6 h-6 text-yellow-500" />
@@ -367,6 +401,44 @@ const Settings = () => {
                           </>
                         )}
                       </motion.button>
+                    </div>
+
+                    <div className="py-3 mt-5">
+                      <div className="flex items-center gap-3 mb-6">
+                        <PaintRoller className="w-5 h-5 text-blue-500" />
+                        <h2
+                          className="text-xl font-semibold"
+                          style={{
+                            color: colorMode === "dark" ? "#ffffff" : "#1a202c",
+                          }}
+                        >
+                          Certificate Theme
+                        </h2>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <RadioGroup
+                          className="flex gap-4"
+                          onChange={updateCertificateTheme}
+                          value={certificateTheme}
+                        >
+                          <div className="flex flex-col items-center">
+                            <img
+                              src={ClassicCert}
+                              alt="Classic Theme"
+                              className="mb-2"
+                            />
+                            <Radio value="classic">Classic Theme</Radio>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <img
+                              src={GreenCert}
+                              alt="Green Theme"
+                              className="mb-2"
+                            />
+                            <Radio value="green">Green Theme</Radio>
+                          </div>
+                        </RadioGroup>
+                      </div>
                     </div>
                   </div>
                 </TabPanel>

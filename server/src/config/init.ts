@@ -20,6 +20,7 @@ import feedbackRoutes from "../routes/feedbackRoutes.js";
 import dashboardRoutes from "../routes/dashboardRoutes.js";
 import userRoutes from "../routes/userRoute.js";
 import logRoutes from "../routes/logRoutes.js";
+import maintainanceRoute from "../routes/maintainanceRoute.js";
 
 const app = new Hono();
 const port = parseInt(process.env.PORT!);
@@ -39,10 +40,6 @@ app.post("/", (c) => {
   return c.json({ status: "ok", version: process.env.VERSION });
 });
 
-app.post("/maintainance", (c) => {
-  return c.json({ status: maintainanceMode }, maintainanceMode ? 503 : 200);
-});
-
 app.route("/auth", authRoutes);
 app.route("/enrollment", enrolmentRoutes);
 app.route("/houses", houseRoutes);
@@ -53,6 +50,7 @@ app.route("/feedback", feedbackRoutes);
 app.route("/dashboard", dashboardRoutes);
 app.route("/user", userRoutes)
 app.route("/logs", logRoutes)
+app.route("/maintainance", maintainanceRoute)
 
 app.use('/static/*', serveStatic({ root: './src/' }))
 
