@@ -1,7 +1,7 @@
-import { Table, Tbody, Td, Tr, Text, Flex } from "@chakra-ui/react";
-import { Calendar, MapPin, Activity, Circle } from "lucide-react";
+import { Grid, Text } from "@chakra-ui/react";
+import { Calendar, MapPin, Activity, Circle, Clock, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import {Event as IEvent} from "@shared-types/Event"
+import { Event as IEvent } from "@shared-types/Event";
 
 interface EventDetailsProps {
   event: IEvent;
@@ -10,67 +10,98 @@ interface EventDetailsProps {
 }
 
 export const EventDetails = ({ event, date, dateOptions }: EventDetailsProps) => {
+  const statusColor = event?.eventTimeline?.start && new Date(event.eventTimeline.start) < new Date(date)
+    ? "text-red-500"
+    : "text-green-500";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="bg-white rounded-lg shadow-lg p-6"
     >
-      <Table variant="simple" className="table-fixed">
-        <Tbody>
-          <Tr>
-            <Td width="40px">
-              <Calendar className="w-5 h-5 text-blue-500" />
-            </Td>
-            <Td className="text-gray-600">Start Date Time</Td>
-            <Td className="text-gray-800">
-              {new Date(event?.eventStarts).toLocaleDateString("en-US", dateOptions)}
-            </Td>
-          </Tr>
-          <Tr>
-            <Td>
-              <MapPin className="w-5 h-5 text-red-500" />
-            </Td>
-            <Td className="text-gray-600">Location</Td>
-            <Td className="text-gray-800">
-              {event?.location?.slice(0, 1).toUpperCase() + event?.location?.slice(1)}
-            </Td>
-          </Tr>
-          <Tr>
-            <Td>
-              <Activity className="w-5 h-5 text-green-500" />
-            </Td>
-            <Td className="text-gray-600">Type</Td>
-            <Td className="text-gray-800">
-              {event?.mode?.slice(0, 1).toUpperCase() + event?.mode?.slice(1)}
-            </Td>
-          </Tr>
-          <Tr>
-            <Td>
-              <Circle className="w-5 h-5" />
-            </Td>
-            <Td className="text-gray-600">Status</Td>
-            <Td>
-              <Flex alignItems="center" gap={2}>
-                <Circle 
-                  className={`w-2 h-2 ${
-                    new Date(event.eventStarts) < new Date(date)
-                      ? "text-red-500"
-                      : "text-green-500"
-                  }`}
-                  fill="currentColor"
-                />
-                <Text>
-                  {new Date(event.eventStarts) < new Date(date)
-                    ? "Expired"
-                    : "Active"}
-                </Text>
-              </Flex>
-            </Td>
-          </Tr>
-        </Tbody>
-      </Table>
+      <Grid
+        templateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+        gap={6}
+        className="w-full"
+      >
+        <DetailCard
+          icon={<Calendar className="w-6 h-6 text-blue-500" />}
+          title="Event Timeline"
+          value={
+            <>
+              <Text className="font-medium">
+                Starts: {new Date(event?.eventTimeline?.start).toLocaleDateString("en-US", dateOptions)}
+              </Text>
+              <Text className="font-medium">
+                Ends: {new Date(event?.eventTimeline?.end).toLocaleDateString("en-US", dateOptions)}
+              </Text>
+            </>
+          }
+        />
+
+        <DetailCard
+          icon={<Clock className="w-6 h-6 text-purple-500" />}
+          title="Registration Period"
+          value={
+            <>
+              <Text className="font-medium">
+                Opens: {new Date(event?.registerationStarts).toLocaleDateString("en-US", dateOptions)}
+              </Text>
+              <Text className="font-medium">
+                Closes: {new Date(event?.registerationEnds).toLocaleDateString("en-US", dateOptions)}
+              </Text>
+            </>
+          }
+        />
+
+        <DetailCard
+          icon={<MapPin className="w-6 h-6 text-red-500" />}
+          title="Location"
+          value={event?.location?.slice(0, 1).toUpperCase() + event?.location?.slice(1)}
+        />
+
+        <DetailCard
+          icon={<Activity className="w-6 h-6 text-green-500" />}
+          title="Event Type"
+          value={event?.mode?.slice(0, 1).toUpperCase() + event?.mode?.slice(1)}
+        />
+
+        <DetailCard
+          icon={<Users className="w-6 h-6 text-orange-500" />}
+          title="Participants"
+          value={`${event?.participants?.length || 0} registered`}
+        />
+
+        <DetailCard
+          icon={<Circle className={`w-6 h-6 ${statusColor}`} />}
+          title="Status"
+          value={
+            <div className="flex items-center gap-2">
+              <Circle className={`w-3 h-3 ${statusColor}`} fill="currentColor" />
+              <span className="font-medium">
+                {event?.eventTimeline?.start && new Date(event.eventTimeline.start) < new Date(date)
+                  ? "Expired"
+                  : "Active"}
+              </span>
+            </div>
+          }
+        />
+      </Grid>
     </motion.div>
   );
 };
+
+const DetailCard = ({ icon, title, value }: { icon: React.ReactNode; title: string; value: React.ReactNode }) => (
+  <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+    <div className="flex items-start gap-4">
+      <div className="p-3 bg-gray-50 rounded-lg">
+        {icon}
+      </div>
+      <div>
+        <Text className="text-sm text-gray-500 mb-1">{title}</Text>
+        <div className="text-gray-900">{value}</div>
+      </div>
+    </div>
+  </div>
+);

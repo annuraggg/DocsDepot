@@ -1,4 +1,4 @@
-import { Search, Calendar, Tag, MapPin, Radio } from 'lucide-react';
+import { Search, Calendar, Tag, MapPin, Radio, Users, Filter, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Mode } from '@shared-types/Event';
 
@@ -22,86 +22,142 @@ export const EventFilters = ({
   pointsRange
 }: EventFiltersProps) => {
   const filterCategories = [
-    { icon: Calendar, label: 'Status', options: ['active', 'upcoming', 'expired'] },
-    { icon: MapPin, label: 'Mode', options: ['online', 'offline'] },
-    { icon: Tag, label: 'Registration', options: ['internal', 'external'] },
+    { 
+      icon: Calendar, 
+      label: 'Status', 
+      options: ['active', 'upcoming', 'expired'],
+      description: 'Filter events by their current status'
+    },
+    { 
+      icon: MapPin, 
+      label: 'Mode', 
+      options: ['online', 'offline'],
+      description: 'Filter by event format'
+    },
+    { 
+      icon: Tag, 
+      label: 'Registration', 
+      options: ['internal', 'external'],
+      description: 'Filter by registration type'
+    },
+    { 
+      icon: Users, 
+      label: 'Participation', 
+      options: ['open', 'full', 'closing-soon'],
+      description: 'Filter by registration availability'
+    }
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-6xl mx-auto space-y-6 bg-white rounded-xl shadow-sm p-6 mb-5"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex gap-6"
     >
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
-        </div>
-        <input
-          type="text"
-          placeholder="Search events..."
-          onChange={(e) => onSearch(e.target.value)}
-          className="block w-full pl-10 pr-4 py-3 border-none bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {filterCategories.map(({ icon: Icon, label, options }) => (
-          <div key={label} className="space-y-2">
-            <div className="flex items-center space-x-2 text-gray-700">
-              <Icon className="h-4 w-4" />
-              <span className="font-medium">{label}</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {options.map((option) => (
-                <button
-                  key={option}
-                  onClick={() => {
-                    if (label === 'Mode') {
-                      onModeFilterChange(option as Mode);
-                    } else {
-                      const newFilters = selectedFilters.includes(option)
-                        ? selectedFilters.filter(f => f !== option)
-                        : [...selectedFilters, option];
-                      onFilterChange(newFilters);
-                    }
-                  }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all
-                    ${(label === 'Mode' ? selectedMode === option : selectedFilters.includes(option))
-                      ? 'bg-blue-100 text-blue-800 shadow-sm'
-                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
-                >
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </button>
-              ))}
+      <div className="w-80 bg-white rounded-xl shadow-sm p-6 h-fit sticky top-6">
+        <div className="space-y-6">
+          <div>
+            <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+              <Filter className="w-5 h-5" />
+              Filters
+            </h3>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search events..."
+                onChange={(e) => onSearch(e.target.value)}
+                className="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 bg-gray-50"
+              />
             </div>
           </div>
-        ))}
-      </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2 text-gray-700">
-          <Radio className="h-4 w-4" />
-          <span className="font-medium">Points Range</span>
-        </div>
-        <div className="flex items-center space-x-4">
-          <input
-            type="number"
-            min="0"
-            value={pointsRange[0]}
-            onChange={(e) => onPointsFilterChange([parseInt(e.target.value), pointsRange[1]])}
-            className="w-24 px-3 py-2 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 border-none"
-            placeholder="Min"
-          />
-          <span className="text-gray-500">to</span>
-          <input
-            type="number"
-            min="0"
-            value={pointsRange[1]}
-            onChange={(e) => onPointsFilterChange([pointsRange[0], parseInt(e.target.value)])}
-            className="w-24 px-3 py-2 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 border-none"
-            placeholder="Max"
-          />
+          <div className="space-y-6">
+            {filterCategories.map(({ icon: Icon, label, options, description }) => (
+              <div key={label} className="space-y-3 pb-6 border-b border-gray-100 last:border-0">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 text-gray-900">
+                      <Icon className="h-5 w-5 text-blue-600" />
+                      <span className="font-medium">{label}</span>
+                    </div>
+                    {selectedFilters.some(f => options.includes(f)) && (
+                      <button
+                        onClick={() => onFilterChange(selectedFilters.filter(f => !options.includes(f)))}
+                        className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                      >
+                        <X className="w-4 h-4" />
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{description}</p>
+                </div>
+                <div className="space-y-2">
+                  {options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => {
+                        if (label === 'Mode') {
+                          onModeFilterChange(option as Mode);
+                        } else {
+                          const newFilters = selectedFilters.includes(option)
+                            ? selectedFilters.filter(f => f !== option)
+                            : [...selectedFilters, option];
+                          onFilterChange(newFilters);
+                        }
+                      }}
+                      className={`flex items-center justify-between w-full px-4 py-2 rounded-lg text-sm font-medium transition-all
+                        ${(label === 'Mode' ? selectedMode === option : selectedFilters.includes(option))
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                    >
+                      <span>{option.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
+                      {(label === 'Mode' ? selectedMode === option : selectedFilters.includes(option)) && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-2 h-2 rounded-full bg-blue-600"
+                        />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-gray-900">
+                  <Radio className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium">Points Range</span>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min="0"
+                    value={pointsRange[0]}
+                    onChange={(e) => onPointsFilterChange([parseInt(e.target.value), pointsRange[1]])}
+                    className="w-full px-3 py-2 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-200"
+                    placeholder="Min"
+                  />
+                  <span className="text-gray-500">to</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={pointsRange[1]}
+                    onChange={(e) => onPointsFilterChange([pointsRange[0], parseInt(e.target.value)])}
+                    className="w-full px-3 py-2 bg-gray-50 rounded-lg focus:ring-2 focus:ring-blue-500 border-gray-200"
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </motion.div>

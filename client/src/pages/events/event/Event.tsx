@@ -29,11 +29,10 @@ import {
   Tr,
   Th,
   Td,
-  Link,
   Text,
   Flex,
 } from "@chakra-ui/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { EventHeader } from "./EventHeader";
 import { EventDetails } from "./EventDetails";
 import { EventActions } from "./EventActions";
@@ -134,7 +133,6 @@ const Event = () => {
       const registerationStartsDate = new Date(res.data.data.registerationStarts);
       const registerationEndsDate = new Date(res.data.data.registerationEnds);
 
-      // Adjust for timezone
       [eventStartsDate, eventEndsDate, registerationStartsDate, registerationEndsDate].forEach(date => {
         date.setHours(date.getHours() + 5);
         date.setMinutes(date.getMinutes() + 30);

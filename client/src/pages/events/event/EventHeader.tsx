@@ -1,6 +1,6 @@
 import { Box, Flex, Heading, Image, Skeleton } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import {Event as IEvent} from "@shared-types/Event"
+import { Event as IEvent } from "@shared-types/Event";
 
 interface EventHeaderProps {
   event: IEvent;
@@ -13,52 +13,32 @@ export const EventHeader = ({ event, loading }: EventHeaderProps) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
+      className="mb-8"
     >
-      <Flex 
-        className="bg-white rounded-lg shadow-lg p-6 mb-8"
-        alignItems="flex-start"
-        gap={8}
-      >
-        <Image
-          src={event?.image}
-          fallback={<Skeleton width="300px" height="250px" rounded="lg" />}
-          width="300px"
-          height="300px"
-          objectFit="cover"
-          rounded="lg"
-          className="shadow-md hover:shadow-xl transition-shadow duration-300"
-        />
+      <div className="relative w-full h-[400px] rounded-2xl overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src={event?.image}
+            fallback={<Skeleton width="100%" height="100%" />}
+            alt={event?.name}
+            className="w-full h-full object-cover filter brightness-50"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        </div>
         
-        <Box flex="1">
+        <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
           <Heading 
-            size="xl"
-            mb={4}
-            className="text-gray-800 font-bold"
+            size="2xl"
+            className="mb-4 font-bold text-shadow-lg"
           >
             {event?.name}
           </Heading>
           
-          <Box
-            className="prose prose-lg text-gray-600 max-w-none"
-            overflowY="auto"
-            maxHeight="270px"
-            css={{
-              '&::-webkit-scrollbar': {
-                width: '4px',
-              },
-              '&::-webkit-scrollbar-track': {
-                background: '#f1f1f1',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: '#888',
-                borderRadius: '24px',
-              },
-            }}
-          >
+          <p className="text-lg text-gray-200 line-clamp-3 max-w-3xl">
             {event?.desc}
-          </Box>
-        </Box>
-      </Flex>
+          </p>
+        </div>
+      </div>
     </motion.div>
   );
 };

@@ -4,9 +4,6 @@ import {
   Modal,
   ModalOverlay,
   ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   ModalCloseButton,
   FormControl,
   FormLabel,
@@ -17,6 +14,7 @@ import {
   useToast,
   Box,
   Text,
+  Divider,
 } from '@chakra-ui/react';
 import { Calendar, Image, Mail, MapPin, Link2, Phone, Clock, Tag, Radio } from 'lucide-react';
 import { Event, Mode, RegistrationType } from '@shared-types/Event';
@@ -182,310 +180,274 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-      <ModalOverlay
-        bg="blackAlpha.300"
-        backdropFilter="blur(10px)"
-      />
+    <Modal isOpen={isOpen} onClose={onClose} size="4xl">
+      <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
       <ModalContent
         as={motion.div}
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="max-h-[90vh] overflow-y-auto"
       >
-        <ModalHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-6 rounded-t-md">
-          <Text fontSize="2xl">Create New Event</Text>
-          <Text fontSize="sm" className="mt-2 opacity-80">Fill in the details below to create a new event</Text>
-        </ModalHeader>
-        <ModalCloseButton color="white" />
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-8">
+            <Text fontSize="2xl" fontWeight="bold">Create New Event</Text>
+            <ModalCloseButton position="static" />
+          </div>
 
-        <ModalBody className="py-6">
-          <div className="space-y-8">
-            <Box className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Tag className="w-5 h-5 text-blue-600" />
-                <Text fontSize="lg" fontWeight="semibold">Basic Information</Text>
-              </div>
-
-              <FormControl isRequired>
-                <FormLabel className="text-sm font-medium text-gray-700">Event Name</FormLabel>
-                <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter event name"
-                  className="mt-1"
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Image className="w-4 h-4" />
-                  Image URL
-                </FormLabel>
-                <Input
-                  name="image"
-                  value={formData.image}
-                  onChange={handleChange}
-                  placeholder="Enter image URL"
-                  className="mt-1"
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel className="text-sm font-medium text-gray-700">Description</FormLabel>
-                <Textarea
-                  name="desc"
-                  value={formData.desc}
-                  onChange={handleChange}
-                  placeholder="Enter event description"
-                  rows={4}
-                  className="mt-1"
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  <Radio className="w-4 h-4" />
-                  Points
-                </FormLabel>
-                <Input
-                  name="points"
-                  value={formData.points}
-                  onChange={handleChange}
-                  type="number"
-                  min={0}
-                  placeholder="Enter points for event"
-                  className="mt-1"
-                />
-              </FormControl>
-            </Box>
-
-            <Box className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <MapPin className="w-5 h-5 text-blue-600" />
-                <Text fontSize="lg" fontWeight="semibold">Location & Mode</Text>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormControl isRequired>
-                  <FormLabel className="text-sm font-medium text-gray-700">Location</FormLabel>
-                  <Input
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    placeholder="Enter event location"
-                  />
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel className="text-sm font-medium text-gray-700">Event Mode</FormLabel>
-                  <Select
-                    name="mode"
-                    value={formData.mode}
-                    onChange={handleChange}
-                    placeholder="Select event mode"
-                  >
-                    <option value="online">Online</option>
-                    <option value="offline">Offline</option>
-                  </Select>
-                </FormControl>
-              </div>
-            </Box>
-
-            <Box className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Mail className="w-5 h-5 text-blue-600" />
-                <Text fontSize="lg" fontWeight="semibold">Registration Details</Text>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormControl isRequired>
-                  <FormLabel className="text-sm font-medium text-gray-700">Registration Type</FormLabel>
-                  <Select
-                    name="registerationType"
-                    value={formData.registerationType}
-                    onChange={handleChange}
-                    placeholder="Select registration type"
-                  >
-                    <option value="internal">Internal</option>
-                    <option value="external">External</option>
-                  </Select>
-                </FormControl>
-
-                {formData.registerationType === 'external' && (
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-8">
+              <Box>
+                <div className="flex items-center gap-2 mb-4">
+                  <Tag className="w-5 h-5 text-blue-600" />
+                  <Text fontSize="lg" fontWeight="semibold">Basic Details</Text>
+                </div>
+                <div className="space-y-4">
                   <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Link2 className="w-4 h-4" />
-                      External Link
+                    <FormLabel className="flex items-center gap-2">
+                      Event Name
                     </FormLabel>
                     <Input
-                      name="link"
-                      value={formData.link}
+                      name="name"
+                      value={formData.name}
                       onChange={handleChange}
-                      placeholder="Enter registration link"
-                    />
-                  </FormControl>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormControl isRequired>
-                  <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    Contact Email
-                  </FormLabel>
-                  <Input
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter contact email"
-                    type="email"
-                  />
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    Contact Phone
-                  </FormLabel>
-                  <Input
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Enter contact phone"
-                  />
-                </FormControl>
-              </div>
-            </Box>
-
-            <Box className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Calendar className="w-5 h-5 text-blue-600" />
-                <Text fontSize="lg" fontWeight="semibold">Event Schedule</Text>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">Start Date</FormLabel>
-                    <Input
-                      name="eventStartDate"
-                      value={formData.eventStartDate}
-                      onChange={handleChange}
-                      type="date"
+                      placeholder="Enter event name"
+                      size="lg"
                     />
                   </FormControl>
 
                   <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">Start Time</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <Image className="w-4 h-4" />
+                      Image URL
+                    </FormLabel>
                     <Input
-                      name="eventStartTime"
-                      value={formData.eventStartTime}
+                      name="image"
+                      value={formData.image}
                       onChange={handleChange}
-                      type="time"
+                      placeholder="Enter image URL"
+                      size="lg"
+                    />
+                  </FormControl>
+
+                  <FormControl isRequired>
+                    <FormLabel>Description</FormLabel>
+                    <Textarea
+                      name="desc"
+                      value={formData.desc}
+                      onChange={handleChange}
+                      placeholder="Enter event description"
+                      rows={4}
+                      size="lg"
                     />
                   </FormControl>
                 </div>
+              </Box>
 
+              <Divider />
+
+              <Box>
+                <div className="flex items-center gap-2 mb-4">
+                  <MapPin className="w-5 h-5 text-blue-600" />
+                  <Text fontSize="lg" fontWeight="semibold">Location & Mode</Text>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">End Date</FormLabel>
+                    <FormLabel>Location</FormLabel>
                     <Input
-                      name="eventEndDate"
-                      value={formData.eventEndDate}
+                      name="location"
+                      value={formData.location}
                       onChange={handleChange}
-                      type="date"
+                      placeholder="Enter event location"
+                      size="lg"
                     />
                   </FormControl>
 
                   <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">End Time</FormLabel>
-                    <Input
-                      name="eventEndTime"
-                      value={formData.eventEndTime}
+                    <FormLabel>Event Mode</FormLabel>
+                    <Select
+                      name="mode"
+                      value={formData.mode}
                       onChange={handleChange}
-                      type="time"
+                      placeholder="Select event mode"
+                      size="lg"
+                    >
+                      <option value="online">Online</option>
+                      <option value="offline">Offline</option>
+                    </Select>
+                  </FormControl>
+                </div>
+              </Box>
+            </div>
+
+            <div className="space-y-8">
+              <Box>
+                <div className="flex items-center gap-2 mb-4">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  <Text fontSize="lg" fontWeight="semibold">Event Schedule</Text>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormControl isRequired>
+                      <FormLabel>Start Date</FormLabel>
+                      <Input
+                        name="eventStartDate"
+                        value={formData.eventStartDate}
+                        onChange={handleChange}
+                        type="date"
+                        size="lg"
+                      />
+                    </FormControl>
+
+                    <FormControl isRequired>
+                      <FormLabel>Start Time</FormLabel>
+                      <Input
+                        name="eventStartTime"
+                        value={formData.eventStartTime}
+                        onChange={handleChange}
+                        type="time"
+                        size="lg"
+                      />
+                    </FormControl>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormControl isRequired>
+                      <FormLabel>End Date</FormLabel>
+                      <Input
+                        name="eventEndDate"
+                        value={formData.eventEndDate}
+                        onChange={handleChange}
+                        type="date"
+                        size="lg"
+                      />
+                    </FormControl>
+
+                    <FormControl isRequired>
+                      <FormLabel>End Time</FormLabel>
+                      <Input
+                        name="eventEndTime"
+                        value={formData.eventEndTime}
+                        onChange={handleChange}
+                        type="time"
+                        size="lg"
+                      />
+                    </FormControl>
+                  </div>
+                </div>
+              </Box>
+
+              <Divider />
+
+              <Box>
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                  <Text fontSize="lg" fontWeight="semibold">Registration Details</Text>
+                </div>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormControl isRequired>
+                      <FormLabel>Registration Type</FormLabel>
+                      <Select
+                        name="registerationType"
+                        value={formData.registerationType}
+                        onChange={handleChange}
+                        placeholder="Select registration type"
+                        size="lg"
+                      >
+                        <option value="internal">Internal</option>
+                        <option value="external">External</option>
+                      </Select>
+                    </FormControl>
+
+                    {formData.registerationType === 'external' && (
+                      <FormControl isRequired>
+                        <FormLabel className="flex items-center gap-2">
+                          <Link2 className="w-4 h-4" />
+                          External Link
+                        </FormLabel>
+                        <Input
+                          name="link"
+                          value={formData.link}
+                          onChange={handleChange}
+                          placeholder="Enter registration link"
+                          size="lg"
+                        />
+                      </FormControl>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormControl isRequired>
+                      <FormLabel className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Contact Email
+                      </FormLabel>
+                      <Input
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="Enter contact email"
+                        type="email"
+                        size="lg"
+                      />
+                    </FormControl>
+
+                    <FormControl isRequired>
+                      <FormLabel className="flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        Contact Phone
+                      </FormLabel>
+                      <Input
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="Enter contact phone"
+                        size="lg"
+                      />
+                    </FormControl>
+                  </div>
+
+                  <FormControl isRequired>
+                    <FormLabel className="flex items-center gap-2">
+                      <Radio className="w-4 h-4" />
+                      Points
+                    </FormLabel>
+                    <Input
+                      name="points"
+                      value={formData.points}
+                      onChange={handleChange}
+                      type="number"
+                      min={0}
+                      placeholder="Enter points for event"
+                      size="lg"
                     />
                   </FormControl>
                 </div>
-              </div>
-            </Box>
-
-            <Box className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <Clock className="w-5 h-5 text-blue-600" />
-                <Text fontSize="lg" fontWeight="semibold">Registration Period</Text>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">Start Date</FormLabel>
-                    <Input
-                      name="registrationStartDate"
-                      value={formData.registrationStartDate}
-                      onChange={handleChange}
-                      type="date"
-                    />
-                  </FormControl>
-
-                  <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">Start Time</FormLabel>
-                    <Input
-                      name="registrationStartTime"
-                      value={formData.registrationStartTime}
-                      onChange={handleChange}
-                      type="time"
-                    />
-                  </FormControl>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">End Date</FormLabel>
-                    <Input
-                      name="registrationEndDate"
-                      value={formData.registrationEndDate}
-                      onChange={handleChange}
-                      type="date"
-                    />
-                  </FormControl>
-
-                  <FormControl isRequired>
-                    <FormLabel className="text-sm font-medium text-gray-700">End Time</FormLabel>
-                    <Input
-                      name="registrationEndTime"
-                      value={formData.registrationEndTime}
-                      onChange={handleChange}
-                      type="time"
-                    />
-                  </FormControl>
-                </div>
-              </div>
-            </Box>
+              </Box>
+            </div>
           </div>
-        </ModalBody>
 
-        <ModalFooter className="border-t border-gray-100 bg-gray-50">
-          <Button
-            variant="ghost"
-            mr={3}
-            onClick={onClose}
-            className="px-6"
-          >
-            Cancel
-          </Button>
-          <Button
-            colorScheme="blue"
-            onClick={handleSubmit}
-            isLoading={isLoading}
-            loadingText="Creating..."
-            className="px-6"
-          >
-            Create Event
-          </Button>
-        </ModalFooter>
+          <div className="flex justify-end gap-4 mt-8 pt-4 border-t">
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              size="lg"
+              className="px-8"
+            >
+              Cancel
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={handleSubmit}
+              isLoading={isLoading}
+              loadingText="Creating..."
+              size="lg"
+              className="px-8"
+            >
+              Create Event
+            </Button>
+          </div>
+        </div>
       </ModalContent>
     </Modal>
   );

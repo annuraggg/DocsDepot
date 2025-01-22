@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { 
-  useDisclosure, 
   Box,
   Heading,
   Text,
@@ -11,66 +10,111 @@ import { EventCard } from './EventCard';
 import { EventFilters } from './EventFilters';
 import { CreateEventModal } from './CreateEventModal';
 import { useEvents } from './useEvents';
-import { Event } from '@shared-types/Event';
+import { Event, Mode } from '@shared-types/Event';
 import Loader from '@/components/Loader';
 
 export const Events = () => {
   const { events, isLoading, error, createEvent, editPrivilege } = useEvents();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState(['active', 'upcoming', 'expired']);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedFilters, setSelectedFilters] = useState<string[]>(['active', 'upcoming', 'expired']);
+  const [selectedMode, setSelectedMode] = useState<Mode | ''>('');
+  const [pointsRange, setPointsRange] = useState<[number, number]>([0, 100]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (events.length > 0) {
-      setFilteredEvents([...events].reverse());
+    if (events?.length > 0) {
+      applyFilters(events, '', selectedFilters, selectedMode, pointsRange);
     }
   }, [events]);
 
   const handleSearch = (query: string) => {
-    if (!query) {
-      setFilteredEvents([...events].reverse());
-      return;
-    }
-
-    const filtered = events.filter((event) =>
-      event.name.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredEvents(filtered);
+    applyFilters(events, query, selectedFilters, selectedMode, pointsRange);
   };
 
   const handleFilterChange = (filters: string[]) => {
     setSelectedFilters(filters);
-    if (filters.length === 0) {
-      setFilteredEvents([...events].reverse());
-      return;
-    }
+    applyFilters(events, '', filters, selectedMode, pointsRange);
+  };
+
+  const handleModeFilterChange = (mode: Mode | '') => {
+    setSelectedMode(mode);
+    applyFilters(events, '', selectedFilters, mode, pointsRange);
+  };
+
+  const handlePointsFilterChange = (range: [number, number]) => {
+    setPointsRange(range);
+    applyFilters(events, '', selectedFilters, selectedMode, range);
+  };
+
+  const getEventStatus = (event: Event) => {
+    if (!event.eventTimeline?.start || !event.eventTimeline?.end) return null;
 
     const date = new Date();
-    const filtered = events.filter((event) => {
-      const isActive = filters.includes('active') &&
-        new Date(event.eventTimeline.start) <= date &&
-        new Date(event.eventTimeline.end) >= date;
-      
-      const isUpcoming = filters.includes('upcoming') &&
-        new Date(event.eventTimeline.start) > date;
-      
-      const isExpired = filters.includes('expired') &&
-        new Date(event.eventTimeline.end) < date;
+    const startDate = new Date(event.eventTimeline.start);
+    const endDate = new Date(event.eventTimeline.end);
 
-      return isActive || isUpcoming || isExpired;
+    if (startDate > date) return 'upcoming';
+    if (endDate >= date) return 'active';
+    return 'expired';
+  };
+
+  const applyFilters = (
+    eventsList: Event[],
+    searchQuery: string,
+    filters: string[],
+    mode: Mode | '',
+    points: [number, number]
+  ) => {
+    if (!eventsList) return;
+    
+    let filtered = [...eventsList];
+    
+    if (searchQuery) {
+      filtered = filtered.filter((event) =>
+        event.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (filters.length > 0) {
+      filtered = filtered.filter((event) => {
+        const status = getEventStatus(event);
+        if (!status) return false;
+        return filters.includes(status);
+      });
+    }
+
+    if (mode) {
+      filtered = filtered.filter((event) => event.mode === mode);
+    }
+
+    filtered = filtered.filter((event) => {
+      const eventPoints = event.points || 0;
+      return eventPoints >= points[0] && eventPoints <= points[1];
     });
 
-    setFilteredEvents([...filtered].reverse());
+    filtered.sort((a, b) => {
+      const aStart = a.eventTimeline?.start ? new Date(a.eventTimeline.start).getTime() : 0;
+      const bStart = b.eventTimeline?.start ? new Date(b.eventTimeline.start).getTime() : 0;
+      return bStart - aStart;
+    });
+
+    setFilteredEvents(filtered);
   };
 
   const handleCreateEvent = async (data: Partial<Event>) => {
     const success = await createEvent(data);
     if (success) {
-      onClose();
+      setIsModalOpen(false);
     }
   };
 
-  if (isLoading) return <Loader />;
+  if (isLoading) {
+    return (
+      <Box className="flex items-center justify-center min-h-screen">
+        <Loader />
+      </Box>
+    );
+  }
   
   if (error) {
     return (
@@ -92,50 +136,71 @@ export const Events = () => {
           <Text className="text-gray-600">Discover and manage upcoming events</Text>
         </div>
 
-        <EventFilters
-          onSearch={handleSearch}
-          onFilterChange={handleFilterChange}
-          onModeFilterChange={() => {}}
-          onPointsFilterChange={() => {}}
-          selectedFilters={selectedFilters}
-          selectedMode=""
-          pointsRange={[0, 100]}
-        />
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="w-full lg:w-80">
+            <EventFilters
+              onSearch={handleSearch}
+              onFilterChange={handleFilterChange}
+              onModeFilterChange={handleModeFilterChange}
+              onPointsFilterChange={handlePointsFilterChange}
+              selectedFilters={selectedFilters}
+              selectedMode={selectedMode}
+              pointsRange={pointsRange}
+            />
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {editPrivilege && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onOpen}
-              className="h-full min-h-[400px] rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <Plus className="mx-auto h-12 w-12 text-gray-400" />
-              <span className="mt-2 block text-sm font-medium text-gray-900">
-                Create new event
-              </span>
-            </motion.button>
-          )}
-          
-          <AnimatePresence>
-            {filteredEvents.map((event, index) => (
-              <motion.div
-                key={event._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <EventCard event={event} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {editPrivilege && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsModalOpen(true)}
+                  className="h-full min-h-[400px] rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  <Plus className="mx-auto h-12 w-12 text-gray-400" />
+                  <span className="mt-2 block text-sm font-medium text-gray-900">
+                    Create new event
+                  </span>
+                </motion.button>
+              )}
+              
+              <AnimatePresence mode="popLayout">
+                {filteredEvents.map((event, index) => (
+                  <motion.div
+                    key={event._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <EventCard event={event} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              {filteredEvents.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-full flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <Text className="text-xl font-medium text-gray-900 mb-2">
+                    No events found
+                  </Text>
+                  <Text className="text-gray-500">
+                    Try adjusting your filters or search terms
+                  </Text>
+                </motion.div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       <CreateEventModal
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateEvent}
       />
     </motion.div>
