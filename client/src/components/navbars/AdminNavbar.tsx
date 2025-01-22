@@ -29,7 +29,6 @@ import {
   ModalCloseButton,
 } from "@chakra-ui/react";
 import {
-  Bell,
   Home,
   Users,
   Calendar,
@@ -84,11 +83,8 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
   const toast = useToast();
   const axios = useAxios();
 
-  const {
-    isOpen: isNotificationOpen,
-    onOpen: onNotificationOpen,
-    onClose: onNotificationClose,
-  } = useDisclosure();
+  const { isOpen: isNotificationOpen, onClose: onNotificationClose } =
+    useDisclosure();
 
   const {
     isOpen: isResetOpen,
@@ -177,9 +173,7 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
                   <MenuItem onClick={() => navigate("/admin/students")}>
                     Students
                   </MenuItem>
-                  <MenuItem
-                    onClick={() => navigate("/admin/faculty")}
-                  >
+                  <MenuItem onClick={() => navigate("/admin/faculty")}>
                     Faculty
                   </MenuItem>
                 </MenuList>
@@ -227,11 +221,11 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
           <div className="flex items-center space-x-4">
             <Menu>
               <Box className="flex items-center gap-5">
-                <Bell
+                {/* <Bell
                   size={20}
                   className="cursor-pointer"
                   onClick={onNotificationOpen}
-                />
+                /> */}
                 <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
                     {user?.fname} {user?.lname}

@@ -32,8 +32,6 @@ import {
   FormLabel,
 } from "@chakra-ui/react";
 import {
-  Bell,
-  Home,
   Users,
   Calendar,
   Award,
@@ -41,7 +39,6 @@ import {
   Settings,
   UserCircle,
   MessageSquare,
-  ChevronDown,
   FileText,
   UserCheck,
 } from "lucide-react";
@@ -93,7 +90,6 @@ const FacultyNavbar = () => {
 
   const {
     isOpen: isNotificationOpen,
-    onOpen: onNotificationOpen,
     onClose: onNotificationClose,
   } = useDisclosure();
 
@@ -289,11 +285,11 @@ const FacultyNavbar = () => {
           <div className="flex items-center space-x-4">
             <Menu>
               <Box className="flex items-center gap-5">
-                <Bell
+                {/* <Bell
                   size={20}
                   className="cursor-pointer"
                   onClick={onNotificationOpen}
-                />
+                /> */}
                 <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
                     {decoded.fname} {decoded.lname}
@@ -346,11 +342,7 @@ const FacultyNavbar = () => {
               <Alert>No Notifications</Alert>
             ) : (
               notifications.map((notification) => (
-                <Alert
-                  status={notification.scope === "all" ? "info" : "warning"}
-                  key={notification._id}
-                  className="mb-2"
-                >
+                <Alert key={notification._id} className="mb-2">
                   {notification.body}
                 </Alert>
               ))

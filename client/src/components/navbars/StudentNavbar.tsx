@@ -22,7 +22,6 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import {
-  Bell,
   Award,
   Home,
   Users,
@@ -70,7 +69,7 @@ const StudentNavbar = ({ notifications = [] }: StudentNavbarProps) => {
   const user = useUser();
   const navigate = useNavigate();
   const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onClose } = useDisclosure();
 
   useEffect(() => {
     try {
@@ -142,7 +141,7 @@ const StudentNavbar = ({ notifications = [] }: StudentNavbarProps) => {
           <div className="flex items-center space-x-4">
             <Menu>
               <Box className="flex items-center gap-5">
-                <Bell size={20} className="cursor-pointer" onClick={onOpen} />
+                {/* <Bell size={20} className="cursor-pointer" onClick={onOpen} /> */}
                 <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
                     {fname} {lname}
