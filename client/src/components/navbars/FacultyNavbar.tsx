@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Box,
@@ -76,22 +76,19 @@ const NavLink = ({ icon, text, to, onClick, show = true }: NavLinkProps) => {
 };
 
 const FacultyNavbar = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications] = useState<Notification[]>([]);
   const [notificationBody, setNotificationBody] = useState("");
   const [notificationExpiry, setNotificationExpiry] = useState("");
   const [resetMoodleId, setResetMoodleId] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
-  const [update, setUpdate] = useState(false);
 
   const navigate = useNavigate();
   const toast = useToast();
   const axios = useAxios();
   const user = useUser();
 
-  const {
-    isOpen: isNotificationOpen,
-    onClose: onNotificationClose,
-  } = useDisclosure();
+  const { isOpen: isNotificationOpen, onClose: onNotificationClose } =
+    useDisclosure();
 
   const {
     isOpen: isAddNotificationOpen,
@@ -115,35 +112,6 @@ const FacultyNavbar = () => {
   const hasHouseCoordinatorPerms = decoded?.perms?.some((perm) =>
     ["HCO0", "HCO1", "HCO2", "HCO3"].includes(perm)
   );
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_ADDRESS
-          }/faculty/notifications/receive`,
-          {
-            credentials: "include",
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setNotifications(data.notifications);
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        toast({
-          title: "Error Fetching Notifications",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
-
-    fetchNotifications();
-  }, [update]);
 
   const logout = () => {
     [
@@ -179,44 +147,6 @@ const FacultyNavbar = () => {
       });
     } finally {
       setResetLoading(false);
-    }
-  };
-
-  const addNotification = async () => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/notifications/add`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ notificationBody, notificationExpiry }),
-        }
-      );
-      const data = await response.json();
-
-      if (data.status === "success") {
-        toast({
-          title: "Notification Added",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        setUpdate(!update);
-        onAddNotificationClose();
-      } else {
-        throw new Error("Failed to add notification");
-      }
-    } catch (error) {
-      console.error("Error adding notification:", error);
-      toast({
-        title: "Error Adding Notification",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
     }
   };
 
@@ -285,11 +215,6 @@ const FacultyNavbar = () => {
           <div className="flex items-center space-x-4">
             <Menu>
               <Box className="flex items-center gap-5">
-                {/* <Bell
-                  size={20}
-                  className="cursor-pointer"
-                  onClick={onNotificationOpen}
-                /> */}
                 <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
                     {decoded.fname} {decoded.lname}
@@ -386,9 +311,7 @@ const FacultyNavbar = () => {
             <Button variant="ghost" mr={3} onClick={onAddNotificationClose}>
               Cancel
             </Button>
-            <Button colorScheme="blue" onClick={addNotification}>
-              Add
-            </Button>
+            <Button colorScheme="blue">Add</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

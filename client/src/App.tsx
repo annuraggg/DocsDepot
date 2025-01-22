@@ -30,6 +30,15 @@ import AdminFacultyCertificates from "./pages/admin/faculty/certificates/Certifi
 import AdminLayout from "./components/layouts/AdminLayout.js";
 import SelectiveLayout from "./components/layouts/SelectiveLayout.js";
 
+import FacultyHome from "./pages/faculty/home/Home";
+import Certificates from "./pages/faculty/certificates/Certificates";
+import Enrollments from "./pages/faculty/enrollments/Enrollments";
+import FacultySettings from "./pages/faculty/settings/Settings";
+import FacultyStudent from "./pages/faculty/student/Students.js";
+import FacultyStudentAdd from "./pages/faculty/student/import/StudentImport.js";
+import FacultyCertifications from "./pages/faculty/certifications/Certifications";
+import FacultyLayout from "./components/layouts/FacultyLayout.js";
+
 function App() {
   const studentRoutes = [
     { path: "", element: <StudentHome /> },
@@ -51,6 +60,16 @@ function App() {
     { path: "faculty/certificates", element: <AdminFacultyCertificates /> },
   ];
 
+  const facultyRoutes = [
+    { path: "", element: <FacultyHome /> },
+    { path: "certificates", element: <Certificates /> },
+    { path: "enrollments", element: <Enrollments /> },
+    { path: "settings", element: <FacultySettings /> },
+    { path: "students", element: <FacultyStudent /> },
+    { path: "students/add", element: <FacultyStudentAdd /> },
+    { path: "certifications", element: <FacultyCertifications /> },
+  ];
+
   const selectiveRoutes = [
     { path: "/certificates/:id", element: <Certificate /> },
     { path: "/events", element: <Events /> },
@@ -68,6 +87,7 @@ function App() {
     { path: "/", element: <SelectiveLayout />, children: selectiveRoutes },
     { path: "/student", element: <StudentLayout />, children: studentRoutes },
     { path: "/admin", element: <AdminLayout />, children: adminRoutes },
+    { path: "/faculty", element: <FacultyLayout />, children: facultyRoutes },
     // { path: "/profile/:id/generate/report", element: <Report /> },
     // { path: "/profile/faculty/:id", element },
   ]);
@@ -83,16 +103,14 @@ function App() {
   useEffect(() => {
     const axios = useAxios();
 
-    axios
-      .get("/maintainance")
-      .catch((err) => {
-        console.log(err);
-        if (err.response.status === 503) {
-          setMaintainenaceMode(true);
-          return;
-        }
-        console.log(err);
-      });
+    axios.get("/maintainance").catch((err) => {
+      console.log(err);
+      if (err.response.status === 503) {
+        setMaintainenaceMode(true);
+        return;
+      }
+      console.log(err);
+    });
   }, []);
 
   return (
