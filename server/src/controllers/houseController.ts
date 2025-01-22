@@ -12,9 +12,13 @@ const storagePath = path.join(__dirname, "../uploads");
 
 export const getHouse = async (c: Context) => {
   const { id } = c.req.param();
-  console.log(id)
+  console.log(id);
   try {
-    const house = await House.findById(id).populate("members").populate("facultyCordinator").populate("studentCordinator").lean();
+    const house = await House.findById(id)
+      .populate("members")
+      .populate("facultyCordinator")
+      .populate("studentCordinator")
+      .lean();
 
     if (!house) {
       return sendError(c, 404, "House not found");
@@ -28,27 +32,20 @@ export const getHouse = async (c: Context) => {
       return sendError(c, 404, "House not found");
     }
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return sendError(c, 500, "Error fetching house");
   }
 };
 
 export const updateHouse = async (c: Context) => {
-  const { jwtToken } = await c.req.json();
   const { id } = c.req.param();
-  const { name, fc, sc, color, abstract, desc, hid } = await c.req.json();
-  const decoded = jwt.verify(jwtToken, process.env.JWT_SECRET!);
-
-  // ! FIX THIS
-  //   if (decoded.role !== "A" && !decoded.perms.includes(`HCO${hid}`)) {
-  //     return sendError(c, 403, "You are not authorized to perform this action");
-  //   }
+  const { name, color, abstract, desc, socialLinks } = await c.req.json();
 
   try {
     await House.updateOne(
       { _id: id },
       {
-        $set: { name, color, abstract, desc },
+        $set: { name, color, abstract, desc, socialLinks },
       }
     );
     return sendSuccess(c, 200, "House updated successfully");
@@ -67,18 +64,20 @@ export const getAllHouses = async (c: Context) => {
 };
 
 export const removeMember = async (c: Context) => {
-  const { jwtToken } = await c.req.json();
   const { id } = c.req.param();
   const { mid } = await c.req.json();
+
+  console.log(id, mid);
 
   const house = await House.findById(id);
   if (!house) return sendError(c, 404, "House not found");
 
   try {
     await House.updateOne({ _id: id }, { $pull: { members: mid } });
-    await User.updateOne({ mid }, { $set: { house: { id: null, points: 0 } } });
+    await User.updateOne({ _id: mid }, { $set: { house: null } });
     return sendSuccess(c, 200, "Member removed successfully");
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Error removing member");
   }
 };

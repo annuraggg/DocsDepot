@@ -1,8 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Avatar, Button } from '@chakra-ui/react';
-import { Settings, Camera } from 'lucide-react';
-import { User } from '@shared-types/User';
+import React from "react";
+import { motion } from "framer-motion";
+import { Avatar, Button } from "@chakra-ui/react";
+import { Settings, Camera } from "lucide-react";
+import { User } from "@shared-types/User";
 
 interface HouseProfileProps {
   logo: string;
@@ -12,6 +12,7 @@ interface HouseProfileProps {
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSettingsOpen: () => void;
   navigateToProfile: (id: string) => void;
+  editPrivileges: boolean;
 }
 
 export const HouseProfile: React.FC<HouseProfileProps> = ({
@@ -22,6 +23,7 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
   onLogoChange,
   onSettingsOpen,
   navigateToProfile,
+  editPrivileges,
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -44,14 +46,16 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
             className="w-36 h-36 border-4 border-white rounded-full shadow-lg"
             color="primary"
           />
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full backdrop-blur-sm"
-            onClick={handleCameraClick}
-          >
-            <Camera className="w-4 h-4 text-white" />
-          </motion.button>
+          {editPrivileges && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="absolute bottom-2 right-2 bg-black/50 p-2 rounded-full backdrop-blur-sm"
+              onClick={handleCameraClick}
+            >
+              <Camera className="w-4 h-4 text-white" />
+            </motion.button>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -66,13 +70,15 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
             <h1 className="text-4xl font-bold text-white drop-shadow-xl ">
               {name} House
             </h1>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              onClick={onSettingsOpen}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors"
-            >
-              <Settings className="w-6 h-6 text-blue-500" />
-            </motion.button>
+            {editPrivileges && (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                onClick={onSettingsOpen}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <Settings className="w-6 h-6 text-blue-500" />
+              </motion.button>
+            )}
           </div>
           <div className="flex gap-2 mt-3">
             <Button

@@ -4,32 +4,10 @@ interface Social {
   twitter?: string | null;
 }
 
-interface PointData {
-  internal: number;
-  external: number;
-  events: number;
-}
-
-interface YearlyPoints {
-  [key: string]: {
-    january?: PointData;
-    february?: PointData;
-    march?: PointData;
-    april?: PointData;
-    may?: PointData;
-    june?: PointData;
-    july?: PointData;
-    august?: PointData;
-    september?: PointData;
-    october?: PointData;
-    november?: PointData;
-    december?: PointData;
-  }
-}
-
 interface Point {
   certificateId: string;
-  points: number | YearlyPoints;
+  userId: string;
+  points: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,7 +23,7 @@ interface House {
   facultyCordinator: string;
   studentCordinator?: string | null;
   members: string[];
-  points: Point[]
+  points: Point[];
   social: Social;
   createdAt: Date;
   updatedAt: Date;

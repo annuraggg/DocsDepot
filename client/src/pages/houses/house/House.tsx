@@ -1,58 +1,87 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router';
-import { Button, Card, CardBody, FormControl, FormLabel, Input, InputGroup, InputLeftElement, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Radio, RadioGroup, Select, Stack, useDisclosure, VStack } from '@chakra-ui/react';
-import { jwtDecode } from 'jwt-decode';
-import Cookies from 'js-cookie';
-import { useToast } from '../../../components/useToast';
+import React, { useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
+import {
+  Button,
+  Card,
+  CardBody,
+  FormControl,
+  FormLabel,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  Radio,
+  RadioGroup,
+  Select,
+  Stack,
+  useDisclosure,
+  VStack,
+} from "@chakra-ui/react";
+import { useToast } from "../../../components/useToast";
 import useAxios from "@/config/axios";
-import { House as IHouse } from '@shared-types/House';
-import { Token } from '@shared-types/Token';
+import { House as IHouse, Point } from "@shared-types/House";
+import { Token } from "@shared-types/Token";
 
-import { HouseBanner } from './HouseBanner';
-import { HouseProfile } from './HouseProfile';
-import { SocialLinks } from './SocialLinks';
-import { HouseStats } from './HouseStats';
-import { MembersTable } from './MembersTable';
-import { SettingsModal } from './SettingsModal';
-import { ImageEditorModal } from './ImageEditorModal';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
-import AvatarEditor from 'react-avatar-editor';
-import { User } from '@shared-types/User';
-import { Hash, Home, Mail, RadioIcon, UserIcon, UserPlus } from 'lucide-react';
+import { HouseBanner } from "./HouseBanner";
+import { HouseProfile } from "./HouseProfile";
+import { SocialLinks } from "./SocialLinks";
+import { MembersTable } from "./MembersTable";
+import { SettingsModal } from "./SettingsModal";
+import { ImageEditorModal } from "./ImageEditorModal";
+import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import AvatarEditor from "react-avatar-editor";
+import { User } from "@shared-types/User";
+import { Hash, Home, Mail, UserIcon, UserPlus } from "lucide-react";
+import useUser from "@/config/user";
+import { Certificate } from "@shared-types/Certificate";
+import Loader from "@/components/Loader";
 
-interface ExtendedHouse extends Omit<IHouse, 'members' | 'facultyCordinator' | 'studentCordinator'> {
+interface ExtendedPoint extends Omit<Point, "certificateId"> {
+  certificateId: Certificate;
+}
+interface ExtendedHouse
+  extends Omit<
+    IHouse,
+    "members" | "facultyCordinator" | "studentCordinator" | "points"
+  > {
   members: User[];
   facultyCordinator: User;
   studentCordinator: User;
+  points: ExtendedPoint[];
 }
 
 export const House: React.FC = () => {
   const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
-  const [decoded, setDecoded] = React.useState<Token>({} as Token);
 
   const [socialLinks, setSocialLinks] = React.useState({
-    instagram: '',
-    twitter: '',
-    linkedin: ''
+    instagram: "",
+    twitter: "",
+    linkedin: "",
   });
 
   const [isViewAllMembersOpen, setIsViewAllMembersOpen] = React.useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen] = React.useState(false);
   const [selectedMember, setSelectedMember] = React.useState<User | null>(null);
 
-  const [fname, setFname] = React.useState('');
-  const [lname, setLname] = React.useState('');
-  const [moodleid, setMoodleid] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [selectedHouse, setSelectedHouse] = React.useState('');
-  const [gender, setGender] = React.useState('');
+  const [fname, setFname] = React.useState("");
+  const [lname, setLname] = React.useState("");
+  const [moodleid, setMoodleid] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [selectedHouse, setSelectedHouse] = React.useState("");
+  const [gender, setGender] = React.useState("");
 
   // Form state
-  const [houseName, setHouseName] = React.useState('');
-  const [houseColor, setHouseColor] = React.useState('');
-  const [houseAbstract, setHouseAbstract] = React.useState('');
-  const [houseDesc, setHouseDesc] = React.useState('');
+  const [houseName, setHouseName] = React.useState("");
+  const [houseColor, setHouseColor] = React.useState("");
+  const [houseAbstract, setHouseAbstract] = React.useState("");
+  const [houseDesc, setHouseDesc] = React.useState("");
   const [editPrivilege, setEditPrivilege] = React.useState(false);
 
   // Image editing state
@@ -69,37 +98,40 @@ export const House: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const axios = useAxios();
-  const houseID = window.location.pathname.split('/')[2];
+  const user = useUser();
+  const houseID = window.location.pathname.split("/")[2];
 
   const {
     isOpen: isSettingsOpen,
     onOpen: onSettingsOpen,
-    onClose: onSettingsClose
+    onClose: onSettingsClose,
   } = useDisclosure();
 
   const {
     isOpen: isLogoOpen,
     onOpen: onLogoOpen,
-    onClose: onLogoClose
+    onClose: onLogoClose,
   } = useDisclosure();
 
   const {
     isOpen: isBannerOpen,
     onOpen: onBannerOpen,
-    onClose: onBannerClose
+    onClose: onBannerClose,
   } = useDisclosure();
 
   const {
     isOpen: isDeleteOpen,
     onOpen: onDeleteOpen,
-    onClose: onDeleteClose
+    onClose: onDeleteClose,
   } = useDisclosure();
 
   useEffect(() => {
-    const token = Cookies.get('token');
-    if (token) {
-      const jwt = jwtDecode(token) as Token;
-      setDecoded(jwt);
+    if (user?.role === "A") {
+      setEditPrivilege(true);
+    }
+
+    if (user?.role === "F" && house?.facultyCordinator?._id === user?._id) {
+      setEditPrivilege(true);
     }
 
     fetchHouseData();
@@ -118,8 +150,8 @@ export const House: React.FC = () => {
       const response = await axios.get(`/houses/${houseID}`);
       if (response.status === 200) {
         const { house } = response.data.data;
+        console.log(response.data.data);
         setHouse(house);
-
 
         // form data
         setHouseName(house.name);
@@ -131,58 +163,94 @@ export const House: React.FC = () => {
         setSocialLinks(house.socialLinks || {});
       }
     } catch (error) {
-      toast('Failed to fetch house data', 'Failed to fetch house data', 'error');
+      toast(
+        "Failed to fetch house data",
+        "Failed to fetch house data",
+        "error"
+      );
     }
   };
 
-  const calculatePoints = () => {
-  };
+  const calculatePoints = () => {};
 
-  const sortMembers = () => {
-  };
+  const sortMembers = () => {};
 
   const handleUpdateHouse = async () => {
-
     try {
       const response = await axios.put(`/houses/${houseID}`, {
         name: houseName,
         color: houseColor,
         abstract: houseAbstract,
         desc: houseDesc,
-        socialLinks
+        socialLinks,
       });
       if (response.status === 200) {
-        toast('Success', 'House updated successfully', 'success');
+        toast("Success", "House updated successfully", "success");
         onSettingsClose();
         fetchHouseData();
       }
     } catch (error) {
-      toast('Error', 'Failed to update house', 'error');
+      toast("Error", "Failed to update house", "error");
     }
   };
 
-  const handleSaveLogo = async () => {
-  };
+  const handleSaveLogo = async () => {};
 
-  const handleSaveBanner = async () => {
-  };
+  const handleSaveBanner = async () => {};
 
-  const handleDeleteMember = async (member: User) => {
+  const handleDeleteMember = async () => {
+    try {
+      if (!selectedMember) return;
+
+      const response = await axios.delete(`/houses/${houseID}/member`, {
+        data: {
+          mid: selectedMember._id,
+        },
+      });
+
+      if (response.status === 200) {
+        toast("Success", "Member removed successfully", "success");
+        onDeleteClose();
+        fetchHouseData();
+      }
+    } catch (error) {
+      toast("Error", "Failed to remove member", "error");
+    }
   };
 
   const getTopMembers = (members: User[], limit?: number) => {
-    const sortedMembers = [...members].sort((a, b) =>
-      (b.totalPoints || 0) - (a.totalPoints || 0)
-    );
+    const sortedMembers = [...members].sort((a, b) => {
+      const aMemberPoints =
+        house?.points?.reduce(
+          (sum, point) => (point.userId === a._id ? sum + point.points : sum),
+          0
+        ) || 0;
+
+      const bMemberPoints =
+        house?.points?.reduce(
+          (sum, point) => (point.userId === b._id ? sum + point.points : sum),
+          0
+        ) || 0;
+
+      return bMemberPoints - aMemberPoints || 0;
+    });
+
     return limit ? sortedMembers.slice(0, limit) : sortedMembers;
   };
 
-  const handleSocialLinksChange = (type: 'instagram' | 'twitter' | 'linkedin', value: string) => {
-    setSocialLinks(prev => ({
+  const handleSocialLinksChange = (
+    type: "instagram" | "twitter" | "linkedin",
+    value: string
+  ) => {
+    setSocialLinks((prev) => ({
       ...prev,
-      [type]: value
+      [type]: value,
     }));
   };
+
+  if (!house) {
+    return <Loader />;
+  }
 
   return (
     <motion.div
@@ -196,20 +264,21 @@ export const House: React.FC = () => {
           <CardBody className="p-0">
             <div className="relative">
               <HouseBanner
-                banner={house?.banner || ''}
-                color={house?.color || ''}
+                banner={house?.banner || ""}
+                color={house?.color || ""}
                 editPrivilege={editPrivilege}
-                onSelectBanner={() => { }}
-                onBannerChange={() => { }}
+                onSelectBanner={() => {}}
+                onBannerChange={() => {}}
               />
 
               <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2">
                 <HouseProfile
-                  logo={house?.logo || ''}
-                  name={house?.name || ''}
-                  facCord={house?.facultyCordinator || {} as User}
-                  onSelectLogo={() => { }}
-                  onLogoChange={() => { }}
+                  editPrivileges={editPrivilege}
+                  logo={house?.logo || ""}
+                  name={house?.name || ""}
+                  facCord={house?.facultyCordinator || ({} as User)}
+                  onSelectLogo={() => {}}
+                  onLogoChange={() => {}}
                   onSettingsOpen={onSettingsOpen}
                   navigateToProfile={(id) => navigate(`/profile/${id}`)}
                 />
@@ -219,13 +288,9 @@ export const House: React.FC = () => {
             <div className="pt-5 px-8 pb-8">
               <SocialLinks />
 
-              <h2 className="text-xl font-semibold mb-3">
-                {house?.abstract}
-              </h2>
+              <h2 className="text-xl font-semibold mb-3">{house?.abstract}</h2>
 
-              <p className="text-gray-600 leading-relaxed">
-                {house?.desc}
-              </p>
+              <p className="text-gray-600 leading-relaxed">{house?.desc}</p>
             </div>
           </CardBody>
         </Card>
@@ -237,13 +302,15 @@ export const House: React.FC = () => {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-xl font-semibold">Top Members</h3>
                   <div className="space-x-2">
-                    <Button
-                      size="sm"
-                      leftIcon={<UserPlus size={16} />}
-                      onClick={() => setIsAddMemberOpen(true)}
-                    >
-                      Add Member
-                    </Button>
+                    {editPrivilege && (
+                      <Button
+                        size="sm"
+                        leftIcon={<UserPlus size={16} />}
+                        onClick={() => setIsAddMemberOpen(true)}
+                      >
+                        Add Member
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"
@@ -254,13 +321,14 @@ export const House: React.FC = () => {
                   </div>
                 </div>
                 <MembersTable
+                  house={house!}
                   members={getTopMembers(house?.members || [], 3)}
-                  editPrivilege={editPrivilege}
                   onMemberClick={(id) => navigate(`/profile/${id}`)}
                   onDeleteClick={(member) => {
                     setSelectedMember(member);
                     onDeleteOpen();
                   }}
+                  editPrivilege={editPrivilege}
                 />
               </CardBody>
             </Card>
@@ -285,7 +353,7 @@ export const House: React.FC = () => {
         houseColor={houseColor}
         houseAbstract={houseAbstract}
         houseDesc={houseDesc}
-        isAdmin={decoded.role === 'A'}
+        isAdmin={user?.role === "A"}
         onNameChange={setHouseName}
         onColorChange={setHouseColor}
         onAbstractChange={setHouseAbstract}
@@ -297,29 +365,33 @@ export const House: React.FC = () => {
       <ImageEditorModal
         isOpen={isLogoOpen}
         onClose={onLogoClose}
-        image={logo || ''}
+        image={logo || ""}
         type="logo"
         editorRef={logoRef}
         zoom={logoZoom}
-        onZoomChange={(value) => setLogoZoom(Array.isArray(value) ? value[0] : value)}
+        onZoomChange={(value) =>
+          setLogoZoom(Array.isArray(value) ? value[0] : value)
+        }
         onSave={handleSaveLogo}
       />
 
       <ImageEditorModal
         isOpen={isBannerOpen}
         onClose={onBannerClose}
-        image={banner || ''}
+        image={banner || ""}
         type="banner"
         editorRef={bannerRef}
         zoom={bannerZoom}
-        onZoomChange={(value) => setBannerZoom(Array.isArray(value) ? value[0] : value)}
+        onZoomChange={(value) =>
+          setBannerZoom(Array.isArray(value) ? value[0] : value)
+        }
         onSave={handleSaveBanner}
       />
 
       <DeleteConfirmDialog
         isOpen={isDeleteOpen}
         onClose={onDeleteClose}
-        onConfirm={() => { }}
+        onConfirm={handleDeleteMember}
         title="Remove Member"
         description="Are you sure you want to remove this member? This action cannot be undone."
       />
@@ -334,13 +406,14 @@ export const House: React.FC = () => {
           <ModalCloseButton />
           <ModalBody>
             <MembersTable
+              house={house!}
               members={getTopMembers(house?.members || [])}
-              editPrivilege={editPrivilege}
               onMemberClick={(id) => navigate(`/profile/${id}`)}
               onDeleteClick={(member) => {
                 setSelectedMember(member);
                 onDeleteOpen();
               }}
+              editPrivilege={editPrivilege}
             />
           </ModalBody>
         </ModalContent>
@@ -348,7 +421,8 @@ export const House: React.FC = () => {
 
       <Modal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)}>
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-        <ModalContent as={motion.div}
+        <ModalContent
+          as={motion.div}
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
@@ -428,8 +502,7 @@ export const House: React.FC = () => {
                     onChange={(e) => setSelectedHouse(e.target.value)}
                     value={selectedHouse}
                     pl={10}
-                  >
-                  </Select>
+                  ></Select>
                 </InputGroup>
               </FormControl>
 
@@ -437,9 +510,15 @@ export const House: React.FC = () => {
                 <FormLabel>Gender</FormLabel>
                 <RadioGroup onChange={setGender} value={gender}>
                   <Stack direction="row" spacing={6}>
-                    <Radio value="M" colorScheme="blue">Male</Radio>
-                    <Radio value="F" colorScheme="pink">Female</Radio>
-                    <Radio value="O" colorScheme="purple">Others</Radio>
+                    <Radio value="M" colorScheme="blue">
+                      Male
+                    </Radio>
+                    <Radio value="F" colorScheme="pink">
+                      Female
+                    </Radio>
+                    <Radio value="O" colorScheme="purple">
+                      Others
+                    </Radio>
                   </Stack>
                 </RadioGroup>
               </FormControl>

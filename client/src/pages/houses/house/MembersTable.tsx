@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Table,
   Thead,
@@ -11,23 +11,42 @@ import {
   HStack,
   VStack,
   Text,
-  Box
-} from '@chakra-ui/react';
-import { Edit, Trash2 } from 'lucide-react';
-import { User } from '@shared-types/User';
+  Box,
+} from "@chakra-ui/react";
+import { Trash2 } from "lucide-react";
+import { User } from "@shared-types/User";
+import { getUserPoints } from "@/utils/getUserPoints";
+import { House, Point } from "@shared-types/House";
+import { Certificate } from "@shared-types/Certificate";
+
+interface ExtendedPoint extends Omit<Point, "certificateId"> {
+  certificateId: Certificate;
+}
+interface ExtendedHouse
+  extends Omit<
+    House,
+    "members" | "facultyCordinator" | "studentCordinator" | "points"
+  > {
+  members: User[];
+  facultyCordinator: User;
+  studentCordinator: User;
+  points: ExtendedPoint[];
+}
 
 interface MembersTableProps {
   members: User[];
   onMemberClick: (id: string) => void;
   onDeleteClick: (member: User) => void;
-  onEditClick: (member: User) => void;
+  house?: ExtendedHouse;
+  editPrivilege: boolean;
 }
 
 export const MembersTable: React.FC<MembersTableProps> = ({
   members,
   onMemberClick,
   onDeleteClick,
-  onEditClick,
+  house,
+  editPrivilege,
 }) => {
   return (
     <Box overflowX="auto" mt={4}>
@@ -38,7 +57,7 @@ export const MembersTable: React.FC<MembersTableProps> = ({
             <Th>NAME</Th>
             <Th>MOODLE ID</Th>
             <Th>POINTS</Th>
-            <Th>ACTIONS</Th>
+            {editPrivilege && <Th>ACTIONS</Th>}
           </Tr>
         </Thead>
         <Tbody>
@@ -46,7 +65,7 @@ export const MembersTable: React.FC<MembersTableProps> = ({
             <Tr
               key={member.mid}
               cursor="pointer"
-              _hover={{ bg: 'gray.50' }}
+              _hover={{ bg: "gray.50" }}
               onClick={() => onMemberClick(member.mid)}
             >
               <Td>{index + 1}</Td>
@@ -68,33 +87,23 @@ export const MembersTable: React.FC<MembersTableProps> = ({
                 </HStack>
               </Td>
               <Td>{member.mid}</Td>
-              {/* <Td>{member.totalPoints}</Td> */}
-              <Td>
-                <HStack spacing={2}>
-                  <Button
-                    size="sm"
-                    colorScheme="blue"
-                    variant="ghost"
-                    leftIcon={<Edit size={16} />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditClick(member);
-                    }}
-                  >
-                  </Button>
-                  <Button
-                    size="sm"
-                    colorScheme="red"
-                    variant="ghost"
-                    leftIcon={<Trash2 size={16} />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteClick(member);
-                    }}
-                  >
-                  </Button>
-                </HStack>
-              </Td>
+              <Td>{house && getUserPoints(member?._id, house).total}</Td>
+              {editPrivilege && (
+                <Td>
+                  <HStack spacing={2}>
+                    <Button
+                      size="sm"
+                      colorScheme="red"
+                      variant="ghost"
+                      leftIcon={<Trash2 size={16} />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteClick(member);
+                      }}
+                    ></Button>
+                  </HStack>
+                </Td>
+              )}
             </Tr>
           ))}
         </Tbody>

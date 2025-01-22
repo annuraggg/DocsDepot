@@ -82,14 +82,9 @@ function App() {
 
   useEffect(() => {
     const axios = useAxios();
-    console.log("Checking maintainance mode");
 
     axios
       .get("/maintainance")
-      .then((d) => {
-        console.log("Maintainance mode is off");
-        console.log(d);
-      })
       .catch((err) => {
         console.log(err);
         if (err.response.status === 503) {

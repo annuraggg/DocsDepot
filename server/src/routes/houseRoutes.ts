@@ -6,7 +6,7 @@ const app = new Hono();
 app.get("/", houseController.getAllHouses);
 app.get("/:id", houseController.getHouse);
 app.put("/:id", houseController.updateHouse);
-app.delete("/:id", houseController.removeMember);
+app.delete("/:id/member", houseController.removeMember);
 app.put("/:id/logo", houseController.uploadLogo);
 app.put("/:id/banner", houseController.uploadBanner);
 

@@ -2,8 +2,13 @@ import mongoose from "mongoose";
 
 const pointSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    value: { type: Number, required: true },
+    certificateId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "Certificate",
+    },
+    userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
+    points: { type: Number, required: true },
   },
   { timestamps: true }
 );
