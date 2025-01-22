@@ -128,10 +128,10 @@ const Event = () => {
       setEventPhone(res.data.data.phone);
       setParticipants(res.data.data.participants);
 
-      const eventStartsDate = new Date(res.data.data.eventStarts);
-      const eventEndsDate = new Date(res.data.data.eventEnds);
-      const registerationStartsDate = new Date(res.data.data.registerationStarts);
-      const registerationEndsDate = new Date(res.data.data.registerationEnds);
+      const eventStartsDate = new Date(res.data.data.eventTimeline.start);
+      const eventEndsDate = new Date(res.data.data.eventTimeline.end);
+      const registerationStartsDate = new Date(res.data.data.registrationTimeline.start);
+      const registerationEndsDate = new Date(res.data.data.registrationTimeline.end);
 
       [eventStartsDate, eventEndsDate, registerationStartsDate, registerationEndsDate].forEach(date => {
         date.setHours(date.getHours() + 5);

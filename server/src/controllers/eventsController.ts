@@ -3,9 +3,6 @@ import { sendSuccess, sendError } from "../utils/sendResponse.js";
 import logger from "../utils/logger.js";
 import Event from "../models/Event.js";
 import User from "../models/User.js";
-import House from "../models/House.js";
-import Notification from "../models/Notification.js";
-import Certificate from "../models/Certificate.js";
 import type { Context } from "hono";
 
 const getAllEvents = async (c: Context) => {
@@ -21,7 +18,7 @@ const getEventById = async (c: Context) => {
   const { id } = c.req.param();
 
   try {
-    const event = await Event.findOne({ _id: id });
+    const event = await Event.findById(id);
     if (!event) return sendError(c, 404, "Event not found");
 
     return sendSuccess(c, 200, "Event fetched successfully", event);
@@ -39,34 +36,33 @@ const updateEvent = async (c: Context) => {
     location,
     mode,
     link,
-    email,
-    phone,
-    eventStarts,
-    eventEnds,
-    registerationStarts,
-    registerationEnds,
+    contact,
+    eventTimeline,
+    registrationTimeline,
+    registerationType,
   } = await c.req.json();
 
   try {
-    await Event.updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          name,
-          image,
-          desc,
-          location,
-          mode,
-          link,
-          email,
-          phone,
-          eventStarts: new Date(eventStarts),
-          eventEnds: new Date(eventEnds),
-          registerationStarts: new Date(registerationStarts),
-          registerationEnds: new Date(registerationEnds),
+    await Event.findByIdAndUpdate(id, {
+      $set: {
+        name,
+        image,
+        desc,
+        location,
+        mode,
+        link,
+        contact,
+        eventTimeline: {
+          start: new Date(eventTimeline.start),
+          end: new Date(eventTimeline.end),
         },
-      }
-    );
+        registrationTimeline: {
+          start: new Date(registrationTimeline.start),
+          end: new Date(registrationTimeline.end),
+        },
+        registerationType,
+      },
+    });
     return sendSuccess(c, 200, "Event updated successfully");
   } catch (err) {
     return sendError(c, 500, "Error in updating event");
@@ -77,7 +73,7 @@ const deleteEvent = async (c: Context) => {
   const { id } = c.req.param();
 
   try {
-    await Event.deleteOne({ _id: id });
+    await Event.findByIdAndDelete(id);
     return sendSuccess(c, 200, "Event deleted successfully");
   } catch (err) {
     return sendError(c, 500, "Error in deleting event");
@@ -92,13 +88,10 @@ const createEvent = async (c: Context) => {
     location,
     mode,
     link,
-    email,
-    phone,
-    eventStarts,
-    eventEnds,
-    registerationStarts,
-    registerationEnds,
-    registerationMode,
+    contact,
+    eventTimeline,
+    registrationTimeline,
+    registerationType,
   } = await c.req.json();
 
   try {
@@ -109,21 +102,23 @@ const createEvent = async (c: Context) => {
       location,
       mode,
       link,
-      email,
-      phone,
-      eventStarts: new Date(eventStarts),
-      eventEnds: new Date(eventEnds),
-      registerationStarts: new Date(registerationStarts),
-      registerationEnds: new Date(registerationEnds),
-      createdAt: new Date(),
-      registerationType: registerationMode,
+      contact,
+      eventTimeline: {
+        start: new Date(eventTimeline.start),
+        end: new Date(eventTimeline.end),
+      },
+      registrationTimeline: {
+        start: new Date(registrationTimeline.start),
+        end: new Date(registrationTimeline.end),
+      },
+      registerationType,
       pointsAllocated: false,
-      registered: registerationMode === "internal" ? [] : undefined,
     };
 
     await Event.create(eventDocument);
     return sendSuccess(c, 200, "Event created successfully");
   } catch (err) {
+    console.log(err);
     return sendError(c, 500, "Error in creating event");
   }
 };
@@ -133,11 +128,8 @@ const registerForEvent = async (c: Context) => {
   const { mid } = await c.req.json();
 
   try {
-    await Event.updateOne(
-      { _id: new ObjectId(id) },
-      { $addToSet: { registered: mid } }
-    );
-    await User.updateOne({ mid }, { $addToSet: { registeredEvents: id } });
+    await Event.findByIdAndUpdate(id, { $addToSet: { participants: mid } });
+    await User.findByIdAndUpdate(mid, { $addToSet: { registeredEvents: id } });
     return sendSuccess(c, 200, "Registered for event successfully");
   } catch (err) {
     return sendError(c, 500, "Error in registering for event");
@@ -149,11 +141,8 @@ const deregisterForEvent = async (c: Context) => {
   const { mid } = await c.req.json();
 
   try {
-    await Event.updateOne(
-      { _id: new ObjectId(id) },
-      { $pull: { registered: mid } }
-    );
-    await User.updateOne({ mid }, { $pull: { registeredEvents: id } });
+    await Event.findByIdAndUpdate(id, { $pull: { participants: mid } });
+    await User.findByIdAndUpdate(mid, { $pull: { registeredEvents: id } });
     return sendSuccess(c, 200, "Deregistered for event successfully");
   } catch (err) {
     return sendError(c, 500, "Error in deregistering for event");

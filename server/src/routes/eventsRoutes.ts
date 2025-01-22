@@ -5,7 +5,7 @@ const router = new Hono();
 
 router.get("/", eventController.getAllEvents);
 router.get("/:id", eventController.getEventById);
-router.post("/create", eventController.createEvent);
+router.post("/", eventController.createEvent);
 router.post("/:id/register", eventController.registerForEvent);
 router.post("/:id/deregister", eventController.deregisterForEvent);
 router.put("/:id", eventController.updateEvent);
