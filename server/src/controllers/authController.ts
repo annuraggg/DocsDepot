@@ -44,7 +44,7 @@ const login = async (c: Context) => {
       } else {
         const data: Token = {
           _id: findUser._id.toString(),
-          house: findUser.house.toString(),
+          house: findUser.house?.toString(),
           profilePicture: findUser.profilePicture,
           mid,
           fname: findUser.fname,
