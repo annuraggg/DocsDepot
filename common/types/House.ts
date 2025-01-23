@@ -1,15 +1,15 @@
-interface Social {
-  instagram?: string | null;
-  linkedin?: string | null;
-  twitter?: string | null;
-}
-
 interface Point {
   certificateId: string;
   userId: string;
   points: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+interface Social {
+  instagram?: string | null;
+  linkedin?: string | null;
+  twitter?: string | null;
 }
 
 interface House {
