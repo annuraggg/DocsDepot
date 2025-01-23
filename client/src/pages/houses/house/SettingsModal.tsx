@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -20,54 +20,42 @@ import {
   FormControl,
   FormLabel,
 } from "@chakra-ui/react";
-import { Settings, Star, Lock, Instagram, Twitter, Linkedin } from "lucide-react";
+import {
+  Settings,
+  Star,
+  Lock,
+  Instagram,
+  Twitter,
+  Linkedin,
+} from "lucide-react";
 import { ChromePicker } from "react-color";
+import { ExtendedHouse } from "@shared-types/ExtendedHouse";
+import useUser from "@/config/user";
 
 interface SettingsModalProps {
+  house: ExtendedHouse;
+  setHouse: React.Dispatch<React.SetStateAction<ExtendedHouse | null>>;
   isOpen: boolean;
   onClose: () => void;
-  houseName: string;
-  houseColor: string;
-  houseAbstract: string;
-  houseDesc: string;
-  isAdmin: boolean;
-  socialLinks?: {
-    instagram?: string;
-    twitter?: string;
-    linkedin?: string;
-  };
-  onNameChange: (value: string) => void;
-  onColorChange: (value: string) => void;
-  onAbstractChange: (value: string) => void;
-  onDescChange: (value: string) => void;
-  onSocialLinksChange?: (type: 'instagram' | 'twitter' | 'linkedin', value: string) => void;
   onSave: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
+  house,
+  setHouse,
   isOpen,
   onClose,
-  houseName,
-  houseColor,
-  houseAbstract,
-  houseDesc,
-  isAdmin,
-  socialLinks = {}, // Provide default empty object
-  onNameChange,
-  onColorChange,
-  onAbstractChange,
-  onDescChange,
-  onSocialLinksChange = () => {}, // Provide default no-op function
   onSave,
 }) => {
   const [showColorPicker, setShowColorPicker] = React.useState(false);
+  const [isAdmin, setIsAdmin] = React.useState(false);
 
-  // Safely access social links with defaults
-  const {
-    instagram = '',
-    twitter = '',
-    linkedin = ''
-  } = socialLinks;
+  const user = useUser();
+  useEffect(() => {
+    if (user) {
+      setIsAdmin(user.role === "A");
+    }
+  }, [user]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered>
@@ -104,8 +92,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </InputLeftElement>
                   )}
                   <Input
-                    value={houseName}
-                    onChange={(e) => onNameChange(e.target.value)}
+                    value={house.name}
+                    onChange={(e) =>
+                      setHouse({ ...house, name: e.target.value })
+                    }
                   />
                 </InputGroup>
               </FormControl>
@@ -114,15 +104,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <FormLabel>House Color</FormLabel>
                 <InputGroup>
                   <Input
-                    value={houseColor}
-                    onChange={(e) => onColorChange(e.target.value)}
+                    value={house.color}
+                    onChange={(e) =>
+                      setHouse({ ...house, color: e.target.value })
+                    }
                   />
                   <InputRightElement>
                     <Box
                       w="24px"
                       h="24px"
                       borderRadius="full"
-                      bg={houseColor}
+                      bg={house.color}
                       cursor="pointer"
                       onClick={() => setShowColorPicker(!showColorPicker)}
                     />
@@ -131,8 +123,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {showColorPicker && (
                   <Box position="absolute" zIndex={2} mt={2}>
                     <ChromePicker
-                      color={houseColor}
-                      onChange={(color) => onColorChange(color.hex)}
+                      color={house.color}
+                      onChange={(color) =>
+                        setHouse({ ...house, color: color.hex })
+                      }
                     />
                   </Box>
                 )}
@@ -142,16 +136,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <FormControl isRequired>
               <FormLabel>House Abstract</FormLabel>
               <Input
-                value={houseAbstract}
-                onChange={(e) => onAbstractChange(e.target.value)}
+                value={house.abstract}
+                onChange={(e) =>
+                  setHouse({ ...house, abstract: e.target.value })
+                }
               />
             </FormControl>
 
             <FormControl>
               <FormLabel>House Description</FormLabel>
               <Textarea
-                value={houseDesc}
-                onChange={(e) => onDescChange(e.target.value)}
+                value={house.desc}
+                onChange={(e) => setHouse({ ...house, desc: e.target.value })}
                 size="sm"
                 rows={6}
               />
@@ -170,8 +166,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </InputLeftElement>
                     <Input
                       placeholder="Instagram URL"
-                      value={instagram}
-                      onChange={(e) => onSocialLinksChange('instagram', e.target.value)}
+                      value={house.social.instagram!}
+                      onChange={(e) =>
+                        setHouse({
+                          ...house,
+                          social: {
+                            ...house.social,
+                            instagram: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </InputGroup>
                 </FormControl>
@@ -183,8 +187,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </InputLeftElement>
                     <Input
                       placeholder="Twitter URL"
-                      value={twitter}
-                      onChange={(e) => onSocialLinksChange('twitter', e.target.value)}
+                      value={house.social.twitter!}
+                      onChange={(e) =>
+                        setHouse({
+                          ...house,
+                          social: {
+                            ...house.social,
+                            twitter: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </InputGroup>
                 </FormControl>
@@ -196,8 +208,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </InputLeftElement>
                     <Input
                       placeholder="LinkedIn URL"
-                      value={linkedin}
-                      onChange={(e) => onSocialLinksChange('linkedin', e.target.value)}
+                      value={house.social.linkedin!}
+                      onChange={(e) =>
+                        setHouse({
+                          ...house,
+                          social: {
+                            ...house.social,
+                            linkedin: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </InputGroup>
                 </FormControl>

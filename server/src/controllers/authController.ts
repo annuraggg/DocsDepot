@@ -74,7 +74,7 @@ const login = async (c: Context) => {
 
         const data: Token = {
           _id: findUser._id.toString(),
-          house: findUser.house.toString(),
+          house: findUser.house?.toString(),
           profilePicture: findUser.profilePicture,
           mid,
           fname: findUser.fname,
@@ -130,7 +130,7 @@ const firstTimePassword = async (c: Context) => {
 
         const data: Token = {
           _id: user._id.toString(),
-          house: user.house.toString(),
+          house: user.house?.toString(),
           profilePicture: user.profilePicture,
           mid,
           fname: user.fname,

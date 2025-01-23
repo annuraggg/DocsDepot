@@ -13,9 +13,11 @@ const StudentLayout = () => {
   }, []);
 
   return (
-    <div>
+    <div className="max-h-screen">
       <StudentNavbar />
-      <Outlet />
+      <div className="h-[calc(100vh-4rem)]">
+        <Outlet />
+      </div>
     </div>
   );
 };

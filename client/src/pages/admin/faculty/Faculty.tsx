@@ -63,6 +63,7 @@ const Faculty = () => {
   });
 
   const [state, setState] = useState({
+    _id: "",
     delItem: "",
     mid: "",
     fname: "",
@@ -121,22 +122,32 @@ const Faculty = () => {
 
   useEffect(() => {
     const filtered = faculty.filter((fac) => {
-      const matchesSearch = [fac.fname, fac.lname, fac.social.email]
-        .some((value) => value.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = [fac.fname, fac.lname, fac.social.email].some(
+        (value) => value.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
-      const matchesGender = filters.gender.length === 0 || filters.gender.includes(fac.gender);
-      const matchesDepartment = filters.department.length === 0 || filters.department.includes(fac.academicDetails.branch);
-      const matchesPermissions = filters.permissions.length === 0 ||
-        filters.permissions.some(perm => fac.permissions.includes(perm));
+      const matchesGender =
+        filters.gender.length === 0 || filters.gender.includes(fac.gender);
+      const matchesDepartment =
+        filters.department.length === 0 ||
+        filters.department.includes(fac.academicDetails.branch);
+      const matchesPermissions =
+        filters.permissions.length === 0 ||
+        filters.permissions.some((perm) => fac.permissions.includes(perm));
 
-      return matchesSearch && matchesGender && matchesDepartment && matchesPermissions;
+      return (
+        matchesSearch &&
+        matchesGender &&
+        matchesDepartment &&
+        matchesPermissions
+      );
     });
 
     setFilteredFaculty(filtered);
   }, [searchQuery, faculty, filters]);
 
   const deleteCustomer = (id: string) => {
-    setState(prev => ({ ...prev, delItem: id }));
+    setState((prev) => ({ ...prev, delItem: id }));
     onDeleteOpen();
   };
 
@@ -149,10 +160,10 @@ const Faculty = () => {
     });
 
     if (
-      fac?.permissions?.includes("HCO0") ||
-      fac?.permissions?.includes("HCO1") ||
-      fac?.permissions?.includes("HCO2") ||
-      fac?.permissions?.includes("HCO3")
+      fac?.permissions?.includes("H1") ||
+      fac?.permissions?.includes("H2") ||
+      fac?.permissions?.includes("H3") ||
+      fac?.permissions?.includes("H4")
     ) {
       onDeleteOpen();
     } else {
@@ -164,7 +175,7 @@ const Faculty = () => {
     axios.delete(`/user/${state.delItem}`).then((res) => {
       if (res.data.success) {
         onDeleteClose();
-        setState(prev => ({ ...prev, searchQuery: "" }));
+        setState((prev) => ({ ...prev, searchQuery: "" }));
         toast({
           title: "Success",
           description: "Faculty deleted successfully",
@@ -193,8 +204,9 @@ const Faculty = () => {
     );
     if (!faculty) return;
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
+      _id: faculty._id,
       mid: faculty.mid,
       fname: faculty.fname,
       lname: faculty.lname,
@@ -207,7 +219,7 @@ const Faculty = () => {
 
   const updateFaculty = () => {
     function checkElements(arr: string | string[]) {
-      const elementsToCheck = ["HCO0", "HCO1", "HCO2", "HCO3"];
+      const elementsToCheck = ["H1", "H2", "H3", "H4"];
       let count = 0;
 
       for (const element of elementsToCheck) {
@@ -244,7 +256,7 @@ const Faculty = () => {
       .then((res) => {
         if (res.data.success) {
           onEditClose();
-          setState(prev => ({ ...prev, searchQuery: "" }));
+          setState((prev) => ({ ...prev, searchQuery: "" }));
           toast({
             title: "Success",
             description: "Faculty updated successfully",
@@ -252,12 +264,14 @@ const Faculty = () => {
             duration: 2000,
             isClosable: true,
           });
-          const index = faculty.findIndex((faculty) => faculty._id === state.facOID);
+          const index = faculty.findIndex(
+            (faculty) => faculty._id === state.facOID
+          );
           faculty[index].mid = state.mid;
           faculty[index].fname = state.fname;
           faculty[index].lname = state.lname;
           faculty[index].social.email = state.email;
-          faculty[index].gender = state.gender as Gender
+          faculty[index].gender = state.gender as Gender;
           faculty[index].permissions = state.perms;
 
           setFaculty(faculty);
@@ -286,9 +300,9 @@ const Faculty = () => {
   };
 
   const setFacultyData = (data: any) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      ...data
+      ...data,
     }));
   };
 
@@ -300,10 +314,10 @@ const Faculty = () => {
 
   const permissionOptions = [
     { value: "UFC", label: "Faculty" },
-    { value: "HCO0", label: "House 1 Coordinator" },
-    { value: "HCO1", label: "House 2 Coordinator" },
-    { value: "HCO2", label: "House 3 Coordinator" },
-    { value: "HCO3", label: "House 4 Coordinator" },
+    { value: "H1", label: "House 1 Coordinator" },
+    { value: "H2", label: "House 2 Coordinator" },
+    { value: "H3", label: "House 3 Coordinator" },
+    { value: "H4", label: "House 4 Coordinator" },
   ];
 
   return (
@@ -370,7 +384,9 @@ const Faculty = () => {
                   <FormLabel fontWeight="medium">Gender</FormLabel>
                   <CheckboxGroup
                     value={filters.gender}
-                    onChange={(values) => setFilters({ ...filters, gender: values as string[] })}
+                    onChange={(values) =>
+                      setFilters({ ...filters, gender: values as string[] })
+                    }
                   >
                     <Stack direction="row" spacing={4}>
                       <Checkbox value="M">Male</Checkbox>
@@ -383,7 +399,9 @@ const Faculty = () => {
                   <FormLabel fontWeight="medium">Department</FormLabel>
                   <CheckboxGroup
                     value={filters.department}
-                    onChange={(values) => setFilters({ ...filters, department: values as string[] })}
+                    onChange={(values) =>
+                      setFilters({ ...filters, department: values as string[] })
+                    }
                   >
                     <Stack direction="row" spacing={4} wrap="wrap">
                       {uniqueDepartments.map((dept) => (
@@ -399,7 +417,12 @@ const Faculty = () => {
                   <FormLabel fontWeight="medium">Role</FormLabel>
                   <CheckboxGroup
                     value={filters.permissions}
-                    onChange={(values) => setFilters({ ...filters, permissions: values as string[] })}
+                    onChange={(values) =>
+                      setFilters({
+                        ...filters,
+                        permissions: values as string[],
+                      })
+                    }
                   >
                     <Stack direction="row" spacing={4} wrap="wrap">
                       {permissionOptions.map((option) => (
@@ -416,11 +439,13 @@ const Faculty = () => {
               <Button
                 variant="ghost"
                 mr={3}
-                onClick={() => setFilters({
-                  gender: [],
-                  department: [],
-                  permissions: [],
-                })}
+                onClick={() =>
+                  setFilters({
+                    gender: [],
+                    department: [],
+                    permissions: [],
+                  })
+                }
               >
                 Clear All
               </Button>
@@ -446,12 +471,15 @@ const Faculty = () => {
         />
 
         <PermissionsModal
+          userid={state._id}
           isOpen={isPermsOpen}
           onClose={onPermsClose}
           onEditOpen={onEditOpen}
-          houses={state.houses}
+          houses={houses}
           perms={state.perms}
-          setPerms={(newPerms) => setState(prev => ({ ...prev, perms: newPerms }))}
+          setPerms={(newPerms) =>
+            setState((prev) => ({ ...prev, perms: newPerms }))
+          }
         />
 
         <DeleteAlert

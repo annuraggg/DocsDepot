@@ -14,8 +14,8 @@ export const calculatePoints = (
 
   if (selectedMonth === "all") {
     return houses.reduce((totals, house) => {
-      if (house.points[currentYear]) {
-        Object.values(house.points[currentYear]).forEach((monthData) => {
+      if (house?.points[currentYear]) {
+        Object.values(house?.points[currentYear]).forEach((monthData) => {
           totals.totalInternal += monthData.internal || 0;
           totals.totalExternal += monthData.external || 0;
           totals.totalEvents += monthData.events || 0;

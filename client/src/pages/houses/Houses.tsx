@@ -10,8 +10,10 @@ import { House, Point } from "@shared-types/House";
 const Houses = () => {
   const toast = useToast();
   const navigate = useNavigate();
+
   const [houses, setHouses] = useState<House[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // January = 1
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [prevMonth, setPrevMonth] = useState<number>(new Date().getMonth());

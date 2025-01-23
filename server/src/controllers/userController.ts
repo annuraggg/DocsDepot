@@ -70,15 +70,49 @@ const updateUser = async (c: Context) => {
   const { id } = c.req.param();
   const body = await c.req.json();
   const token = c.get("user") as Token;
+
+  console.log(body);
+
   try {
     const user = await User.findById(id).lean();
+    if (!user) return sendError(c, 404, "User not found");
+
+    const houseUpdates = async (houseId: string, permission: string) => {
+      const house = await House.findOne({ id: houseId });
+      if (house) {
+        if (body.permissions.includes(permission)) {
+          if (house.facultyCordinator?.toString() !== id) {
+            // @ts-expect-error
+            house.facultyCordinator = id;
+            await house.save();
+          }
+        } else if (house.facultyCordinator?.toString() === id) {
+          house.facultyCordinator = null;
+          await house.save();
+        }
+      }
+    };
+
+    // Update houses based on permissions
+    await Promise.all([
+      houseUpdates("H1", "H1"),
+      houseUpdates("H2", "H2"),
+      houseUpdates("H3", "H3"),
+      houseUpdates("H4", "H4"),
+    ]);
+
+    // REMOVE HC01, HC02, HC03, HC04 from permissions
+    body.permissions = body.permissions.filter(
+      (perm: string) => !perm.startsWith("H")
+    );
+
     const gate = new UserKeeper(token, user);
     await gate.update();
 
     const updatedUser = await User.findByIdAndUpdate(id, body, { new: true });
-    if (!user) return sendError(c, 404, "User not found");
     return sendSuccess(c, 200, "User updated", updatedUser);
   } catch (err) {
+    console.error(err);
     return sendError(c, 500, "Internal Server Error");
   }
 };
@@ -247,6 +281,15 @@ const resetPassword = async (c: Context) => {
   }
 };
 
+const getNotAllotedUsers = async (c: Context) => {
+  try {
+    const users = await User.find({ house: null, role: "S" }).lean();
+    return sendSuccess(c, 200, "Success", users);
+  } catch {
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 export default {
   getAllUsers,
   getAllStudents,
@@ -262,4 +305,5 @@ export default {
   bulkCreateFaculty,
   bulkDeleteUsers,
   resetPassword,
+  getNotAllotedUsers,
 };

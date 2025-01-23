@@ -1,439 +1,450 @@
-import React, { useEffect } from "react";
-import {
-  Button,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  useDisclosure,
-  Alert,
-  AlertIcon,
-  Text,
-  Image,
-  Heading,
-  Td,
-  Box,
-  Table,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Input,
-  useToast,
-  Textarea,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-} from "@chakra-ui/react";
-
-import Intro1 from "../../../assets/img/logo-icon.png";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
-import useUser from "@/config/user";
+import Logo from "@/assets/img/logo.png";
+import useAxios from "@/config/axios";
+import { Spinner, useToast } from "@chakra-ui/react";
 
 const IntroModal = () => {
-  const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [page, setPage] = React.useState(1);
-
-  const {
-    isOpen: isOpenAlert,
-    onOpen: onOpenAlert,
-    onClose: onCloseAlert,
-  } = useDisclosure();
-  const cancelRef = React.useRef<HTMLButtonElement>(null);
-
-  const user = useUser();
-
-  const [about, setAbout] = React.useState("");
-  const [technical, setTechnical] = React.useState("");
-  const [projects, setProjects] = React.useState("");
-  const [cgpa, setCgpa] = React.useState("");
-
-  const [close, setClose] = React.useState(false);
-  useEffect(() => {
-    if (!close) {
-      onOpen();
-      setClose(true);
-    }
+  const [page, setPage] = useState(1);
+  const [formData, setFormData] = useState({
+    about: "",
+    technical: "",
+    projects: "",
+    cgpa: "",
   });
+  const [isOpen, setIsOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const axios = useAxios();
+  const toast = useToast();
+
+  useEffect(() => {
+    setIsOpen(true);
+  }, []);
+
+  const handleInputChange = (
+    e:
+      | React.ChangeEvent<HTMLTextAreaElement>
+      | React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
 
   const incrementPage = () => {
-    // ! TODO: CHANGE PAGE NUMBERS
-
-    if (page === 1) {
-      setPage(2);
-    } else if (page === 2) {
-      setPage(4); // ! SET THIS TO THREE
-    } else if (page === 3) {
-      setPage(4);
-    } else if (page === 4) {
-      const aboutElement = document.getElementById(
-        "about"
-      ) as HTMLTextAreaElement;
-      const technicalElement = document.getElementById(
-        "technical"
-      ) as HTMLTextAreaElement;
-      if (!aboutElement || !technicalElement) return;
-      const about = aboutElement.value;
-      const technical = technicalElement.value;
-      if (about === "" || technical === "") {
-        toast({
-          title: "Please fill all the fields",
-          status: "error",
-          isClosable: true,
-        });
-        return;
-      }
-      setPage(5);
-    } else if (page === 5) {
-      const projectsElement = document.getElementById(
-        "projects"
-      ) as HTMLTextAreaElement;
-      const cgpaElement = document.getElementById("cgpa") as HTMLInputElement;
-      if (!projectsElement || !cgpaElement) return;
-      const projects = projectsElement.value;
-      const cgpa = cgpaElement.value;
-      if (projects === "" || cgpa === "") {
-        toast({
-          title: "Please fill all the fields",
-          status: "error",
-          isClosable: true,
-        });
-        return;
-      }
-
-      if (Number(cgpa) > 10 || Number(cgpa) < 0) {
-        toast({
-          title: "Please enter a valid CGPA",
-          status: "error",
-          isClosable: true,
-        });
-        return;
-      }
-
-      onClose();
-      const modalElement = document.getElementById("IntroModal");
-      if (modalElement) modalElement.style.display = "none";
-      sendData();
+    switch (page) {
+      case 1:
+        setPage(2);
+        break;
+      case 2:
+        setPage(4);
+        break;
+      case 4:
+        if (!formData.about || !formData.technical) {
+          toast({
+            title: "Error",
+            description: "Please fill all fields",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
+        setPage(5);
+        break;
+      case 5:
+        if (!formData.projects || !formData.cgpa) {
+          toast({
+            title: "Error",
+            description: "Please fill all fields",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
+        if (Number(formData.cgpa) > 10 || Number(formData.cgpa) < 0) {
+          toast({
+            title: "Error",
+            description: "CGPA should be between 0 and 10",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
+        sendData();
+        break;
     }
   };
 
   const decrementPage = () => {
-    if (page === 1) {
-      return;
-    } else if (page === 2) {
-      setPage(1);
-    } else if (page === 3) {
-      setPage(2);
-    } else if (page === 4) {
-      setPage(2); // !Change Page Here
-    } else if (page === 5) {
-      setPage(4);
+    switch (page) {
+      case 2:
+        setPage(1);
+        break;
+      case 4:
+        setPage(2);
+        break;
+      case 5:
+        setPage(4);
+        break;
     }
   };
 
   const sendData = () => {
-    fetch(
-      `${import.meta.env.VITE_BACKEND_ADDRESS}/student/dashboard/firstTime`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          about,
-          technical,
-          projects,
-          cgpa,
-          mid: user?.mid,
-        }),
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          onOpenAlert();
-        } else {
-          toast({
-            title: "An Error Occured. Please Try Again After Some Time",
-            status: "error",
-            isClosable: true,
-          });
-          setPage(1);
-          onOpen();
-        }
+    setSubmitting(true);
+    axios
+      .post("/enrollment", formData)
+      .then(() => {
+        setIsAlertOpen(true);
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         toast({
           title: "Error",
+          description: "Failed to submit data",
           status: "error",
+          duration: 3000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setSubmitting(false);
       });
   };
 
   const logoutAndSave = () => {
-    onCloseAlert();
-    Cookies.remove("token", {
-      path: "/",
-      domain: import.meta.env.VITE_COOKIE_DOMAIN,
-    });
-    Cookies.remove("token", {
-      path: "/",
-      domain: import.meta.env.VITE_COOKIE_DOMAIN2,
-    });
+    Cookies.remove("token");
     window.location.href = "/auth";
   };
 
+  const pageVariants = {
+    initial: {
+      opacity: 0,
+      x: 300,
+      scale: 0.8,
+    },
+    in: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+    },
+    out: {
+      opacity: 0,
+      x: -300,
+      scale: 0.8,
+    },
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5,
+  };
+
+  const renderModalContent = () => {
+    switch (page) {
+      case 1:
+        return (
+          <motion.div
+            key="page1"
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+            className="text-center p-8 space-y-6"
+          >
+            <div className="flex items-center justify-center gap-3">
+              <motion.h2
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-3xl font-bold"
+              >
+                Welcome to
+              </motion.h2>
+              <motion.img
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.5 }}
+                src={Logo}
+                alt="Logo"
+                className="w-48 h-auto"
+              />
+            </div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-lg text-gray-600"
+            >
+              Our innovative house system, certificate uploads, and exciting
+              events empower you to excel academically and personally. Join a
+              house, showcase your achievements, participate in events, and earn
+              XP to make your college experience truly unforgettable.
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="italic text-blue-600"
+            >
+              Click Next to See How
+            </motion.p>
+          </motion.div>
+        );
+      case 2:
+        return (
+          <motion.div
+            key="page2"
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+            className="p-8 space-y-6"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-4xl mb-5 font-bold text-center"
+            >
+              Your Pathway to Coding Excellence and Collaboration
+            </motion.h2>
+            <div className="space-y-4">
+              {[
+                {
+                  title: "Houses",
+                  desc: "Join dynamic Houses, engage in coding events, and test teamwork. Accumulate House Points (HP) and XP for an exciting journey of growth.",
+                },
+                {
+                  title: "Events",
+                  desc: "Ignite Curiosity. Access real-world events and challenges that align with your studies. Participate to Win XP.",
+                },
+                {
+                  title: "Certificates",
+                  desc: "Hone your coding mastery through the certifications youve received.",
+                },
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.2, duration: 0.5 }}
+                  className="bg-blue-50 p-4 rounded-lg"
+                >
+                  <h3 className="font-bold text-xl mb-2 text-blue-700">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        );
+      case 4:
+        return (
+          <motion.div
+            key="page4"
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+            className="p-8 space-y-6"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-3xl font-bold mb-4"
+            >
+              A Few Things Before We Get Started
+            </motion.h2>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4"
+            >
+              <p className="text-yellow-700">
+                Note that you must fill certifications and Technical details
+                correctly as they will be verified by the admin. Your house
+                allotment will be based on this data.
+              </p>
+            </motion.div>
+            <motion.textarea
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              id="about"
+              placeholder="Write a Few Things About Yourself (Do not mention identifying details)"
+              className="w-full p-3 border rounded-lg h-32 mb-4"
+              value={formData.about}
+              onChange={handleInputChange}
+            />
+            <motion.textarea
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+              id="technical"
+              placeholder="Write About Your Technical Skills"
+              className="w-full p-3 border rounded-lg h-32"
+              value={formData.technical}
+              onChange={handleInputChange}
+            />
+          </motion.div>
+        );
+      case 5:
+        return (
+          <motion.div
+            key="page5"
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+            className="p-8 space-y-6"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-3xl font-bold mb-4"
+            >
+              A Few Things Before We Get Started
+            </motion.h2>
+            <motion.textarea
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              id="projects"
+              placeholder="List your Projects, with a short description of each project separated by a comma (,)"
+              className="w-full p-3 border rounded-lg h-48 mb-4"
+              value={formData.projects}
+              onChange={handleInputChange}
+            />
+            <motion.input
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              id="cgpa"
+              type="number"
+              placeholder="Enter your Average CGPA"
+              className="w-full p-3 border rounded-lg"
+              value={formData.cgpa}
+              onChange={handleInputChange}
+            />
+          </motion.div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Box className="IntroModal" id="IntroModal">
-      <Modal
-        closeOnOverlayClick={false}
-        isOpen={isOpen}
-        onClose={onClose}
-        size="sm"
-        scrollBehavior="inside"
-        closeOnEsc={false}
-      >
-        <ModalOverlay
-          bg="none"
-          backdropFilter="blur(10px) hue-rotate(90deg)/"
-          backdropInvert="80%"
-          backdropBlur="2px"
-        />
-        <ModalContent
-          minH="80%"
-          maxH="80%"
-          maxW="80%" // Set the maximum width for the modal content
-          w="80%"
-        >
-          <ModalHeader>Hello!</ModalHeader>
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <AnimatePresence mode="wait">
+                {renderModalContent()}
+              </AnimatePresence>
 
-          {page === 1 ? (
-            <ModalBody className="IntroModal">
-              <Box className="sec1">
-                <Heading>Welcome to DocsDepot!</Heading>
-                <Box className="Images">
-                  {" "}
-                  <Image src={Intro1} />
-                </Box>
-                <Text>
-                  Our innovative house system, certificate uploads, and exciting
-                  events empower you to excel academically and personally. Join
-                  a house, showcase your achievements, participate in events,
-                  and earn XP to make your college experience truly
-                  unforgettable. Welcome to a community that celebrates your
-                  journey and encourages you to reach new heights.{" "}
-                  <span>Click Next to See How</span>
-                </Text>
-              </Box>
-            </ModalBody>
-          ) : page === 2 ? (
-            <ModalBody className="IntroModal">
-              <Box className="sec2">
-                <Heading>
-                  Your Pathway to Coding Excellence and Collaboration
-                </Heading>
-                <Box>
-                  {" "}
-                  <Text>
-                    <span>Houses</span> Join dynamic Houses, engage in coding
-                    events, and test teamwork. Accumulate House Points (HP) and
-                    XP for an exciting journey of growth.
-                  </Text>
-                  <Text>
-                    <span>Events:</span> Ignite Curiosity Access real-world
-                    event and challenges that align with your studies.
-                    Participate to Win XP.
-                  </Text>
-                  <Text>
-                    <span>Certificates: </span> Hone your coding mastery through
-                    the certifications you've received.
-                  </Text>
-                </Box>
-              </Box>
-            </ModalBody>
-          ) : page === 3 ? (
-            <ModalBody className="IntroModal">
-              <Box className="sec2">
-                <Heading>Points Matrix</Heading>
-                <Box className="table-group">
-                  <Box className="table">
-                    <Text>Solving Practice Problems</Text>
-                    <Table variant="striped">
-                      <Thead>
-                        <Tr>
-                          <Th>Activity</Th>
-                          <Th>Points</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        <Tr>
-                          <Td>Easy</Td>
-                          <Td>+10 XP</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Medium</Td>
-                          <Td>+20 XP</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Hard</Td>
-                          <Td>+30 XP</Td>
-                        </Tr>
-                      </Tbody>
-                    </Table>
-                  </Box>
+              <div className="flex justify-between p-6 border-t">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={decrementPage}
+                  className="px-6 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                  disabled={page === 1 || submitting}
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={incrementPage}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  disabled={submitting}
+                >
+                  {page === 5 ? (
+                    submitting ? (
+                      <Spinner size="sm" color="white" />
+                    ) : (
+                      "Submit"
+                    )
+                  ) : (
+                    "Next"
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-                  <Box className="table">
-                    <Text>Uploading Certifications</Text>
-                    <Table variant="striped">
-                      <Thead>
-                        <Tr>
-                          <Th>Activity</Th>
-                          <Th>Points</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        <Tr>
-                          <Td>Beginner</Td>
-                          <Td>+50 XP, +10 HP </Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Intermediate</Td>
-                          <Td>+75 XP, +25 HP</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>Expert</Td>
-                          <Td>+150 XP, +50 HP </Td>
-                        </Tr>
-                      </Tbody>
-                    </Table>
-                  </Box>
-
-                  <Box className="table">
-                    <Text> Participation in House Events</Text>
-                    <Table variant="striped">
-                      <Thead>
-                        <Tr>
-                          <Th>Activity</Th>
-                          <Th>Points</Th>
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        <Tr>
-                          <Td>1st Place</Td>
-                          <Td>+500 HP, +150 XP</Td>
-                        </Tr>
-                        <Tr>
-                          <Td>2nd Place</Td>
-                          <Td>+300 HP, +80 XP </Td>
-                        </Tr>
-                        <Tr>
-                          <Td>3rd Place</Td>
-                          <Td>+150 HP, +70 XP</Td>
-                        </Tr>
-                      </Tbody>
-                    </Table>
-                  </Box>
-                </Box>
-              </Box>
-            </ModalBody>
-          ) : page === 4 ? (
-            <ModalBody className="IntroModal">
-              <Box className="sec3">
-                <Heading>A Few Things Before we Get Started</Heading>
-                <Alert status="warning">
-                  <AlertIcon />
-                  Note that you must fill certifications and Technical details
-                  correctly as they will be verified by the admin. Your house
-                  allotment will be based on this data.
-                </Alert>
-                <Textarea
-                  placeholder="Write a Few Things About Yourself. (Please do not mention anything that could identify you. Ex. Name, Moodle ID)"
-                  resize="none"
-                  id="about"
-                  onChange={(e) => setAbout(e?.target?.value)}
-                  value={about}
-                ></Textarea>
-                <Textarea
-                  placeholder="Write About Your Technical Skills."
-                  resize="none"
-                  id="technical"
-                  onChange={(e) => setTechnical(e?.target?.value)}
-                  value={technical}
-                ></Textarea>
-              </Box>
-            </ModalBody>
-          ) : (
-            <ModalBody className="IntroModal">
-              <Box className="sec3">
-                <Heading>A Few Things Before we Get Started</Heading>
-                <Textarea
-                  placeholder="List your Project, with a short description of each project seperated by a comma (,)"
-                  resize="none"
-                  id="projects"
-                  rows={10}
-                  onChange={(e) => setProjects(e?.target?.value)}
-                  value={projects}
-                ></Textarea>
-
-                <Input
-                  type="number"
-                  placeholder="Enter your Average CGPA"
-                  id="cgpa"
-                  onChange={(e) => setCgpa(e?.target?.value)}
-                  value={cgpa}
-                />
-              </Box>
-            </ModalBody>
-          )}
-
-          <ModalFooter>
-            <Button variant="ghost" onClick={decrementPage}>
-              Back
-            </Button>
-            <Button variant="ghost" onClick={incrementPage}>
-              Next
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      <AlertDialog
-        isOpen={isOpenAlert}
-        leastDestructiveRef={cancelRef}
-        onClose={onCloseAlert}
-        closeOnEsc={false}
-        closeOnOverlayClick={false}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Thankyou
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              You will be logged out of the Portal Now. You can Login once the
-              admin verifies your details and you have been alloted a House.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button colorScheme="green" onClick={logoutAndSave} ml={3}>
+      <AnimatePresence>
+        {isAlertOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 text-center"
+            >
+              <motion.h2
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-2xl font-bold mb-4"
+              >
+                Thank You
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mb-6 text-gray-600"
+              >
+                You will be logged out of the Portal Now. You can Login once the
+                admin verifies your details and you have been allotted a House.
+              </motion.p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={logoutAndSave}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
                 Okay
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-    </Box>
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Grid, useToast, VStack } from "@chakra-ui/react";
+import { Box, Grid, Heading, useToast, VStack } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import useAxios from "@/config/axios";
 import useUser from "@/config/user";
@@ -12,6 +12,7 @@ import { DashboardData } from "@/types/dashboard";
 import IntroModal from "./IntroModal";
 import Loader from "@/components/Loader";
 import { dashboardStyles } from "@/styles/Dashboard";
+import NoHouse from "./NoHouse";
 
 const MotionGrid = motion(Grid);
 const MotionBox = motion(Box);
@@ -41,7 +42,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
   const [selectedMonth, setSelectedMonth] = useState("all");
-  const localUser = useUser();
   const toast = useToast();
   const axios = useAxios();
 
@@ -70,6 +70,15 @@ const Dashboard = () => {
   const { user, allHouses, userHouse, certifications } = data;
   const housePoints = calculatePoints(allHouses, selectedMonth);
   const userPoints = calculatePoints([userHouse], selectedMonth, user._id);
+
+  if (!data.userHouse) {
+    return (
+      <>
+        <NoHouse />
+        {user.firstTime || (!data.userHouse && <IntroModal />)}
+      </>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -128,9 +137,9 @@ const Dashboard = () => {
             />
           </MotionBox>
         </VStack>
-
-        {user.firstTime && <IntroModal />}
       </MotionGrid>
+
+      {user.firstTime || (!data.userHouse && <IntroModal />)}
     </AnimatePresence>
   );
 };

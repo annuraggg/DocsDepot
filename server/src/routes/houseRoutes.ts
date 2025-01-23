@@ -7,6 +7,7 @@ app.get("/", houseController.getAllHouses);
 app.get("/:id", houseController.getHouse);
 app.put("/:id", houseController.updateHouse);
 app.delete("/:id/member", houseController.removeMember);
+app.post("/:id/member", houseController.addMember);
 app.put("/:id/logo", houseController.uploadLogo);
 app.put("/:id/banner", houseController.uploadBanner);
 

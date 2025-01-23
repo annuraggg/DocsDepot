@@ -20,9 +20,9 @@ const MotionBox = motion(Box);
 
 export const HouseLeaderboard = ({ houses, selectedMonth, onMonthChange, points }: Props) => {
   const data: ChartDataEntry[] = houses.map((house) => ({
-    name: house.name,
+    name: house?.name,
     points: points.totalInternal + points.totalExternal + points.totalEvents,
-    color: house.color,
+    color: house?.color,
   }));
 
   return (

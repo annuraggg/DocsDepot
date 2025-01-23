@@ -1,20 +1,20 @@
-import { 
-  Table, 
-  Thead, 
-  Tbody, 
-  Tr, 
-  Th, 
-  Td, 
-  Text, 
-  Tabs, 
-  TabList, 
-  TabPanels, 
-  TabPanel, 
-  Tab, 
+import {
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Text,
+  Tabs,
+  TabList,
+  TabPanels,
+  TabPanel,
+  Tab,
   Box,
   Badge,
   Flex,
-  Icon
+  Icon,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Certificate } from "@/types/dashboard";
@@ -27,16 +27,6 @@ interface Props {
 const MotionTr = motion(Tr);
 const MotionTd = motion(Td);
 const MotionBox = motion(Box);
-
-const tableVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
 
 const rowVariants = {
   hidden: { opacity: 0, x: -20 },
@@ -59,11 +49,24 @@ const rowVariants = {
 };
 
 export const CertificationsTable = ({ certifications }: Props) => {
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved':
+      case "approved":
         return CheckCircle;
       default:
         return Clock;
@@ -72,17 +75,17 @@ export const CertificationsTable = ({ certifications }: Props) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved':
+      case "approved":
         return {
-          bg: 'green.50',
-          color: 'green.600',
-          borderColor: 'green.200'
+          bg: "green.50",
+          color: "green.600",
+          borderColor: "green.200",
         };
       default:
         return {
-          bg: 'yellow.50',
-          color: 'yellow.600',
-          borderColor: 'yellow.200'
+          bg: "yellow.50",
+          color: "yellow.600",
+          borderColor: "yellow.200",
         };
     }
   };
@@ -136,8 +139,8 @@ export const CertificationsTable = ({ certifications }: Props) => {
               </Text>
             </MotionTd>
             <MotionTd>
-              <Flex 
-                align="center" 
+              <Flex
+                align="center"
                 gap={2}
                 px={3}
                 py={1.5}
@@ -167,7 +170,7 @@ export const CertificationsTable = ({ certifications }: Props) => {
     >
       <Tabs variant="unstyled">
         <TabList mb={6} gap={4}>
-          {['Internal', 'Events', 'External'].map((tab) => (
+          {["Internal", "Events", "External"].map((tab) => (
             <Tab
               key={tab}
               px={6}
@@ -181,13 +184,13 @@ export const CertificationsTable = ({ certifications }: Props) => {
                 bg: "blue.500",
                 color: "white",
                 transform: "scale(1.05)",
-                boxShadow: "lg"
+                boxShadow: "lg",
               }}
               _hover={{
                 bg: "gray.200",
                 _selected: {
-                  bg: "blue.500"
-                }
+                  bg: "blue.500",
+                },
               }}
               transition="all 0.2s"
             >
@@ -197,7 +200,7 @@ export const CertificationsTable = ({ certifications }: Props) => {
         </TabList>
 
         <TabPanels>
-          {['internal', 'event', 'external'].map((type) => (
+          {["internal", "event", "external"].map((type) => (
             <TabPanel key={type} p={0}>
               <Box
                 borderRadius="2xl"
@@ -210,34 +213,34 @@ export const CertificationsTable = ({ certifications }: Props) => {
                 <Table variant="simple">
                   <Thead bg="gray.50">
                     <Tr>
-                      <Th 
-                        fontSize="sm" 
-                        textTransform="none" 
+                      <Th
+                        fontSize="sm"
+                        textTransform="none"
                         color="gray.600"
                         py={4}
                       >
                         Certification Details
                       </Th>
-                      <Th 
-                        isNumeric 
-                        fontSize="sm" 
-                        textTransform="none" 
+                      <Th
+                        isNumeric
+                        fontSize="sm"
+                        textTransform="none"
                         color="gray.600"
                         py={4}
                       >
                         Points
                       </Th>
-                      <Th 
-                        fontSize="sm" 
-                        textTransform="none" 
+                      <Th
+                        fontSize="sm"
+                        textTransform="none"
                         color="gray.600"
                         py={4}
                       >
                         Submitted On
                       </Th>
-                      <Th 
-                        fontSize="sm" 
-                        textTransform="none" 
+                      <Th
+                        fontSize="sm"
+                        textTransform="none"
                         color="gray.600"
                         py={4}
                       >

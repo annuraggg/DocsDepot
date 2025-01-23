@@ -16,6 +16,7 @@ const pointSchema = new mongoose.Schema(
 const houseSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    id: { type: String, required: true },
     abstract: { type: String, required: true },
     desc: { type: String, required: true },
     logo: { type: String, required: true },
@@ -23,7 +24,7 @@ const houseSchema = new mongoose.Schema(
     color: { type: String, required: true },
     facultyCordinator: {
       type: mongoose.Types.ObjectId,
-      required: true,
+      required: false,
       ref: "User",
     },
     studentCordinator: {

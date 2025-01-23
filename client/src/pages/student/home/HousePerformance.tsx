@@ -39,7 +39,7 @@ export const HousePerformance = ({ house, currentYear }: Props) => {
       height="100%"
     >
       <Flex justify="space-between" mb={4}>
-        <Heading fontSize="xl">{house.name} House Performance</Heading>
+        <Heading fontSize="xl">{house?.name} House Performance</Heading>
       </Flex>
 
       <Box height="300px">
@@ -51,10 +51,10 @@ export const HousePerformance = ({ house, currentYear }: Props) => {
             <Line
               type="monotone"
               dataKey="points"
-              stroke={house.color}
+              stroke={house?.color}
               strokeWidth={2}
-              dot={{ fill: house.color }}
-              fill={`${house.color}20`}
+              dot={{ fill: house?.color }}
+              fill={`${house?.color}20`}
             />
           </LineChart>
         </ResponsiveContainer>

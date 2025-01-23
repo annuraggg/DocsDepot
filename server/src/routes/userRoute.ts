@@ -10,6 +10,7 @@ app.get("/admins", userController.getAllAdmins);
 app.post("/reset", userController.resetPassword);
 app.post("/student", userController.createStudent);
 app.post("/faculty", userController.createFaculty);
+app.get("/not-alloted", userController.getNotAllotedUsers);
 app.post("/student/bulk", userController.bulkCreateStudents);
 app.post("/faculty/bulk", userController.bulkCreateFaculty);
 app.delete("/bulk", userController.bulkDeleteUsers);

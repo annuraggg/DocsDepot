@@ -48,6 +48,7 @@ import useUser from "@/config/user";
 import useAxios from "@/config/axios";
 import { Notification } from "@shared-types/Notification";
 import { Token } from "@shared-types/Token";
+import Logo from "@/assets/img/logo.png";
 
 // Helper component for navigation links
 interface NavLinkProps {
@@ -161,7 +162,7 @@ const FacultyNavbar = () => {
               onClick={() => navigate("/faculty")}
             >
               <img
-                src={import.meta.env.VITE_API_URL + "/static/logo.png"}
+                src={Logo}
                 className="w-24"
                 alt="Logo"
               />

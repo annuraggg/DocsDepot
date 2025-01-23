@@ -100,7 +100,7 @@ const StudentNavbar = ({ notifications = [] }: StudentNavbarProps) => {
   };
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-white border-b border-gray-200 h-16">
       <div className="w-full px-5 mx-auto">
         <div className="flex justify-between items-center h-16">
           {/* Left section with logo and nav links */}

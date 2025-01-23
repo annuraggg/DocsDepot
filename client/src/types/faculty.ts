@@ -32,6 +32,7 @@ export interface EditModalProps {
 }
 
 export interface PermissionsModalProps {
+  userid: string;
   isOpen: boolean;
   onClose: () => void;
   onEditOpen: () => void;

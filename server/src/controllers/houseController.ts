@@ -39,13 +39,22 @@ export const getHouse = async (c: Context) => {
 
 export const updateHouse = async (c: Context) => {
   const { id } = c.req.param();
-  const { name, color, abstract, desc, socialLinks } = await c.req.json();
+  const { house } = await c.req.json();
 
   try {
     await House.updateOne(
       { _id: id },
       {
-        $set: { name, color, abstract, desc, socialLinks },
+        $set: {
+          name: house.name,
+          desc: house.desc,
+          abstract: house.abstract,
+          color: house.color,
+          facultyCordinator: house.facultyCordinator,
+          studentCordinator: house.studentCordinator,
+          members: house.members,
+          social: house.social,
+        },
       }
     );
     return sendSuccess(c, 200, "House updated successfully");
@@ -82,61 +91,84 @@ export const removeMember = async (c: Context) => {
   }
 };
 
+// Ensure certificates directory exists
+const logoPath = path.join(__dirname, "src", "static", "houses", "logos");
+if (!fs.existsSync(logoPath)) {
+  fs.mkdirSync(logoPath, { recursive: true });
+}
+
+const bannerPath = path.join(__dirname, "src", "static", "houses", "banners");
+if (!fs.existsSync(bannerPath)) {
+  fs.mkdirSync(bannerPath, { recursive: true });
+}
+
 export const uploadLogo = async (c: Context) => {
-  const image = await c.req.json();
   const houseId = c.req.param("id");
+  const formData = await c.req.parseBody();
+  const image: File = formData.image as File;
+  console.log(image);
 
   const house = await House.findById(houseId);
   if (!house) return sendError(c, 404, "House not found");
 
   try {
-    const fileName = `house_logo_${houseId}.png`;
-    const filePath = path.join(storagePath, fileName);
+    const fileName = `${houseId}.png`;
+    const filePath = path.join(logoPath, fileName);
+    const fileExt = path.extname(filePath);
 
-    // Ensure the storage directory exists
-    if (!fs.existsSync(storagePath)) {
-      fs.mkdirSync(storagePath);
-    }
+    const arrayBuffer = await image.arrayBuffer();
+    console.log(arrayBuffer);
+    fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
-    const data = image.replace(/^data:image\/\w+;base64,/, "");
-    const imageBuffer = Buffer.from(data, "base64");
+    await House.updateOne({ _id: houseId }, { $set: { logo: fileExt } });
 
-    // Save the image to disk
-    fs.writeFileSync(filePath, imageBuffer);
-
-    const url = `/uploads/${fileName}`;
-
-    await House.updateOne({ _id: houseId }, { $set: { logo: url } });
     return sendSuccess(c, 200, "Logo updated successfully");
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Error updating logo");
   }
 };
 
 export const uploadBanner = async (c: Context) => {
-  const image = await c.req.json();
   const houseId = c.req.param("id");
+  const formData = await c.req.parseBody();
+  const image: File = formData.image as File;
+  console.log(image);
+
+  const house = await House.findById(houseId);
+  if (!house) return sendError(c, 404, "House not found");
 
   try {
-    const fileName = `house_banner_${houseId}.png`;
-    const filePath = path.join(storagePath, fileName);
+    const fileName = `${houseId}.png`;
+    const filePath = path.join(bannerPath, fileName);
+    const fileExt = path.extname(filePath);
 
-    // Ensure the storage directory exists
-    if (!fs.existsSync(storagePath)) {
-      fs.mkdirSync(storagePath);
-    }
+    const arrayBuffer = await image.arrayBuffer();
+    console.log(arrayBuffer);
+    fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
-    const data = image.replace(/^data:image\/\w+;base64,/, "");
-    const imageBuffer = Buffer.from(data, "base64");
+    await House.updateOne({ _id: houseId }, { $set: { banner: fileExt } });
 
-    // Save the image to disk
-    fs.writeFileSync(filePath, imageBuffer);
-
-    const url = `/uploads/${fileName}`;
-
-    await House.updateOne({ _id: houseId }, { $set: { banner: url } });
     return sendSuccess(c, 200, "Banner updated successfully");
   } catch (error) {
+    console.log(error);
     return sendError(c, 500, "Error updating banner");
+  }
+};
+
+export const addMember = async (c: Context) => {
+  const { id } = c.req.param();
+  const { _id } = await c.req.json();
+
+  const house = await House.findById(id);
+  if (!house) return sendError(c, 404, "House not found");
+
+  try {
+    await House.updateOne({ _id: id }, { $push: { members: _id } });
+    await User.updateOne({ _id: _id }, { $set: { house: id } });
+    return sendSuccess(c, 200, "Member added successfully");
+  } catch (error) {
+    console.log(error);
+    return sendError(c, 500, "Error adding member");
   }
 };

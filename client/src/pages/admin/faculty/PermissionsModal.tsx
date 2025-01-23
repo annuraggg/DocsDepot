@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -23,9 +23,20 @@ import {
   ListIcon,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
-import { PermissionsModalProps } from "../../../types/faculty";
+import { House } from "@shared-types/House";
+
+export interface PermissionsModalProps {
+  userid: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onEditOpen: () => void;
+  houses: House[];
+  perms: string[];
+  setPerms: (perms: string[]) => void;
+}
 
 const PermissionsModal: React.FC<PermissionsModalProps> = ({
+  userid,
   isOpen,
   onClose,
   onEditOpen,
@@ -33,6 +44,11 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({
   perms,
   setPerms,
 }) => {
+  useEffect(() => {
+    console.log(userid);
+    console.log(houses.find((house) => house.facultyCordinator === userid)?.id);
+  }, [userid]);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="3xl" scrollBehavior="inside">
       <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)" />
@@ -92,10 +108,14 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({
                 <Tr>
                   <Td>
                     <RadioGroup
-                      value={perms.find((perm) => perm.startsWith("HCO")) || ""}
+                      value={
+                        houses.find(
+                          (house) => house.facultyCordinator === userid
+                        )?.id
+                      }
                       onChange={(value) => {
                         const updatedPerms = [
-                          ...perms.filter((perm) => !perm.startsWith("HCO")),
+                          ...perms.filter((perm) => !perm.startsWith("H")),
                           value,
                         ].filter(Boolean);
                         setPerms(updatedPerms);
@@ -103,7 +123,7 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({
                     >
                       <Flex direction="column" gap={3}>
                         {houses.map((house, index) => (
-                          <Radio key={index} value={`HCO${index}`}>
+                          <Radio key={index} value={`H${index + 1}`}>
                             House Coordinator - {house.name}
                           </Radio>
                         ))}
@@ -126,12 +146,12 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({
                 </Tr>
 
                 <CheckboxGroup
-                  value={perms.filter((perm) => !perm.startsWith("HCO"))}
+                  value={perms.filter((perm) => !perm.startsWith("H"))}
                   onChange={(values) => {
-                    const nonHCOValues = values.filter(
-                      (value) => !(value as string).startsWith("HCO")
+                    const nonHValues = values.filter(
+                      (value) => !(value as string).startsWith("H")
                     );
-                    setPerms([...nonHCOValues].map(String));
+                    setPerms([...nonHValues].map(String));
                   }}
                 >
                   <Tr>

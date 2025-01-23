@@ -2,28 +2,25 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Avatar, Button } from "@chakra-ui/react";
 import { Settings, Camera } from "lucide-react";
-import { User } from "@shared-types/User";
+import { ExtendedHouse } from "@shared-types/ExtendedHouse";
 
 interface HouseProfileProps {
   logo: string;
-  name: string;
-  facCord: User;
-  onSelectLogo: () => void;
-  onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onLogoChange: (file: File) => void;
   onSettingsOpen: () => void;
   navigateToProfile: (id: string) => void;
   editPrivileges: boolean;
+  house: ExtendedHouse;
+  refreshImages: number;
 }
 
 export const HouseProfile: React.FC<HouseProfileProps> = ({
-  logo,
-  name,
-  facCord,
-  onSelectLogo,
   onLogoChange,
   onSettingsOpen,
   navigateToProfile,
   editPrivileges,
+  house,
+  refreshImages,
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -41,7 +38,9 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
       <div className="flex items-end gap-6">
         <div className="relative">
           <Avatar
-            src={logo}
+            src={`   ${import.meta.env.VITE_API_URL}/static/houses/logos/${
+              house?._id + house?.logo
+            }?${refreshImages}`}
             size="2xl"
             className="w-36 h-36 border-4 border-white rounded-full shadow-lg"
             color="primary"
@@ -54,21 +53,32 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
               onClick={handleCameraClick}
             >
               <Camera className="w-4 h-4 text-white" />
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    onLogoChange(file);
+                  }
+                }}
+              />
             </motion.button>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={onLogoChange}
-          />
         </div>
 
         <div className="mb-6">
           <div className="flex items-center gap-3 drop-shadow-2xl">
-            <h1 className="text-4xl font-bold text-white drop-shadow-xl ">
-              {name} House
+            <h1
+              className={`text-4xl font-bold text-white`}
+              style={{
+                WebkitTextStroke: `1px ${house?.color}`,
+                color: "white",
+              }}
+            >
+              {house?.name} House
             </h1>
             {editPrivileges && (
               <motion.button
@@ -85,9 +95,9 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
               size="sm"
               variant="ghost"
               className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
-              onClick={() => navigateToProfile(facCord.mid)}
+              onClick={() => navigateToProfile(house?.facultyCordinator.mid)}
             >
-              @{facCord.fname} {facCord.lname}
+              @{house?.facultyCordinator.fname} {house?.facultyCordinator.lname}
             </Button>
           </div>
         </div>

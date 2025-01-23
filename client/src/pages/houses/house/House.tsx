@@ -5,11 +5,6 @@ import {
   Button,
   Card,
   CardBody,
-  FormControl,
-  FormLabel,
-  Input,
-  InputGroup,
-  InputLeftElement,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -17,18 +12,10 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Radio,
-  RadioGroup,
-  Select,
-  Stack,
   useDisclosure,
-  VStack,
 } from "@chakra-ui/react";
 import { useToast } from "../../../components/useToast";
 import useAxios from "@/config/axios";
-import { House as IHouse, Point } from "@shared-types/House";
-import { Token } from "@shared-types/Token";
-
 import { HouseBanner } from "./HouseBanner";
 import { HouseProfile } from "./HouseProfile";
 import { SocialLinks } from "./SocialLinks";
@@ -38,50 +25,20 @@ import { ImageEditorModal } from "./ImageEditorModal";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import AvatarEditor from "react-avatar-editor";
 import { User } from "@shared-types/User";
-import { Hash, Home, Mail, UserIcon, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import useUser from "@/config/user";
-import { Certificate } from "@shared-types/Certificate";
 import Loader from "@/components/Loader";
-
-interface ExtendedPoint extends Omit<Point, "certificateId"> {
-  certificateId: Certificate;
-}
-interface ExtendedHouse
-  extends Omit<
-    IHouse,
-    "members" | "facultyCordinator" | "studentCordinator" | "points"
-  > {
-  members: User[];
-  facultyCordinator: User;
-  studentCordinator: User;
-  points: ExtendedPoint[];
-}
+import { ExtendedHouse } from "@shared-types/ExtendedHouse";
+import AddUserModal from "./AddUserModal";
 
 export const House: React.FC = () => {
   const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
-
-  const [socialLinks, setSocialLinks] = React.useState({
-    instagram: "",
-    twitter: "",
-    linkedin: "",
-  });
+  const [updateImagesValue, setUpdateImagesValue] = React.useState(0);
 
   const [isViewAllMembersOpen, setIsViewAllMembersOpen] = React.useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen] = React.useState(false);
   const [selectedMember, setSelectedMember] = React.useState<User | null>(null);
 
-  const [fname, setFname] = React.useState("");
-  const [lname, setLname] = React.useState("");
-  const [moodleid, setMoodleid] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [selectedHouse, setSelectedHouse] = React.useState("");
-  const [gender, setGender] = React.useState("");
-
-  // Form state
-  const [houseName, setHouseName] = React.useState("");
-  const [houseColor, setHouseColor] = React.useState("");
-  const [houseAbstract, setHouseAbstract] = React.useState("");
-  const [houseDesc, setHouseDesc] = React.useState("");
   const [editPrivilege, setEditPrivilege] = React.useState(false);
 
   // Image editing state
@@ -126,21 +83,21 @@ export const House: React.FC = () => {
   } = useDisclosure();
 
   useEffect(() => {
-    if (user?.role === "A") {
-      setEditPrivilege(true);
-    }
-
-    if (user?.role === "F" && house?.facultyCordinator?._id === user?._id) {
-      setEditPrivilege(true);
-    }
-
     fetchHouseData();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (house) {
       calculatePoints();
       sortMembers();
+
+      if (user?.role === "A") {
+        setEditPrivilege(true);
+      }
+
+      if (user?.role === "F" && house?.facultyCordinator?._id === user?._id) {
+        setEditPrivilege(true);
+      }
     }
   }, [house]);
 
@@ -150,17 +107,9 @@ export const House: React.FC = () => {
       const response = await axios.get(`/houses/${houseID}`);
       if (response.status === 200) {
         const { house } = response.data.data;
-        console.log(response.data.data);
         setHouse(house);
-
-        // form data
-        setHouseName(house.name);
-        setHouseColor(house.color);
-        setHouseAbstract(house.abstract);
-        setHouseDesc(house.desc);
         setBanner(house.banner);
         setLogo(house.logo);
-        setSocialLinks(house.socialLinks || {});
       }
     } catch (error) {
       toast(
@@ -171,19 +120,10 @@ export const House: React.FC = () => {
     }
   };
 
-  const calculatePoints = () => {};
-
-  const sortMembers = () => {};
-
   const handleUpdateHouse = async () => {
     try {
-      const response = await axios.put(`/houses/${houseID}`, {
-        name: houseName,
-        color: houseColor,
-        abstract: houseAbstract,
-        desc: houseDesc,
-        socialLinks,
-      });
+      console.log(house);
+      const response = await axios.put(`/houses/${houseID}`, { house });
       if (response.status === 200) {
         toast("Success", "House updated successfully", "success");
         onSettingsClose();
@@ -194,9 +134,21 @@ export const House: React.FC = () => {
     }
   };
 
-  const handleSaveLogo = async () => {};
+  const addUserToHouse = async (userId: string) => {
+    try {
+      const response = await axios.post(`/houses/${houseID}/member`, {
+        _id: userId,
+      });
 
-  const handleSaveBanner = async () => {};
+      if (response.status === 200) {
+        toast("Success", "Member added successfully", "success");
+        setIsAddMemberOpen(false);
+        fetchHouseData();
+      }
+    } catch (error) {
+      toast("Error", "Failed to add member", "error");
+    }
+  };
 
   const handleDeleteMember = async () => {
     try {
@@ -238,15 +190,72 @@ export const House: React.FC = () => {
     return limit ? sortedMembers.slice(0, limit) : sortedMembers;
   };
 
-  const handleSocialLinksChange = (
-    type: "instagram" | "twitter" | "linkedin",
-    value: string
-  ) => {
-    setSocialLinks((prev) => ({
-      ...prev,
-      [type]: value,
-    }));
+  const handleSaveLogo = async () => {
+    if (!logoRef.current) return;
+
+    // Wrap toBlob in a Promise to handle it correctly
+    const canvasBlob = await new Promise((resolve, reject) => {
+      logoRef?.current?.getImage().toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to create blob"));
+      });
+    });
+
+    if (!canvasBlob) return;
+
+    const formData = new FormData();
+    formData.append("image", canvasBlob as Blob);
+
+    try {
+      const response = await axios.put(`/houses/${houseID}/logo`, formData);
+      if (response.status === 200) {
+        toast("Success", "Logo updated successfully", "success");
+        onLogoClose();
+        fetchHouseData();
+        refreshComponent();
+      }
+    } catch (error) {
+      toast("Error", "Failed to update logo", "error");
+    }
   };
+
+  const handleSaveBanner = async () => {
+    if (!bannerRef.current) return;
+
+    // Wrap toBlob in a Promise to handle it correctly
+    const canvasBlob = await new Promise((resolve, reject) => {
+      bannerRef?.current?.getImage().toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to create blob"));
+      });
+    });
+
+    if (!canvasBlob) return;
+
+    const formData = new FormData();
+    formData.append("image", canvasBlob as Blob);
+
+    try {
+      const response = await axios.put(`/houses/${houseID}/banner`, formData);
+      if (response.status === 200) {
+        toast("Success", "Banner updated successfully", "success");
+        onBannerClose();
+        fetchHouseData();
+
+        refreshComponent();
+      }
+    } catch (error) {
+      toast("Error", "Failed to update banner", "error");
+    }
+  };
+
+  const refreshComponent = () => {
+    setUpdateImagesValue((prev) => prev + 1);
+  };
+
+  const calculatePoints = () => {};
+
+  const sortMembers = () => {};
 
   if (!house) {
     return <Loader />;
@@ -264,32 +273,36 @@ export const House: React.FC = () => {
           <CardBody className="p-0">
             <div className="relative">
               <HouseBanner
-                banner={house?.banner || ""}
+                refreshImages={updateImagesValue}
+                id={house?._id || ""}
+                ext={house?.banner || ""}
                 color={house?.color || ""}
                 editPrivilege={editPrivilege}
-                onSelectBanner={() => {}}
-                onBannerChange={() => {}}
+                onBannerChange={(file: File) => {
+                  setBanner(file);
+                  onBannerOpen();
+                }}
               />
 
               <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2">
                 <HouseProfile
+                  refreshImages={updateImagesValue}
                   editPrivileges={editPrivilege}
                   logo={house?.logo || ""}
-                  name={house?.name || ""}
-                  facCord={house?.facultyCordinator || ({} as User)}
-                  onSelectLogo={() => {}}
-                  onLogoChange={() => {}}
+                  onLogoChange={(file: File) => {
+                    setLogo(file);
+                    onLogoOpen();
+                  }}
                   onSettingsOpen={onSettingsOpen}
                   navigateToProfile={(id) => navigate(`/profile/${id}`)}
+                  house={house}
                 />
               </div>
             </div>
 
             <div className="pt-5 px-8 pb-8">
-              <SocialLinks />
-
+              <SocialLinks house={house} />
               <h2 className="text-xl font-semibold mb-3">{house?.abstract}</h2>
-
               <p className="text-gray-600 leading-relaxed">{house?.desc}</p>
             </div>
           </CardBody>
@@ -349,16 +362,8 @@ export const House: React.FC = () => {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={onSettingsClose}
-        houseName={houseName}
-        houseColor={houseColor}
-        houseAbstract={houseAbstract}
-        houseDesc={houseDesc}
-        isAdmin={user?.role === "A"}
-        onNameChange={setHouseName}
-        onColorChange={setHouseColor}
-        onAbstractChange={setHouseAbstract}
-        onDescChange={setHouseDesc}
-        onSocialLinksChange={handleSocialLinksChange}
+        house={house}
+        setHouse={setHouse}
         onSave={handleUpdateHouse}
       />
 
@@ -401,6 +406,7 @@ export const House: React.FC = () => {
         onClose={() => setIsViewAllMembersOpen(false)}
         size="4xl"
       >
+        <ModalOverlay backdropFilter="blur(10px)" />
         <ModalContent>
           <ModalHeader>All Members</ModalHeader>
           <ModalCloseButton />
@@ -419,7 +425,12 @@ export const House: React.FC = () => {
         </ModalContent>
       </Modal>
 
-      <Modal isOpen={isAddMemberOpen} onClose={() => setIsAddMemberOpen(false)}>
+      <Modal
+        isOpen={isAddMemberOpen}
+        onClose={() => setIsAddMemberOpen(false)}
+        scrollBehavior="inside"
+        size="4xl"
+      >
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
         <ModalContent
           as={motion.div}
@@ -432,97 +443,7 @@ export const House: React.FC = () => {
           <ModalHeader fontSize="2xl">Add New Student</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <VStack spacing={6}>
-              <Stack direction={["column", "row"]} spacing={4} w="full">
-                <FormControl>
-                  <FormLabel>First Name</FormLabel>
-                  <InputGroup>
-                    <InputLeftElement>
-                      <UserIcon size={18} />
-                    </InputLeftElement>
-                    <Input
-                      placeholder="First Name"
-                      value={fname}
-                      onChange={(e) => setFname(e.target.value)}
-                    />
-                  </InputGroup>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Last Name</FormLabel>
-                  <InputGroup>
-                    <InputLeftElement>
-                      <UserIcon size={18} />
-                    </InputLeftElement>
-                    <Input
-                      placeholder="Last Name"
-                      value={lname}
-                      onChange={(e) => setLname(e.target.value)}
-                    />
-                  </InputGroup>
-                </FormControl>
-              </Stack>
-
-              <FormControl>
-                <FormLabel>Moodle ID</FormLabel>
-                <InputGroup>
-                  <InputLeftElement>
-                    <Hash size={18} />
-                  </InputLeftElement>
-                  <Input
-                    placeholder="Moodle ID"
-                    value={moodleid}
-                    onChange={(e) => setMoodleid(e.target.value)}
-                  />
-                </InputGroup>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Email</FormLabel>
-                <InputGroup>
-                  <InputLeftElement>
-                    <Mail size={18} />
-                  </InputLeftElement>
-                  <Input
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </InputGroup>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>House</FormLabel>
-                <InputGroup>
-                  <InputLeftElement>
-                    <Home size={18} />
-                  </InputLeftElement>
-                  <Select
-                    placeholder="Select a House"
-                    onChange={(e) => setSelectedHouse(e.target.value)}
-                    value={selectedHouse}
-                    pl={10}
-                  ></Select>
-                </InputGroup>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Gender</FormLabel>
-                <RadioGroup onChange={setGender} value={gender}>
-                  <Stack direction="row" spacing={6}>
-                    <Radio value="M" colorScheme="blue">
-                      Male
-                    </Radio>
-                    <Radio value="F" colorScheme="pink">
-                      Female
-                    </Radio>
-                    <Radio value="O" colorScheme="purple">
-                      Others
-                    </Radio>
-                  </Stack>
-                </RadioGroup>
-              </FormControl>
-            </VStack>
+            <AddUserModal addUser={addUserToHouse} />
           </ModalBody>
 
           <ModalFooter gap={3}>
