@@ -1,200 +1,147 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
-  Box,
-  Table,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  useDisclosure,
-  Button,
-  ModalCloseButton,
-  useToast,
-  Text,
-  Input,
-  Alert,
-  FormControl,
-  Select,
-  Checkbox,
+  Container,
+  VStack,
   Flex,
-  CheckboxGroup,
+  HStack,
+  Button,
+  Icon,
+  Heading,
+  useDisclosure,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  PopoverFooter,
+  ButtonGroup,
 } from "@chakra-ui/react";
-import Loader from "../../../components/Loader";
-import { Link } from "react-router";
+import { FileBadge as CertIcon, Upload, Filter, Search } from "lucide-react";
+import { CertificateFilters } from "./CertificateFilters";
+import { CertificateTable } from "./CertificateTable";
+import { UploadModal } from "./UploadModal";
 import { ExtendedCertificate } from "@/types/ExtendedCertificate";
+import { useToast } from "@chakra-ui/react";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+    },
+  },
+};
+
+interface FilterState {
+  types: string[];
+  levels: string[];
+  status: string[];
+  issueYears: string[];
+  expiryYears: string[];
+}
 
 const Certificates = () => {
-  const [certificates, setCertificates] = React.useState<ExtendedCertificate[]>(
-    []
-  );
-  const [filteredCertificates, setFilteredCertificates] = React.useState<
-    ExtendedCertificate[]
-  >([]); // eslint-disable-line no-unused-vars
-  const [loading, setLoading] = React.useState(true);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const toast = useToast();
+  const [certificates, setCertificates] = useState<ExtendedCertificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<ExtendedCertificate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<FilterState>({
+    types: [],
+    levels: [],
+    status: [],
+    issueYears: [],
+    expiryYears: [],
+  });
 
-  const [certificateName, setCertificateName] = React.useState("");
-  const [issuingOrg, setIssuingOrg] = React.useState("");
-  const [issueMonth, setIssueMonth] = React.useState("null");
-  const [issueYear, setIssueYear] = React.useState("null");
-  const [expiry, setExpiry] = React.useState(false);
-  const [expiryMonth, setExpiryMonth] = React.useState("null");
-  const [expiryYear, setExpiryYear] = React.useState("null");
-  const [certificateType, setCertificateType] = React.useState("");
-  const [certificateLevel, setCertificateLevel] = React.useState("");
-  const [certificateUrl, setCertificateUrl] = React.useState("");
-  const [file, setFile] = React.useState<string | File>("");
-  const [fileName, setFileName] = React.useState("No File Selected");
+  const toast = useToast();
+  const {
+    isOpen: isUploadOpen,
+    onOpen: onUploadOpen,
+    onClose: onUploadClose,
+  } = useDisclosure();
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
+
+  const hasActiveFilters = Object.values(filters).some((filter) =>
+    Array.isArray(filter) ? filter.length > 0 : !!filter
+  );
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/certifications`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then(async (res) => {
-        setLoading(false);
-        if (res.status === 200) {
-          const data = await res.json();
-          setCertificates(data.certificates);
-        } else {
-          toast({
-            title: "Error",
-            description: "Something went wrong",
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        toast({
-          title: "Error",
-          description: "Something went wrong",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      });
+    fetchCertificates();
   }, []);
 
-  const year = new Date().getFullYear();
-  const prevYear = year - 1;
-  const prevPrevYear = year - 2;
-  const prevPrevPrevYear = year - 3;
+  const fetchCertificates = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/certifications`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-  const [uploadLoading, setUploadLoading] = React.useState(false);
-
-  const handleUpload = () => {
-    setUploadLoading(true);
-    const uploadElement = document.querySelector("#upload") as HTMLInputElement;
-    const uploadedCertificate = uploadElement?.files?.[0];
-
-    const formData = new FormData();
-
-    if (
-      certificateName === "" ||
-      issuingOrg === "" ||
-      issueMonth === "" ||
-      issueYear === "" ||
-      expiryMonth === "" ||
-      expiryYear === "" ||
-      certificateType === "" ||
-      certificateLevel === ""
-    ) {
-      toast({
-        title: "Error",
-        description: "Please fill all the fields",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    } else if (uploadedCertificate || certificateUrl) {
-      if (
-        certificateName &&
-        issuingOrg &&
-        issueMonth &&
-        issueYear &&
-        certificateType &&
-        certificateLevel
-      ) {
-        formData.append("certificateName", certificateName);
-        formData.append("issuingOrg", issuingOrg);
-        formData.append("issueMonth", issueMonth);
-        formData.append("issueYear", issueYear);
-        formData.append("expires", expiry.toString());
-        formData.append("expiryMonth", expiryMonth);
-        formData.append("expiryYear", expiryYear);
-        formData.append("certificateType", certificateType);
-        formData.append("certificateLevel", certificateLevel);
-        formData.append("certificateURL", certificateUrl);
-        formData.append("certificate", file);
-
-        fetch(
-          `${
-            import.meta.env.VITE_BACKEND_ADDRESS
-          }/faculty/certifications/upload`,
-          {
-            method: "POST",
-            credentials: "include",
-            body: formData, // Use the FormData object as the body
-          }
-        )
-          .then(async (res) => {
-            if (res.status === 200) {
-              window.location.reload();
-              onClose();
-            } else if (uploadedCertificate && certificateUrl) {
-              toast({
-                title: "Error",
-                description: "Please fill either URL or upload certificate",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-              });
-            } else {
-              const resp = await res.json();
-              console.log(res.status);
-              console.log(resp);
-              toast({
-                title: "Error",
-                description: "Something went wrong",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-              });
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-            toast({
-              title: "Error",
-              description: "Something went wrong",
-              status: "error",
-              duration: 5000,
-              isClosable: true,
-            });
-          })
-          .finally(() => {
-            setUploadLoading(false);
-          });
+      if (response.status === 200) {
+        const data = await response.json();
+        setCertificates(data.certificates);
+        setFilteredCertificates(data.certificates);
+      } else {
+        throw new Error("Failed to fetch certificates");
       }
-    } else {
-      setUploadLoading(false);
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Please fill either URL or upload certificate",
+        description: "Something went wrong",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpload = async (formData: FormData) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/certifications/upload`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }
+      );
+
+      if (response.status === 200) {
+        window.location.reload();
+      } else {
+        throw new Error("Failed to upload certificate");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -202,319 +149,141 @@ const Certificates = () => {
     }
   };
 
-  const handleFile = (file: File | React.SetStateAction<string>) => {
-    if (file instanceof File) {
-      setFileName(file.name);
-      setFile(file);
-    }
+  const resetFilters = () => {
+    setFilters({
+      types: [],
+      levels: [],
+      status: [],
+      issueYears: [],
+      expiryYears: [],
+    });
   };
 
-  useEffect(() => {
-    setFilteredCertificates(certificates);
-  }, [certificates]);
+  if (loading) return <div>Loading...</div>;
 
-  const search = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const keyword = e.target.value;
-    if (keyword !== "") {
-      const result = filteredCertificates.filter((certificate) => {
-        certificate.name = certificate.name.toLowerCase();
-
-        return certificate.name.includes(keyword.toLowerCase());
-      });
-      setFilteredCertificates(result);
-    } else {
-      setFilteredCertificates(certificates);
-    }
-  };
-
-  const filterType = (e: (string | number)[]) => {
-    const type = e;
-    if (type.length !== 0) {
-      const result = certificates.filter((certificate) => {
-        return type.includes(certificate.type);
-      });
-      setFilteredCertificates(result);
-    } else {
-      setFilteredCertificates(certificates);
-    }
-  };
-
-  if (!loading) {
-    return (
-      <>
-        <Box className="StudentCertificates">
-          <Button colorScheme="green" marginBottom="20px" onClick={onOpen}>
-            Upload Certificate
-          </Button>
-          <Flex gap="20px" alignItems="center" mb="20px">
-            <Input
-              type="text"
-              placeholder="Search"
-              onChange={(e) => search(e)}
-              width="50%"
-            />
-
-            <CheckboxGroup
-              onChange={(e) => filterType(e)}
-              defaultValue={["internal", "external"]}
-            >
-              <Checkbox value="internal">Internal</Checkbox>
-              <Checkbox value="external">External</Checkbox>
-            </CheckboxGroup>
-          </Flex>
-          <Box className="table">
-            <Table variant="striped">
-              <Thead>
-                <Tr>
-                  <Th>Sr No.</Th>
-                  <Th>Certification Name</Th>
-                  <Th>Issuing Organization</Th>
-                  <Th>Issue Date</Th>
-                  <Th>Certification Type</Th>
-                  <Th>Level</Th>
-                  <Th>Status</Th>
-                  <Th>View</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {filteredCertificates?.map((certificate, index) => (
-                  /* ! CHANGE TARGET*/
-                  <Tr key={certificate?._id}>
-                    <Td>{index + 1}</Td>
-                    <Td>{certificate?.name}</Td>
-                    <Td>{certificate?.issuingOrganization}</Td>
-                    <Td>
-                      {certificate?.issueDate?.month?.charAt(0).toUpperCase() +
-                        certificate?.issueDate?.month?.slice(1)}{" "}
-                      {certificate?.issueDate?.year}
-                    </Td>
-                    <Td>
-                      {certificate?.type?.charAt(0).toUpperCase() +
-                        certificate?.type?.slice(1)}
-                    </Td>
-                    <Td>
-                      {certificate?.level?.charAt(0).toUpperCase() +
-                        certificate?.level?.slice(1)}
-                    </Td>
-                    <Td>
-                      {certificate.status?.charAt(0).toUpperCase() +
-                        certificate.status?.slice(1)}
-                    </Td>
-                    <Td>
-                      <Link to={`/certificates/${certificate?._id}`}>View</Link>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-          <Modal isOpen={isOpen} onClose={onClose} size="4xl">
-            <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)/" />
-            <ModalContent>
-              <ModalHeader>Upload Certificate</ModalHeader>
-              <ModalCloseButton />
-              <ModalBody>
-                <Box className="upload-main-StudentCertificates">
-                  <Alert status="info" marginBottom="20px">
-                    Your Certificate will be verified and approved by the Admin
-                  </Alert>
-
-                  <Box className="flex">
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Certificate Name"
-                        onChange={(e) => {
-                          setCertificateName(e?.target?.value);
-                        }}
-                        value={certificateName}
-                      />
-                    </FormControl>
-
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Issuing Organization"
-                        onChange={(e) => {
-                          setIssuingOrg(e?.target?.value);
-                        }}
-                        value={issuingOrg}
-                      />
-                    </FormControl>
-                  </Box>
-
-                  <FormControl>
-                    <Box className="flex">
-                      <Select
-                        onChange={(e) => setIssueMonth(e?.target?.value)}
-                        value={issueMonth}
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-gray-50"
+    >
+      <Container maxW="7xl" py={8}>
+        <VStack spacing={8} align="stretch">
+          <motion.div variants={itemVariants}>
+            <VStack spacing={6} align="stretch">
+              <Flex justify="space-between" align="center">
+                <HStack spacing={4}>
+                  <Icon as={CertIcon} boxSize={6} color="green.500" />
+                  <Heading size="md">Your Certificates</Heading>
+                </HStack>
+                <HStack spacing={3}>
+                  <Popover
+                    isOpen={isFilterOpen}
+                    onClose={onFilterClose}
+                    placement="bottom-end"
+                    closeOnBlur={false}
+                  >
+                    <PopoverTrigger>
+                      <Button
+                        leftIcon={<Filter />}
+                        variant={hasActiveFilters ? "solid" : "outline"}
+                        colorScheme={hasActiveFilters ? "green" : "gray"}
+                        onClick={onFilterOpen}
                       >
-                        <option value="null" disabled>
-                          Certification Issue Month
-                        </option>
-                        <option value="jan">January</option>
-                        <option value="feb">February</option>
-                        <option value="mar">March</option>
-                        <option value="apr">April</option>
-                        <option value="may">May</option>
-                        <option value="jun">June</option>
-                        <option value="jul">July</option>
-                        <option value="aug">August</option>
-                        <option value="sep">September</option>
-                        <option value="oct">October</option>
-                        <option value="nov">November</option>
-                        <option value="dec">December</option>
-                      </Select>
-
-                      <Select
-                        onChange={(e) => setIssueYear(e?.target?.value)}
-                        value={issueYear}
-                      >
-                        <option value="null" disabled>
-                          Certification Issue Year
-                        </option>
-                        <option value={prevPrevPrevYear}>
-                          {prevPrevPrevYear}
-                        </option>
-                        <option value={prevPrevYear}>{prevPrevYear}</option>
-                        <option value={prevYear}>{prevYear}</option>
-                        <option value={year}>{year}</option>
-                      </Select>
-                    </Box>
-                  </FormControl>
-
-                  <FormControl>
-                    <Flex
-                      alignSelf="flex-start"
-                      justifySelf="flex-start"
-                      gap="20px"
-                      height="40px"
+                        Filters {hasActiveFilters && "(Active)"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      width="400px"
+                      shadow="xl"
+                      borderRadius="xl"
+                      borderWidth="1px"
                     >
-                      <Flex width="500px" align="center" gap="10px">
-                        <Text>Certificate Expires?</Text>
-                        <Checkbox
-                          border="lightgray"
-                          colorScheme="green"
-                          onChange={(e) => setExpiry(e.target.checked)}
+                      <PopoverBody p={4}>
+                        <CertificateFilters
+                          filters={filters}
+                          setFilters={setFilters}
                         />
-                      </Flex>
-
-                      {expiry ? (
-                        <>
-                          <Select
-                            onChange={(e) => setExpiryMonth(e?.target?.value)}
-                            value={expiryMonth}
+                      </PopoverBody>
+                      <PopoverFooter
+                        p={4}
+                        borderTop="1px"
+                        borderColor="gray.200"
+                      >
+                        <ButtonGroup size="sm" width="full" spacing={3}>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              resetFilters();
+                              onFilterClose();
+                            }}
+                            width="full"
                           >
-                            <option value="null" disabled>
-                              Certification Expiry Month
-                            </option>
-                            <option value="jan">January</option>
-                            <option value="feb">February</option>
-                            <option value="mar">March</option>
-                            <option value="apr">April</option>
-                            <option value="may">May</option>
-                            <option value="jun">June</option>
-                            <option value="jul">July</option>
-                            <option value="aug">August</option>
-                            <option value="sep">September</option>
-                            <option value="oct">October</option>
-                            <option value="nov">November</option>
-                            <option value="dec">December</option>
-                          </Select>
-
-                          <Select
-                            onChange={(e) => setExpiryYear(e?.target?.value)}
-                            value={expiryYear}
+                            Clear All
+                          </Button>
+                          <Button
+                            colorScheme="green"
+                            onClick={onFilterClose}
+                            width="full"
                           >
-                            <option
-                              value="null"
-                              className="disabledOpt"
-                              disabled
-                            >
-                              Certification Expiry Year
-                            </option>
-                            <option value={year}>{year}</option>
-                            <option value={year + 1}>{year + 1}</option>
-                            <option value={year + 2}>{year + 2}</option>
-                            <option value={year + 3}>{year + 3}</option>
-                          </Select>
-                        </>
-                      ) : null}
-                    </Flex>
-                  </FormControl>
+                            Apply Filters
+                          </Button>
+                        </ButtonGroup>
+                      </PopoverFooter>
+                    </PopoverContent>
+                  </Popover>
 
-                  <Box className="flex">
-                    <Select
-                      placeholder="Select Type"
-                      onChange={(e) => setCertificateType(e?.target?.value)}
-                      value={certificateType}
-                    >
-                      <option value="internal">Internal Certification</option>
-                      <option value="external">External Certification</option>
-                    </Select>
+                  <Button
+                    leftIcon={<Upload />}
+                    colorScheme="green"
+                    onClick={onUploadOpen}
+                    className="shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    Upload Certificate
+                  </Button>
+                </HStack>
+              </Flex>
 
-                    <Select
-                      placeholder="Select Level"
-                      onChange={(e) => setCertificateLevel(e?.target?.value)}
-                      value={certificateLevel}
-                    >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </Select>
-                  </Box>
+              <InputGroup size="lg">
+                <InputLeftElement pointerEvents="none">
+                  <Search className="text-gray-400" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search certificates..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    const filtered = certificates.filter(cert =>
+                      cert.name.toLowerCase().includes(e.target.value.toLowerCase())
+                    );
+                    setFilteredCertificates(filtered);
+                  }}
+                  borderRadius="lg"
+                  fontSize="md"
+                  bg="white"
+                  _focus={{
+                    borderColor: "green.500",
+                    boxShadow: "0 0 0 1px var(--chakra-colors-green-500)",
+                  }}
+                />
+              </InputGroup>
+            </VStack>
+          </motion.div>
 
-                  <Box className="flex">
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Enter Certification URL"
-                        onChange={(e) => setCertificateUrl(e?.target?.value)}
-                        value={certificateUrl}
-                      />
-                    </FormControl>
-                    <Text>OR</Text>
-                    <FormControl>
-                      <Box className="flex">
-                        <label htmlFor="upload" className="upload-btn">
-                          Upload Certificate
-                        </label>
-                        <p>{fileName}</p>
-                      </Box>
-                      <Input
-                        type="file"
-                        name="upload"
-                        placeholder="Upload Certificate"
-                        id="upload"
-                        accept=".pdf , .jpg , .jpeg , .png, .webp"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            handleFile(e.target.files[0]);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                  </Box>
-                </Box>
-              </ModalBody>
+          <motion.div variants={itemVariants}>
+            <CertificateTable certificates={filteredCertificates} />
+          </motion.div>
+        </VStack>
 
-              <ModalFooter>
-                <Button
-                  colorScheme="green"
-                  onClick={handleUpload}
-                  isLoading={uploadLoading}
-                >
-                  Submit for Approval
-                </Button>
-              </ModalFooter>
-            </ModalContent>
-          </Modal>
-        </Box>
-      </>
-    );
-  } else {
-    return <Loader />;
-  }
+        <UploadModal
+          isOpen={isUploadOpen}
+          onClose={onUploadClose}
+          onUpload={handleUpload}
+        />
+      </Container>
+    </motion.div>
+  );
 };
 
 export default Certificates;

@@ -1,230 +1,218 @@
-import { useEffect, useState } from "react";
-import { useToast } from "@chakra-ui/react";
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import {
-  Box,
+  Container,
+  VStack,
+  Flex,
+  HStack,
   Button,
+  Icon,
   Heading,
-  Table,
-  Tbody,
-  Th,
-  Thead,
-  Tr,
-  Td,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
   useDisclosure,
-  Select,
-  Textarea,
-} from "@chakra-ui/react";
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  PopoverFooter,
+  ButtonGroup,
+  useToast,
+} from '@chakra-ui/react';
+import { FileBadge, Filter, Search } from 'lucide-react';
+import { CertificateFilters } from './CertificateFilters';
+import { CertificateTable } from './CertificateTable';
+import { ExtendedCertificate } from '@/types/ExtendedCertificate';
 
-import { useNavigate } from "react-router";
-import Loader from "../../../components/Loader";
-import { ExtendedCertificate } from "@/types/ExtendedCertificate";
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+  },
+};
+
+interface FilterState {
+  types: string[];
+  levels: string[];
+  status: string[];
+  issueYears: string[];
+  expiryYears: string[];
+}
 
 const Certificates = () => {
   const [certificates, setCertificates] = useState<ExtendedCertificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<ExtendedCertificate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [update, setUpdate] = useState(false);
-
-  const [selectedCertificate, setSelectedCertificate] = useState<string>("");
-  const [action, setAction] = useState<string>("");
-  const [xp, setXp] = useState(0);
-  const [comments, setComments] = useState();
-
-  const navigate = useNavigate();
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<FilterState>({
+    types: [],
+    levels: [],
+    status: [],
+    issueYears: [],
+    expiryYears: [],
+  });
 
   const toast = useToast();
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/certificates`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        setCertificates(data.certs);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
+    fetchCertificates();
+  }, []);
 
-        toast({
-          title: "Error",
-          description: "Something went wrong",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+  const fetchCertificates = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/certificates`, {
+        credentials: 'include',
       });
-  }, [update]);
-
-  const openCert = (id: string) => {
-    setSelectedCertificate(id);
-    onOpen();
-  };
-
-  const updateCert = () => {
-    if (action == undefined) {
-      console.log(action)
+      const data = await response.json();
+      setCertificates(data.certificates);
+      setFilteredCertificates(data.certificates);
+    } catch (error) {
       toast({
-        title: "Error",
-        description: "Please select a valid action",
-        status: "error",
+        title: 'Error',
+        description: 'Failed to fetch certificates',
+        status: 'error',
         duration: 5000,
         isClosable: true,
       });
-
-      return
+    } finally {
+      setLoading(false);
     }
-
-    fetch(
-      `${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/certificates/update`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: selectedCertificate,
-          action: action,
-          xp: Number(xp),
-          comments: comments,
-        }),
-      }
-    )
-      .then((res) => {
-        return res.json();
-      })
-      .then(() => {
-        setUpdate(!update);
-        onClose();
-      })
-      .catch((err) => {
-        console.error(err);
-
-        toast({
-          title: "Error",
-          description: "Something went wrong",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      });
   };
 
-  if (!loading) {
-    return (
-      <>
-        <Box className="FacultyCertificates">
-          <Heading fontSize="20px">Pending Certificates</Heading>
-          <Table mt="50px" variant="striped">
-            <Thead>
-              <Tr>
-                <Th>Student Name</Th>
-                <Th>Certificate Name</Th>
-                <Th>Certificate Type</Th>
-                <Th>Issuing Organization</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {certificates.map((certificate) => {
-                return (
-                  <Tr key={certificate?._id}>
-                    <Td>{certificate?.user?.fname} {certificate?.user?.lname}</Td>
-                    <Td>{certificate?.name}</Td>
-                    <Td>
-                      {certificate?.type.slice(0, 1).toUpperCase() +
-                        certificate?.type.slice(1)}
-                    </Td>
-                    <Td>{certificate?.issuingOrganization}</Td>
-                    <Td>
-                      <Button
-                        onClick={() =>
-                          navigate(`/certificates/${certificate?._id}`)
-                        }
-                        mr="20px"
-                      >
-                        View Certificate
-                      </Button>
-                      <Button
-                        colorScheme="green"
-                        onClick={() => openCert(certificate?._id)}
-                      >
-                        Accept / Reject
-                      </Button>
-                    </Td>
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </Table>
-        </Box>
+  const applyFilters = () => {
+    let filtered = [...certificates];
 
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)/" />
-          <ModalContent>
-            <ModalHeader>Modal Title</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Select
-                placeholder="Choose a Action"
-                value={action}
-                onChange={(e) => setAction(e.target.value)}
-              >
-                <option value="approved">Accept Certificate</option>
-                <option value="rejected">Reject Certificate</option>
-              </Select>
+    if (searchTerm) {
+      filtered = filtered.filter(cert =>
+        cert.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
 
-              {action === "approved" ? (
-                <Select
-                  mt="20px"
-                  placeholder="Allocate XP"
-                  value={xp}
-                  onChange={(e) => setXp(parseInt(e.target.value))}
-                >
-                  <option value="30">30 XP - Beginner Certificate</option>
-                  <option value="50">50 XP - Intermediate Certificate</option>
-                  <option value="60">60 XP - Advanced Certificate</option>
-                </Select>
-              ) : null}
+    if (filters.levels.length) {
+      filtered = filtered.filter(cert => filters.levels.includes(cert.level));
+    }
 
-              {/* <Textarea
-                mt="20px"
-                placeholder="Add Comments"
-                comments={xp}
-                onChange={(e) => setComments(e.target.value)}
-              /> */}
-            </ModalBody>
+    if (filters.status.length) {
+      filtered = filtered.filter(cert => filters.status.includes(cert.status));
+    }
 
-            <ModalFooter>
-              <Button colorScheme="blue" mr={3} onClick={onClose}>
-                Close
-              </Button>
-              <Button variant="ghost" onClick={updateCert}>
-                Update
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </>
-    );
-  } else {
-    return <Loader />;
+    if (filters.issueYears.length) {
+      filtered = filtered.filter(cert => 
+        filters.issueYears.includes(new Date(cert.issueDate.toString()).getFullYear().toString())
+      );
+    }
+
+    setFilteredCertificates(filtered);
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [filters, searchTerm]);
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
+
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="min-h-screen bg-gray-50"
+    >
+      <Container maxW="7xl" py={8}>
+        <VStack spacing={8} align="stretch">
+          <motion.div variants={itemVariants}>
+            <VStack spacing={6} align="stretch">
+              <Flex justify="space-between" align="center">
+                <HStack spacing={4}>
+                  <Icon as={FileBadge} boxSize={6} color="green.500" />
+                  <Heading size="md">Pending Certificates</Heading>
+                </HStack>
+                <Button
+                  leftIcon={<Filter />}
+                  colorScheme="gray"
+                  variant="outline"
+                  onClick={onFilterOpen}
+                >
+                  Filters
+                </Button>
+              </Flex>
+
+              <InputGroup>
+                <InputLeftElement>
+                  <Search className="text-gray-400" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search certificates..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </InputGroup>
+            </VStack>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <CertificateTable certificates={filteredCertificates} />
+          </motion.div>
+        </VStack>
+
+        <Popover
+          isOpen={isFilterOpen}
+          onClose={onFilterClose}
+          placement="bottom-end"
+        >
+          <PopoverContent>
+            <PopoverBody>
+              <CertificateFilters
+                filters={filters}
+                setFilters={setFilters}
+              />
+            </PopoverBody>
+            <PopoverFooter>
+              <ButtonGroup size="sm" width="full">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFilters({
+                      types: [],
+                      levels: [],
+                      status: [],
+                      issueYears: [],
+                      expiryYears: [],
+                    });
+                    onFilterClose();
+                  }}
+                >
+                  Clear
+                </Button>
+                <Button colorScheme="blue" onClick={onFilterClose}>
+                  Apply
+                </Button>
+              </ButtonGroup>
+            </PopoverFooter>
+          </PopoverContent>
+        </Popover>
+      </Container>
+    </motion.div>
+  );
 };
 
 export default Certificates;
