@@ -16,7 +16,13 @@ interface EventTimeline {
 type Mode = "online" | "offline";
 type RegistrationType = "internal" | "external";
 
+interface Participant {
+  user: string;
+  registeredAt: Date;
+}
+
 interface Event {
+  _id: string;
   name: string;
   desc: string;
   image: string;
@@ -29,7 +35,7 @@ interface Event {
   registerationType: RegistrationType;
   pointsAllocated: boolean;
   points: number;
-  participants?: Array<any>;
+  participants?: Participant[];
   createdAt: Date;
   updatedAt: Date;
 }

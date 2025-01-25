@@ -14,7 +14,6 @@ import {
   useToast,
   Box,
   Text,
-  Divider,
 } from '@chakra-ui/react';
 import { Calendar, Image, Mail, MapPin, Link2, Phone, Clock, Tag, Radio } from 'lucide-react';
 import { Event, Mode, RegistrationType } from '@shared-types/Event';

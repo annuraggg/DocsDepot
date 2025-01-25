@@ -134,7 +134,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
             </Tr>
           </Thead>
           <Tbody>
-            {students.map((student, index) => (
+            {students.map((student) => (
               <Tr
                 key={student.mid}
                 _hover={{ bg: "gray.50" }}

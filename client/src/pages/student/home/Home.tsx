@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Box, Grid, Heading, useToast, VStack } from "@chakra-ui/react";
+import { Box, Grid, useToast, VStack } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import useAxios from "@/config/axios";
-import useUser from "@/config/user";
 import { HouseLeaderboard } from "./HouseLeaderboard";
 import { HousePerformance } from "./HousePerformance";
 import { CertificationsTable } from "./CertificationsTable";
@@ -69,7 +68,7 @@ const Dashboard = () => {
 
   const { user, allHouses, userHouse, certifications } = data;
   const housePoints = calculatePoints(allHouses, selectedMonth);
-  const userPoints = calculatePoints([userHouse], selectedMonth, user._id);
+  const userPoints = calculatePoints([userHouse], selectedMonth);
 
   if (!data.userHouse) {
     return (

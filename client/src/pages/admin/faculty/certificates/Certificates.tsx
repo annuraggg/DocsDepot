@@ -46,7 +46,7 @@ import useUser from "@/config/user";
 import useAxios from "@/config/axios";
 
 const FacultyCertificates = () => {
-  const [pendingCertificates, setPendingCertificates] = useState<Certificate[]>([]);
+  const [pendingCertificates, _setPendingCertificates] = useState<Certificate[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +136,7 @@ const FacultyCertificates = () => {
     }
 
     if (filters.expiryYears.length > 0) {
-      result = result.filter((cert) =>
+      result = result.filter(() =>
         false
       );
     }

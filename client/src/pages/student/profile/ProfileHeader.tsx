@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Flex, Text } from "@chakra-ui/react";
+import { Avatar, Box, Flex, Text } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { Camera, File } from "lucide-react";
 import { User } from "@shared-types/User";
@@ -24,7 +24,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   selectImage,
   generateReport,
   certifications,
-  handleFileChange,
 }) => {
   const containerVariants = {
     hidden: { opacity: 0, y: -20 },
@@ -33,14 +32,14 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       y: 0,
       transition: {
         duration: 0.6,
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
   };
 
   return (
@@ -72,7 +71,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           >
             <Camera className="text-white" size={24} />
           </MotionFlex>
-          
         )}
       </Box>
 
@@ -102,21 +100,23 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       <MotionFlex variants={itemVariants} className="grid grid-cols-3 gap-8">
         <Box className="text-center">
           <Text className="text-2xl font-bold text-purple-600">
-            {certifications?.filter(cert => cert.type === 'internal').length}
+            {certifications?.filter((cert) => cert.type === "internal").length}
           </Text>
           <Text className="text-sm text-gray-600">Internal Certs</Text>
         </Box>
 
         <Box className="text-center">
           <Text className="text-2xl font-bold text-blue-600">
-            {certifications?.filter(cert => cert.type === 'external').length ?? 0}
+            {certifications?.filter((cert) => cert.type === "external")
+              .length ?? 0}
           </Text>
           <Text className="text-sm text-gray-600">External Certs</Text>
         </Box>
 
         <Box className="text-center">
           <Text className="text-2xl font-bold text-green-600">
-            {certifications?.filter(cert => cert.type === 'event').length ?? 0}
+            {certifications?.filter((cert) => cert.type === "event").length ??
+              0}
           </Text>
           <Text className="text-sm text-gray-600">Event Certs</Text>
         </Box>

@@ -26,5 +26,5 @@
       "@shared-types/*": ["../common/types/*"]
     }
   },
-  "include": ["src", "../common/*"]
+  "include": ["src", "../common/*", "../common/types/ExtendedEvent.ts"]
 }

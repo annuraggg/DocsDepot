@@ -38,8 +38,10 @@ import { EventDetails } from "./EventDetails";
 import { EventActions } from "./EventActions";
 import { EditEventModal } from "./EditEventModal";
 import { Token } from "@shared-types/Token";
-import { Event as IEvent } from "@shared-types/Event";
-import { Role, User } from "@shared-types/User";
+import {
+  ExtendedEvent as IEvent,
+  ExtendedUser,
+} from "@shared-types/ExtendedEvent";
 import useAxios from "../../../config/axios";
 import { Download, UserMinus, UserPlus } from "lucide-react";
 
@@ -47,13 +49,12 @@ const Event = () => {
   const navigate = useNavigate();
   const [decoded, setDecoded] = useState<Token>({} as Token);
   const [editPrivilege, setEditPrivilege] = useState(false);
-  const [role, setRole] = useState<Role>("S");
   const [event, setEvent] = useState<IEvent>({} as IEvent);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [deregisterLoading, setDeregisterLoading] = useState(false);
   const [allocatePoints, setAllocatePoints] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [participants, setParticipants] = useState<User[]>([]);
+  const [participants, setParticipants] = useState<ExtendedUser[]>([]);
   const [update, setUpdate] = useState(false);
 
   // Form state
@@ -104,7 +105,6 @@ const Event = () => {
       const decoded = jwtDecode(token) as Token;
       setDecoded(decoded);
       if (decoded.role === "") return;
-      setRole(decoded.role);
       if (decoded.role === "A" || decoded.perms?.includes("MHI")) {
         setEditPrivilege(true);
       }
@@ -130,23 +130,40 @@ const Event = () => {
 
       const eventStartsDate = new Date(res.data.data.eventTimeline.start);
       const eventEndsDate = new Date(res.data.data.eventTimeline.end);
-      const registerationStartsDate = new Date(res.data.data.registrationTimeline.start);
-      const registerationEndsDate = new Date(res.data.data.registrationTimeline.end);
+      const registerationStartsDate = new Date(
+        res.data.data.registrationTimeline.start
+      );
+      const registerationEndsDate = new Date(
+        res.data.data.registrationTimeline.end
+      );
 
-      [eventStartsDate, eventEndsDate, registerationStartsDate, registerationEndsDate].forEach(date => {
+      [
+        eventStartsDate,
+        eventEndsDate,
+        registerationStartsDate,
+        registerationEndsDate,
+      ].forEach((date) => {
         date.setHours(date.getHours() + 5);
         date.setMinutes(date.getMinutes() + 30);
       });
 
       setEventStarts(eventStartsDate.toISOString().split("T")[0]);
       setEventEnds(eventEndsDate.toISOString().split("T")[0]);
-      setRegisterationStarts(registerationStartsDate.toISOString().split("T")[0]);
+      setRegisterationStarts(
+        registerationStartsDate.toISOString().split("T")[0]
+      );
       setRegisterationEnds(registerationEndsDate.toISOString().split("T")[0]);
 
-      setEventStartTime(eventStartsDate.toISOString().split("T")[1].slice(0, 5));
+      setEventStartTime(
+        eventStartsDate.toISOString().split("T")[1].slice(0, 5)
+      );
       setEventEndTime(eventEndsDate.toISOString().split("T")[1].slice(0, 5));
-      setRegisterationStartTime(registerationStartsDate.toISOString().split("T")[1].slice(0, 5));
-      setRegisterationEndTime(registerationEndsDate.toISOString().split("T")[1].slice(0, 5));
+      setRegisterationStartTime(
+        registerationStartsDate.toISOString().split("T")[1].slice(0, 5)
+      );
+      setRegisterationEndTime(
+        registerationEndsDate.toISOString().split("T")[1].slice(0, 5)
+      );
 
       setLoading(false);
     });
@@ -163,10 +180,12 @@ const Event = () => {
   };
 
   const updateEvent = () => {
-    if (eventStarts > eventEnds ||
+    if (
+      eventStarts > eventEnds ||
       registerationStarts > registerationEnds ||
       registerationStarts > eventStarts ||
-      registerationEnds > eventStarts) {
+      registerationEnds > eventStarts
+    ) {
       toast({
         title: "Error",
         description: "Invalid date configuration",
@@ -186,10 +205,16 @@ const Event = () => {
       link: eventLink,
       email: eventEmail,
       phone: eventPhone,
-      eventStarts: new Date(`${eventStarts}T${eventStartTime}:00`).toISOString(),
+      eventStarts: new Date(
+        `${eventStarts}T${eventStartTime}:00`
+      ).toISOString(),
       eventEnds: new Date(`${eventEnds}T${eventEndTime}:00`).toISOString(),
-      registerationStarts: new Date(`${registerationStarts}T${registerationStartTime}:00`).toISOString(),
-      registerationEnds: new Date(`${registerationEnds}T${registerationEndTime}:00`).toISOString(),
+      registerationStarts: new Date(
+        `${registerationStarts}T${registerationStartTime}:00`
+      ).toISOString(),
+      registerationEnds: new Date(
+        `${registerationEnds}T${registerationEndTime}:00`
+      ).toISOString(),
     });
   };
 
@@ -409,7 +434,11 @@ const Event = () => {
         </AlertDialogOverlay>
       </AlertDialog>
 
-      <Modal isOpen={isParticipantsOpen} onClose={onParticipantsClose} size="xl">
+      <Modal
+        isOpen={isParticipantsOpen}
+        onClose={onParticipantsClose}
+        size="xl"
+      >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Participants</ModalHeader>
@@ -420,16 +449,17 @@ const Event = () => {
                 <Tr>
                   <Th>Name</Th>
                   <Th>Email</Th>
-                  <Th>Phone</Th>
                   <Th>Registration</Th>
                 </Tr>
               </Thead>
               <Tbody>
                 {participants.map((participant) => (
                   <Tr key={participant._id}>
-                    <Td>{participant.name}</Td>
-                    <Td>{participant.email}</Td>
-                    <Td>{participant.phone}</Td>
+                    <Td>
+                      {participant.fname} {participant.lname}
+                    </Td>
+                    <Td>{participant.social.email}</Td>
+
                     <Td>
                       {new Date(
                         participant.registeredAt || ""
@@ -463,10 +493,10 @@ const Event = () => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {decoded.id && (
+          {decoded._id && (
             <Box mt={6}>
               {event?.participants?.some(
-                (participant) => participant._id === decoded.id
+                (participant) => participant._id === decoded._id
               ) ? (
                 <Button
                   colorScheme="red"
@@ -483,8 +513,8 @@ const Event = () => {
                   onClick={register}
                   isLoading={registerLoading}
                   isDisabled={
-                    new Date(date) < new Date(event.registerationStarts) ||
-                    new Date(date) > new Date(event.registerationEnds)
+                    new Date(date) < new Date(event.registeration.start) ||
+                    new Date(date) > new Date(event.registeration.end)
                   }
                   leftIcon={<UserPlus className="w-4 h-4" />}
                   className="shadow-md hover:shadow-lg transition-shadow"

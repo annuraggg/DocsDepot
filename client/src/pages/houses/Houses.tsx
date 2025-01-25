@@ -14,9 +14,9 @@ const Houses = () => {
   const [houses, setHouses] = useState<House[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // January = 1
-  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
-  const [prevMonth, setPrevMonth] = useState<number>(new Date().getMonth());
+  const [selectedMonth, _setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // January = 1
+  const [currentYear, _setCurrentYear] = useState<number>(new Date().getFullYear());
+  const [prevMonth, _setPrevMonth] = useState<number>(new Date().getMonth());
 
   const calculateTotalPoints = (data: House) => {
     const filterPointsByDate = (month?: number) =>

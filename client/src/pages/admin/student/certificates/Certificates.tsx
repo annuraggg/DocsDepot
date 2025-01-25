@@ -28,18 +28,19 @@ import {
   Checkbox,
   CheckboxGroup,
   FormLabel,
-  FormControl
+  FormControl,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router";
 import { Award, Building2, Calendar, ChevronRight, Filter } from "lucide-react";
 import { Certificate } from "@shared-types/Certificate";
 import Loader from "@/components/Loader";
 import useAxios from "@/config/axios";
-import { ExtendedCertificate } from "@/types/ExtendedCertificate";
 
 const StudentCertificates = () => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<
+    Certificate[]
+  >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<{
     types: string[];
@@ -92,29 +93,31 @@ const StudentCertificates = () => {
     }
 
     if (filters.types.length > 0) {
-      result = result.filter((cert) => filters.types.includes(cert.type.toLowerCase()));
+      result = result.filter((cert) =>
+        filters.types.includes(cert.type.toLowerCase())
+      );
     }
 
     if (filters.levels.length > 0) {
-      result = result.filter((cert) => filters.levels.includes(cert.level.toLowerCase()));
+      result = result.filter((cert) =>
+        filters.levels.includes(cert.level.toLowerCase())
+      );
     }
 
     if (filters.status.length > 0) {
-      result = result.filter((cert) => 
-        filters.status.includes((cert.status || 'pending').toLowerCase())
+      result = result.filter((cert) =>
+        filters.status.includes((cert.status || "pending").toLowerCase())
       );
     }
 
     if (filters.issueYears.length > 0) {
-      result = result.filter((cert) => 
+      result = result.filter((cert) =>
         filters.issueYears.includes(cert.issueDate.year.toString())
       );
     }
 
     if (filters.expiryYears.length > 0) {
-      result = result.filter((cert) => 
-        false
-      );
+      result = result.filter(() => false);
     }
 
     setFilteredCertificates(result);
@@ -193,28 +196,84 @@ const StudentCertificates = () => {
           <Table variant="simple">
             <Thead>
               <Tr bg="gray.50" borderBottom="1px" borderColor="gray.200">
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Sr No.
                 </Th>
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Certificate
                 </Th>
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Organization
                 </Th>
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Issue Date
                 </Th>
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Type
                 </Th>
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Level
                 </Th>
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Status
                 </Th>
-                <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
+                <Th
+                  py={4}
+                  px={6}
+                  fontSize="sm"
+                  fontWeight="semibold"
+                  color="gray.900"
+                  textTransform="initial"
+                >
                   Action
                 </Th>
               </Tr>
@@ -280,7 +339,8 @@ const StudentCertificates = () => {
                       fontWeight="medium"
                       {...getLevelProps(cert.level)}
                     >
-                      {cert.level?.charAt(0).toUpperCase() + cert.level?.slice(1)}
+                      {cert.level?.charAt(0).toUpperCase() +
+                        cert.level?.slice(1)}
                     </Badge>
                   </Td>
                   <Td py={4} px={6}>

@@ -1,13 +1,13 @@
-import { Box, Flex, Heading, Image, Skeleton } from "@chakra-ui/react";
+import { Heading, Image, Skeleton } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import { Event as IEvent } from "@shared-types/Event";
+import { ExtendedEvent as IEvent } from "@shared-types/ExtendedEvent";
 
 interface EventHeaderProps {
   event: IEvent;
   loading: boolean;
 }
 
-export const EventHeader = ({ event, loading }: EventHeaderProps) => {
+export const EventHeader = ({ event }: EventHeaderProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,15 +25,12 @@ export const EventHeader = ({ event, loading }: EventHeaderProps) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
         </div>
-        
+
         <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-          <Heading 
-            size="2xl"
-            className="mb-4 font-bold text-shadow-lg"
-          >
+          <Heading size="2xl" className="mb-4 font-bold text-shadow-lg">
             {event?.name}
           </Heading>
-          
+
           <p className="text-lg text-gray-200 line-clamp-3 max-w-3xl">
             {event?.desc}
           </p>

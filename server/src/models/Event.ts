@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 
+const ParticipantSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  registeredAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const eventSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -27,7 +39,7 @@ const eventSchema = new mongoose.Schema(
     },
     pointsAllocated: { type: Boolean, default: false },
     points: { type: Number, default: 0 },
-    participants: { type: [mongoose.Types.ObjectId], ref: "User" },
+    participants: [ParticipantSchema],
   },
   { timestamps: true }
 );

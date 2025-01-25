@@ -1,6 +1,6 @@
 import { Button, ButtonGroup } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import { Event as IEvent } from "@shared-types/Event";
+import { ExtendedEvent as IEvent } from "@shared-types/ExtendedEvent";
 import { Award, Edit, Trash, Users } from "lucide-react";
 
 interface EventActionsProps {
@@ -22,7 +22,9 @@ export const EventActions = ({
   onAllocateOpen,
   date,
 }: EventActionsProps) => {
-  const isEventEnded = event?.eventTimeline?.end ? new Date(event?.eventTimeline?.start) < new Date(date) : false;
+  const isEventEnded = event?.eventTimeline?.end
+    ? new Date(event?.eventTimeline?.start) < new Date(date)
+    : false;
 
   return (
     <motion.div
@@ -33,7 +35,10 @@ export const EventActions = ({
     >
       {editPrivilege && (
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-4 max-w-3xl mx-auto">
-          <ButtonGroup spacing={4} className="flex flex-wrap gap-4 justify-center">
+          <ButtonGroup
+            spacing={4}
+            className="flex flex-wrap gap-4 justify-center"
+          >
             <Button
               colorScheme="blue"
               leftIcon={<Edit className="w-4 h-4" />}
@@ -42,7 +47,7 @@ export const EventActions = ({
             >
               Edit Event
             </Button>
-            
+
             <Button
               colorScheme="red"
               variant="outline"
@@ -52,7 +57,7 @@ export const EventActions = ({
             >
               Delete Event
             </Button>
-            
+
             <Button
               colorScheme="purple"
               leftIcon={<Users className="w-4 h-4" />}

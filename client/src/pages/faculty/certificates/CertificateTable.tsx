@@ -72,7 +72,7 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
             </Tr>
           </Thead>
           <Tbody>
-            {certificates.map((cert, index) => (
+            {certificates.map((cert) => (
               <Tr 
                 key={cert._id}
                 _hover={{ bg: 'gray.50' }}

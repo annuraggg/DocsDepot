@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Phone, Link as LinkIcon, MapPin, Type } from "lucide-react";
-import { Event as IEvent } from "@shared-types/Event";
+import { ExtendedEvent as IEvent } from "@shared-types/ExtendedEvent";
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -110,7 +110,9 @@ export const EditEventModal = ({
           >
             <ModalContent className="bg-white rounded-2xl shadow-2xl">
               <ModalHeader className="border-b border-gray-100 pb-4 px-6">
-                <Text className="text-2xl font-bold text-gray-900">Edit Event</Text>
+                <Text className="text-2xl font-bold text-gray-900">
+                  Edit Event
+                </Text>
               </ModalHeader>
               <ModalCloseButton className="text-gray-500 hover:text-gray-700" />
 
@@ -118,7 +120,9 @@ export const EditEventModal = ({
                 <VStack spacing={8}>
                   <Flex gap={6} className="w-full">
                     <FormControl>
-                      <Text className="text-sm font-medium text-gray-700 mb-2">Event Name</Text>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">
+                        Event Name
+                      </Text>
                       <InputGroup>
                         <InputLeftAddon>
                           <Type className="w-4 h-4 text-gray-500" />
@@ -133,7 +137,9 @@ export const EditEventModal = ({
                     </FormControl>
 
                     <FormControl>
-                      <Text className="text-sm font-medium text-gray-700 mb-2">Event Image</Text>
+                      <Text className="text-sm font-medium text-gray-700 mb-2">
+                        Event Image
+                      </Text>
                       <InputGroup>
                         <InputLeftAddon>
                           <LinkIcon className="w-4 h-4 text-gray-500" />
@@ -147,7 +153,6 @@ export const EditEventModal = ({
                       </InputGroup>
                     </FormControl>
                   </Flex>
-
 
                   <FormControl>
                     <Textarea
@@ -240,7 +245,9 @@ export const EditEventModal = ({
                         <Input
                           type="date"
                           value={registerationStarts}
-                          onChange={(e) => setRegisterationStarts(e.target.value)}
+                          onChange={(e) =>
+                            setRegisterationStarts(e.target.value)
+                          }
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
@@ -248,7 +255,9 @@ export const EditEventModal = ({
                         <Input
                           type="time"
                           value={registerationStartTime}
-                          onChange={(e) => setRegisterationStartTime(e.target.value)}
+                          onChange={(e) =>
+                            setRegisterationStartTime(e.target.value)
+                          }
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
@@ -265,7 +274,9 @@ export const EditEventModal = ({
                         <Input
                           type="time"
                           value={registerationEndTime}
-                          onChange={(e) => setRegisterationEndTime(e.target.value)}
+                          onChange={(e) =>
+                            setRegisterationEndTime(e.target.value)
+                          }
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>

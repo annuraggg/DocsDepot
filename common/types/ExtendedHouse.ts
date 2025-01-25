@@ -1,6 +1,6 @@
-import { Point, House } from "./House";
-import { User } from "./User";
-import { Certificate } from "./Certificate";
+import type { Point, House } from "./House";
+import type { User } from "./User";
+import type { Certificate } from "./Certificate";
 
 interface ExtendedPoint extends Omit<Point, "certificateId"> {
   certificateId: Certificate;
