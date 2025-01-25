@@ -5,6 +5,7 @@ interface Enrollment {
   technical: string;
   projects: string;
   cgpa: number;
+  createdAt: string;
 }
 
 export type { Enrollment };

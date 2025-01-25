@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { useToast } from "@chakra-ui/react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { Trophy, TrendingUp, History, Calendar } from "lucide-react";
+import { Trophy, TrendingUp, History, Calendar, Award } from "lucide-react";
 import useAxios from "@/config/axios";
 import { House, Point } from "@shared-types/House";
+import Loader from "@/components/Loader";
 
 const Houses = () => {
   const toast = useToast();
@@ -14,7 +15,7 @@ const Houses = () => {
   const [houses, setHouses] = useState<House[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const [selectedMonth, _setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // January = 1
+  const [selectedMonth, _setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [currentYear, _setCurrentYear] = useState<number>(new Date().getFullYear());
   const [prevMonth, _setPrevMonth] = useState<number>(new Date().getMonth());
 
@@ -85,8 +86,8 @@ const Houses = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-indigo-50 to-indigo-100">
+        <Loader />
       </div>
     );
   }
@@ -94,59 +95,78 @@ const Houses = () => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-100">
-          <p className="font-semibold">{payload[0].payload.name}</p>
-          <p className="text-gray-600">Points: {payload[0].value}</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-4 rounded-xl shadow-2xl border border-gray-200"
+        >
+          <p className="font-bold text-lg text-gray-800">{payload[0].payload.name}</p>
+          <p className="text-gray-600 flex items-center gap-2">
+            <Award className="w-4 h-4 text-indigo-500" />
+            Points: {payload[0].value}
+          </p>
+        </motion.div>
       );
     }
     return null;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br p-8">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
         className="max-w-7xl mx-auto"
       >
-        {/* House Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {houses.map((house) => (
             <motion.div
               key={house._id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="cursor-pointer"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="cursor-pointer transform transition-all duration-300"
               onClick={() => navigate(`/houses/${house._id}`)}
             >
               <div
-                className="rounded-xl p-6 shadow-lg"
-                style={{ backgroundColor: house.color }}
+                className="rounded-2xl p-6 shadow-xl relative overflow-hidden"
+                style={{ 
+                  backgroundColor: house.color,
+                  backgroundImage: `linear-gradient(to bottom right, ${house.color}, ${house.color}CC)`
+                }}
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-white">{house.name}</h3>
-                  <Trophy className="w-6 h-6 text-white opacity-80" />
+                <div className="absolute top-0 right-0 opacity-20">
+                  <Trophy className="w-24 h-24 text-white" />
                 </div>
-                <p className="mt-2 text-white opacity-90">
-                  {calculateTotalPoints(house).totalYearly} Points
-                </p>
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-2xl font-bold text-white drop-shadow-md">{house.name}</h3>
+                    <Trophy className="w-8 h-8 text-white" />
+                  </div>
+                  <p className="mt-4 text-2xl font-bold text-white drop-shadow-md">
+                    {calculateTotalPoints(house).totalYearly} 
+                    <span className="text-base ml-2">Points</span>
+                  </p>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Monthly Leaderboard */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-xl shadow-lg p-6 w-full"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full"
           >
-            <div className="flex items-center gap-2 mb-6">
-              <Calendar className="w-6 h-6 text-blue-500" />
-              <h3 className="text-xl font-semibold">Monthly Leaderboard</h3>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <Calendar className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">Monthly Leaderboard</h3>
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -164,21 +184,22 @@ const Houses = () => {
                   />
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="points" fill="#4F46E5" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="points" fill="#4F46E5" radius={[10, 10, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </motion.div>
 
-          {/* Previous Month */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg p-6 w-full"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full"
           >
-            <div className="flex items-center gap-2 mb-6">
-              <History className="w-6 h-6 text-purple-500" />
-              <h3 className="text-xl font-semibold">Previous Month</h3>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-purple-100 p-3 rounded-full">
+                <History className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">Previous Month</h3>
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -196,21 +217,22 @@ const Houses = () => {
                   />
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="points" fill="#9333EA" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="points" fill="#9333EA" radius={[10, 10, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </motion.div>
 
-          {/* Yearly Leaderboard */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-xl shadow-lg p-6 w-full"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full"
           >
-            <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="w-6 h-6 text-green-500" />
-              <h3 className="text-xl font-semibold">Yearly Leaderboard</h3>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="bg-green-100 p-3 rounded-full">
+                <TrendingUp className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800">Yearly Leaderboard</h3>
             </div>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -228,7 +250,7 @@ const Houses = () => {
                   />
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="points" fill="#10B981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="points" fill="#10B981" radius={[10, 10, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

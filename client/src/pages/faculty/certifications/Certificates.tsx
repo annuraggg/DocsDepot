@@ -90,8 +90,7 @@ const Certificates: React.FC = () => {
             <VStack spacing={6} align="stretch">
               <Flex justify="space-between" align="center">
                 <HStack spacing={4}>
-                  <Icon as={CertIcon} boxSize={6} color="green.500" />
-                  <Heading size="md">Your Certificates</Heading>
+                  <Heading size="lg">Your Certificates</Heading>
                 </HStack>
                 <HStack spacing={3}>
                   <Popover

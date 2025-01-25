@@ -259,7 +259,7 @@ const Students = () => {
       >
         <Flex justify="space-between" align="center" mb={8}>
           <Box>
-            <Heading size="xl" mb={2}>
+            <Heading size="lg" mb={2}>
               Student Management
             </Heading>
             <Text color="gray.500">

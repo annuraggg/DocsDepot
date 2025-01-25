@@ -155,8 +155,7 @@ const Certificates = () => {
             <VStack spacing={6} align="stretch">
               <Flex justify="space-between" align="center">
                 <HStack spacing={4}>
-                  <Icon as={FileBadge} boxSize={6} color="green.500" />
-                  <Heading size="md">Pending Certificates</Heading>
+                  <Heading size="lg">Pending Certificates</Heading>
                 </HStack>
                 <Button
                   leftIcon={<Filter />}
