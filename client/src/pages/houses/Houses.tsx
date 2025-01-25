@@ -10,9 +10,10 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Trophy, TrendingUp, History, Calendar } from "lucide-react";
+import { Trophy, TrendingUp, History, Calendar, Award } from "lucide-react";
 import useAxios from "@/config/axios";
 import { House, Point } from "@shared-types/House";
+import Loader from "@/components/Loader";
 
 const Houses = () => {
   const toast = useToast();
@@ -20,13 +21,9 @@ const Houses = () => {
 
   const [houses, setHouses] = useState<House[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [selectedMonth, _setSelectedMonth] = useState<number>(
-    new Date().getMonth() + 1
-  );
-  const [currentYear, _setCurrentYear] = useState<number>(
-    new Date().getFullYear()
-  );
+  
+  const [selectedMonth, _setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [currentYear, _setCurrentYear] = useState<number>(new Date().getFullYear());
   const [prevMonth, _setPrevMonth] = useState<number>(new Date().getMonth());
 
   const calculateTotalPoints = (data: House) => {
@@ -98,8 +95,8 @@ const Houses = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-indigo-50 to-indigo-100">
+        <Loader />
       </div>
     );
   }
@@ -107,10 +104,17 @@ const Houses = () => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-100">
-          <p className="font-semibold">{payload[0].payload.name}</p>
-          <p className="text-gray-600">Points: {payload[0].value}</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white p-4 rounded-xl shadow-2xl border border-gray-200"
+        >
+          <p className="font-bold text-lg text-gray-800">{payload[0].payload.name}</p>
+          <p className="text-gray-600 flex items-center gap-2">
+            <Award className="w-4 h-4 text-indigo-500" />
+            Points: {payload[0].value}
+          </p>
+        </motion.div>
       );
     }
     return null;
@@ -186,10 +190,11 @@ const Houses = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gradient-to-br p-8">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 0 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
         className="max-w-7xl mx-auto"
       >
         {/* House Cards */}
