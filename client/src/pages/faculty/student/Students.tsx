@@ -691,4 +691,4 @@ const Students = () => {
   );
 };
 
-export default StudentsPage;
+export default Students;
