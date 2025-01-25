@@ -36,7 +36,7 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
       className="absolute -bottom-20 left-8 right-8 flex items-end justify-between"
     >
       <div className="flex items-end gap-6">
-        <div className="relative">
+        <div className="relative bg-white rounded-full">
           <Avatar
             src={`   ${import.meta.env.VITE_API_URL}/static/houses/logos/${
               house?._id + house?.logo
@@ -72,13 +72,13 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
         <div className="mb-6">
           <div className="flex items-center gap-3 drop-shadow-2xl">
             <h1
-              className={`text-4xl font-bold text-white`}
+              className={`text-4xl font-bold text-white mix-blend-difference`}
               style={{
                 WebkitTextStroke: `1px ${house?.color}`,
                 color: "white",
               }}
             >
-              {house?.name} House
+              {house?.name || "Untitled"} House
             </h1>
             {editPrivileges && (
               <motion.button
@@ -97,7 +97,7 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
               className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
               onClick={() => navigateToProfile(house?.facultyCordinator?.mid)}
             >
-              @{house?.facultyCordinator?.fname} {house?.facultyCordinator?.lname}
+              {house.facultyCordinator && `@${house?.facultyCordinator?.fname} ${house?.facultyCordinator?.lname}`}
             </Button>
           </div>
         </div>

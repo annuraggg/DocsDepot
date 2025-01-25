@@ -39,6 +39,7 @@ import FacultyStudentAdd from "./pages/faculty/student/import/StudentImport.js";
 import FacultyCertifications from "./pages/faculty/certifications/Certificates.js";
 import FacultyLayout from "./components/layouts/FacultyLayout.js";
 import About from "./pages/about/About.js";
+import Lander from "./pages/lander/Lander.js";
 
 function App() {
   const studentRoutes = [
@@ -85,6 +86,7 @@ function App() {
     { path: "/feedback", element: <Feedback /> },
     { path: "/auth", element: <Auth /> },
 
+    { path: "/", element: <Lander /> },
     { path: "/", element: <SelectiveLayout />, children: selectiveRoutes },
     { path: "/student", element: <StudentLayout />, children: studentRoutes },
     { path: "/admin", element: <AdminLayout />, children: adminRoutes },

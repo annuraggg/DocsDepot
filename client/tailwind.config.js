@@ -12,12 +12,23 @@ export default {
         roboto: ["Roboto", "sans-serif"], // Add the font family
         familjen: ["Familjen Grotesk Variable", "sans-serif"], // Add the font family
         rouge: ["Rouge Script", "cursive"], // Add the font family
+        dmsans: ["DM Sans", "sans-serif"], // Add the font family
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
         stroke: "stroke 5s forwards",
+        'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
+        'star-movement-top': 'star-movement-top linear infinite alternate',
       },
       keyframes: {
+        'star-movement-bottom': {
+          '0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+          '100%': { transform: 'translate(-100%, 0%)', opacity: '0' },
+        },
+        'star-movement-top': {
+          '0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+          '100%': { transform: 'translate(100%, 0%)', opacity: '0' },
+        },
         fadeIn: {
           "0%": { opacity: 0 },
           "100%": { opacity: 1 },
