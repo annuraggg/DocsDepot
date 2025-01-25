@@ -80,7 +80,7 @@ const updateUser = async (c: Context) => {
     const houseUpdates = async (houseId: string, permission: string) => {
       const house = await House.findOne({ id: houseId });
       if (house) {
-        if (body.permissions.includes(permission)) {
+        if (body?.permissions?.includes(permission)) {
           if (house.facultyCordinator?.toString() !== id) {
             // @ts-expect-error
             house.facultyCordinator = id;
@@ -102,14 +102,24 @@ const updateUser = async (c: Context) => {
     ]);
 
     // REMOVE HC01, HC02, HC03, HC04 from permissions
-    body.permissions = body.permissions.filter(
+    body.permissions = body?.permissions?.filter(
       (perm: string) => !perm.startsWith("H")
     );
 
     const gate = new UserKeeper(token, user);
     await gate.update();
 
-    const updatedUser = await User.findByIdAndUpdate(id, body, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        fname: body.fname,
+        lname: body.lname,
+        "social.email": body.email,
+        house: body?.house || null,
+        permissions: body.permissions || [],
+      },
+      { new: true }
+    );
     return sendSuccess(c, 200, "User updated", updatedUser);
   } catch (err) {
     console.error(err);

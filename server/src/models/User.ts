@@ -15,7 +15,11 @@ const userSchema = new mongoose.Schema(
       immutable: true,
     }, // A for Admin, S for Student and F for Faculty
 
-    house: { type: mongoose.Types.ObjectId, default: null, ref: "House" },
+    house: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+      ref: "House",
+    },
 
     academicDetails: {
       isDSE: { type: Boolean, default: false, immutable: true },

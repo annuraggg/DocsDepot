@@ -22,10 +22,10 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
   house,
   refreshImages,
 }) => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = React?.useRef<HTMLInputElement>(null);
 
   const handleCameraClick = () => {
-    fileInputRef.current?.click();
+    fileInputRef?.current?.click();
   };
 
   return (
@@ -59,7 +59,7 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
                 className="hidden"
                 accept="image/*"
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
+                  const file = e?.target.files?.[0];
                   if (file) {
                     onLogoChange(file);
                   }
@@ -95,9 +95,9 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
               size="sm"
               variant="ghost"
               className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
-              onClick={() => navigateToProfile(house?.facultyCordinator.mid)}
+              onClick={() => navigateToProfile(house?.facultyCordinator?.mid)}
             >
-              @{house?.facultyCordinator.fname} {house?.facultyCordinator.lname}
+              @{house?.facultyCordinator?.fname} {house?.facultyCordinator?.lname}
             </Button>
           </div>
         </div>

@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Upload, Check, X } from "lucide-react";
+import React, { useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -10,13 +8,22 @@ import {
   ModalBody,
   ModalCloseButton,
   Button,
+  VStack,
+  HStack,
+  FormControl,
+  FormLabel,
   Input,
   Select,
   Checkbox,
-  FormControl,
-  FormLabel,
+  Box,
+  Text,
+  Icon,
+  Alert,
+  AlertIcon,
   useToast,
 } from "@chakra-ui/react";
+import { Upload, Check } from "lucide-react";
+import { months, getYearRange } from "../../../utils/dateUtils";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -24,14 +31,14 @@ interface UploadModalProps {
   onUpload: (formData: FormData) => Promise<void>;
 }
 
-export const UploadModal = ({
+export const UploadModal: React.FC<UploadModalProps> = ({
   isOpen,
   onClose,
   onUpload,
-}: UploadModalProps) => {
+}) => {
   const toast = useToast();
-  const [uploadLoading, setUploadLoading] = useState(false);
-  
+  const [btnLoading, setBtnLoading] = useState(false);
+
   // Form states
   const [certificateName, setCertificateName] = useState("");
   const [issuingOrg, setIssuingOrg] = useState("");
@@ -46,68 +53,55 @@ export const UploadModal = ({
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("No File Selected");
 
-  const year = new Date().getFullYear();
-  
-  const handleUpload = async () => {
-    if (!validateForm()) return;
-    
-    setUploadLoading(true);
-    const formData = new FormData();
+  const resetForm = () => {
+    setCertificateName("");
+    setIssuingOrg("");
+    setIssueMonth("");
+    setIssueYear("");
+    setExpiry(false);
+    setExpiryMonth("");
+    setExpiryYear("");
+    setCertificateType("");
+    setCertificateLevel("");
+    setCertificateUrl("");
+    setFile(null);
+    setFileName("No File Selected");
+    setBtnLoading(false);
+  };
 
-    formData.append("certificateName", certificateName);
-    formData.append("issuingOrg", issuingOrg);
-    formData.append("issueMonth", issueMonth);
-    formData.append("issueYear", issueYear);
-    formData.append("expires", expiry.toString());
-    formData.append("expiryMonth", expiryMonth);
-    formData.append("expiryYear", expiryYear);
-    formData.append("certificateType", certificateType);
-    formData.append("certificateLevel", certificateLevel);
-    formData.append("certificateURL", certificateUrl);
-    if (file) formData.append("certificate", file);
-
-    try {
-      await onUpload(formData);
-      toast({
-        title: "Success",
-        description: "Certificate submitted for approval",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to upload certificate",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setUploadLoading(false);
-    }
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   const validateForm = (): boolean => {
-    if (!certificateName || !issuingOrg || !issueMonth || !issueYear || !certificateType || !certificateLevel) {
+    if (
+      !certificateName ||
+      !issuingOrg ||
+      !issueMonth ||
+      !issueYear ||
+      !certificateType ||
+      !certificateLevel
+    ) {
       toast({
         title: "Error",
         description: "Please fill all required fields",
         status: "error",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
+        position: "top-right",
       });
       return false;
     }
-    
+
     if (expiry && (!expiryMonth || !expiryYear)) {
       toast({
         title: "Error",
         description: "Please select both expiry month and year",
         status: "error",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
+        position: "top-right",
       });
       return false;
     }
@@ -117,13 +111,91 @@ export const UploadModal = ({
         title: "Error",
         description: "Please provide either a file or URL",
         status: "error",
-        duration: 3000,
+        duration: 5000,
         isClosable: true,
+        position: "top-right",
+      });
+      return false;
+    }
+
+    if (file && certificateUrl) {
+      toast({
+        title: "Error",
+        description: "Please provide either a file or URL, not both",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
       });
       return false;
     }
 
     return true;
+  };
+
+  const handleUpload = async () => {
+    setBtnLoading(true);
+
+    if (!validateForm()) {
+      setBtnLoading(false);
+      return;
+    }
+
+    const formData = new FormData();
+
+    // Add basic certificate information
+    const issue = {
+      month: issueMonth,
+      year: parseInt(issueYear),
+    };
+
+    const expiry = {
+      month: expiryMonth,
+      year: parseInt(expiryYear),
+    };
+
+    formData.append("name", certificateName);
+    formData.append("issuingOrganization", issuingOrg);
+    formData.append("issueDate", JSON.stringify(issue));
+    // Handle expiration data
+    formData.append("expires", expiry ? "true" : "false");
+    if (expiry) {
+      formData.append("expirationDate", JSON.stringify(expiry));
+    } else {
+      formData.append("expirationDate", JSON.stringify({}));
+    }
+
+    // Add other certificate details
+    formData.append("type", certificateType);
+    formData.append("level", certificateLevel);
+    formData.append("uploadType", certificateUrl ? "url" : "file");
+
+    // Add optional fields
+    if (certificateUrl) formData.append("url", certificateUrl);
+    if (file) formData.append("certificate", file);
+
+    try {
+      await onUpload(formData);
+      toast({
+        title: "Success",
+        description: "Certificate uploaded successfully",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload certificate",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+    } finally {
+      setBtnLoading(false);
+    }
   };
 
   const handleFile = (file: File) => {
@@ -132,40 +204,41 @@ export const UploadModal = ({
     setCertificateUrl("");
   };
 
-  const MotionModalContent = motion(ModalContent);
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl">
-      <ModalOverlay className="backdrop-blur-sm backdrop-brightness-75" />
-      <MotionModalContent
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -20, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="rounded-lg shadow-xl"
-      >
-        <ModalHeader className="flex items-center gap-2 border-b border-gray-100 pb-4">
-          <Upload className="h-5 w-5" />
-          <span>Upload Certificate</span>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      size="6xl"
+      motionPreset="slideInBottom"
+    >
+      <ModalOverlay backdropFilter="blur(8px)" />
+      <ModalContent>
+        <ModalHeader>
+          <HStack>
+            <Icon as={Upload} />
+            <Text>Upload Certificate</Text>
+          </HStack>
         </ModalHeader>
-        <ModalCloseButton className="hover:bg-gray-100 rounded-full p-2 transition-colors" />
-        
-        <ModalBody className="py-6">
-          <div className="space-y-6">
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-md">
-              <p className="text-blue-700 text-sm">
-                Your Certificate will be verified and approved by the Admin
-              </p>
-            </div>
+        <ModalCloseButton />
 
-            <div className="grid grid-cols-2 gap-4">
+        <ModalBody>
+          <VStack spacing={6}>
+            <Alert status="info" variant="left-accent" borderRadius="md">
+              <AlertIcon />
+              <Text>
+                Your certificate will be verified and approved by the house
+                coordinator.
+              </Text>
+            </Alert>
+
+            <HStack width="full" spacing={4}>
               <FormControl isRequired>
                 <FormLabel>Certificate Name</FormLabel>
                 <Input
                   placeholder="Enter certificate name"
                   value={certificateName}
                   onChange={(e) => setCertificateName(e.target.value)}
-                  className="focus:ring-2 focus:ring-blue-500"
+                  size="lg"
                 />
               </FormControl>
 
@@ -175,84 +248,101 @@ export const UploadModal = ({
                   placeholder="Enter organization name"
                   value={issuingOrg}
                   onChange={(e) => setIssuingOrg(e.target.value)}
+                  size="lg"
                 />
               </FormControl>
-            </div>
+            </HStack>
 
-            <div className="grid grid-cols-2 gap-4">
+            <HStack width="full" spacing={4}>
               <FormControl isRequired>
                 <FormLabel>Issue Date</FormLabel>
-                <div className="grid grid-cols-2 gap-4">
+                <HStack spacing={4}>
                   <Select
-                    placeholder="Select Month"
                     value={issueMonth}
                     onChange={(e) => setIssueMonth(e.target.value)}
+                    placeholder="Select Month"
                   >
-                    {["January", "February", "March", "April", "May", "June", 
-                      "July", "August", "September", "October", "November", "December"].map((month) => (
-                      <option key={month} value={month.toLowerCase().slice(0, 3)}>
+                    {months.map((month) => (
+                      <option
+                        key={month.toLowerCase().slice(0, 3)}
+                        value={month.toLowerCase().slice(0, 3)}
+                      >
                         {month}
                       </option>
                     ))}
                   </Select>
+
                   <Select
-                    placeholder="Select Year"
                     value={issueYear}
                     onChange={(e) => setIssueYear(e.target.value)}
+                    placeholder="Select Year"
                   >
-                    {[year-3, year-2, year-1, year].map((y) => (
-                      <option key={y} value={y}>{y}</option>
+                    {getYearRange(-3, 0).map((year) => (
+                      <option key={year} value={year.toString()}>
+                        {year}
+                      </option>
                     ))}
                   </Select>
-                </div>
+                </HStack>
               </FormControl>
+            </HStack>
 
-              <FormControl>
-                <div className="flex items-center gap-4 h-full pt-8">
-                  <Checkbox
-                    isChecked={expiry}
-                    onChange={(e) => setExpiry(e.target.checked)}
-                    colorScheme="green"
-                  >
-                    Certificate Expires?
-                  </Checkbox>
-                  
-                  {expiry && (
-                    <div className="grid grid-cols-2 gap-4 flex-1">
-                      <Select
-                        placeholder="Expiry Month"
-                        value={expiryMonth}
-                        onChange={(e) => setExpiryMonth(e.target.value)}
-                      >
-                        {["January", "February", "March", "April", "May", "June",
-                          "July", "August", "September", "October", "November", "December"].map((month) => (
-                          <option key={month} value={month.toLowerCase().slice(0, 3)}>
-                            {month}
-                          </option>
-                        ))}
-                      </Select>
-                      <Select
-                        placeholder="Expiry Year"
-                        value={expiryYear}
-                        onChange={(e) => setExpiryYear(e.target.value)}
-                      >
-                        {[year, year+1, year+2, year+3].map((y) => (
-                          <option key={y} value={y}>{y}</option>
-                        ))}
-                      </Select>
-                    </div>
-                  )}
-                </div>
-              </FormControl>
-            </div>
+            <FormControl>
+              <HStack spacing={4} align="flex-start">
+                <Checkbox
+                  isChecked={expiry}
+                  onChange={(e) => {
+                    setExpiry(e.target.checked);
+                    if (!e.target.checked) {
+                      setExpiryMonth("");
+                      setExpiryYear("");
+                    }
+                  }}
+                  colorScheme="green"
+                >
+                  Certificate Expires?
+                </Checkbox>
 
-            <div className="grid grid-cols-2 gap-4">
+                {expiry && (
+                  <HStack spacing={4} flex={1}>
+                    <Select
+                      value={expiryMonth}
+                      onChange={(e) => setExpiryMonth(e.target.value)}
+                      placeholder="Expiry Month"
+                    >
+                      {months.map((month) => (
+                        <option
+                          key={month.toLowerCase().slice(0, 3)}
+                          value={month.toLowerCase().slice(0, 3)}
+                        >
+                          {month}
+                        </option>
+                      ))}
+                    </Select>
+
+                    <Select
+                      value={expiryYear}
+                      onChange={(e) => setExpiryYear(e.target.value)}
+                      placeholder="Expiry Year"
+                    >
+                      {getYearRange(0, 10).map((year) => (
+                        <option key={year} value={year.toString()}>
+                          {year}
+                        </option>
+                      ))}
+                    </Select>
+                  </HStack>
+                )}
+              </HStack>
+            </FormControl>
+
+            <HStack width="full" spacing={4}>
               <FormControl isRequired>
                 <FormLabel>Certificate Type</FormLabel>
                 <Select
-                  placeholder="Select Type"
                   value={certificateType}
                   onChange={(e) => setCertificateType(e.target.value)}
+                  placeholder="Select Type"
                 >
                   <option value="internal">Internal Certification</option>
                   <option value="external">External Certification</option>
@@ -262,18 +352,18 @@ export const UploadModal = ({
               <FormControl isRequired>
                 <FormLabel>Certificate Level</FormLabel>
                 <Select
-                  placeholder="Select Level"
                   value={certificateLevel}
                   onChange={(e) => setCertificateLevel(e.target.value)}
+                  placeholder="Select Level"
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                 </Select>
               </FormControl>
-            </div>
+            </HStack>
 
-            <div className="space-y-4">
+            <VStack width="full" spacing={4}>
               <FormControl>
                 <FormLabel>Certificate URL</FormLabel>
                 <Input
@@ -287,68 +377,73 @@ export const UploadModal = ({
                 />
               </FormControl>
 
-              <div className="text-center font-medium text-gray-500">OR</div>
+              <Text fontWeight="medium" alignSelf="center">
+                OR
+              </Text>
 
               <FormControl>
                 <FormLabel>Upload Certificate</FormLabel>
-                <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 transition-colors hover:border-blue-500">
-                  <input
+                <Box
+                  border="2px dashed"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                  p={6}
+                  textAlign="center"
+                  _hover={{ borderColor: "blue.500" }}
+                  transition="all 0.2s"
+                >
+                  <Input
                     type="file"
                     id="certificate-upload"
-                    className="hidden"
                     accept=".pdf,.jpg,.jpeg,.png,.webp"
                     onChange={(e) => {
                       if (e.target.files?.[0]) {
                         handleFile(e.target.files[0]);
                       }
                     }}
+                    display="none"
                   />
                   <label
                     htmlFor="certificate-upload"
-                    className="cursor-pointer block text-center"
+                    style={{ cursor: "pointer" }}
                   >
-                    <div className="space-y-2">
-                      <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                      <div className="font-medium">
+                    <VStack spacing={2}>
+                      <Icon as={Upload} boxSize={8} color="gray.400" />
+                      <Text fontWeight="medium">
                         {fileName === "No File Selected" ? (
-                          <span>
+                          <>
                             Drop your file here or{" "}
                             <span className="text-blue-500">browse</span>
-                          </span>
+                          </>
                         ) : (
                           fileName
                         )}
-                      </div>
-                      <p className="text-sm text-gray-500">
+                      </Text>
+                      <Text fontSize="sm" color="gray.500">
                         Supports: PDF, JPG, PNG, WEBP
-                      </p>
-                    </div>
+                      </Text>
+                    </VStack>
                   </label>
-                </div>
+                </Box>
               </FormControl>
-            </div>
-          </div>
+            </VStack>
+          </VStack>
         </ModalBody>
 
-        <ModalFooter className="border-t border-gray-100 pt-4">
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="mr-3"
-            leftIcon={<X className="h-4 w-4" />}
-          >
+        <ModalFooter>
+          <Button variant="ghost" mr={3} onClick={handleClose}>
             Cancel
           </Button>
           <Button
             colorScheme="green"
             onClick={handleUpload}
-            isLoading={uploadLoading}
-            leftIcon={<Check className="h-4 w-4" />}
+            isLoading={btnLoading}
+            leftIcon={<Check />}
           >
             Submit for Approval
           </Button>
         </ModalFooter>
-      </MotionModalContent>
+      </ModalContent>
     </Modal>
   );
 };

@@ -11,18 +11,17 @@ import {
   Text,
   Button,
   Badge,
-  Icon
+  Icon,
 } from "@chakra-ui/react";
-import { Link } from "react-router";
 import { Award, Building2, Calendar, ChevronRight } from "lucide-react";
-import { ExtendedCertificate } from "@/types/ExtendedCertificate";
+import { Certificate } from "@shared-types/Certificate";
 
 interface CertificateTableProps {
-  certificates: ExtendedCertificate[];
+  certificates: Certificate[];
 }
 
-export const CertificateTable: React.FC<CertificateTableProps> = ({
-  certificates = []
+const CertificateTable: React.FC<CertificateTableProps> = ({
+  certificates = [],
 }) => {
   const getLevelProps = (level: string) => {
     switch (level?.toLowerCase()) {
@@ -87,7 +86,7 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                 color="gray.900"
                 textTransform="initial"
               >
-                Certification Name
+                Certificate
               </Th>
               <Th
                 py={4}
@@ -97,7 +96,7 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                 color="gray.900"
                 textTransform="initial"
               >
-                Issuing Organization
+                Organization
               </Th>
               <Th
                 py={4}
@@ -117,7 +116,7 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                 color="gray.900"
                 textTransform="initial"
               >
-                Certification Type
+                Type
               </Th>
               <Th
                 py={4}
@@ -199,7 +198,8 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                     fontWeight="medium"
                     {...getTypeProps(cert?.type)}
                   >
-                    {cert?.type?.charAt(0)?.toUpperCase() + cert?.type?.slice(1)}
+                    {cert?.type?.charAt(0)?.toUpperCase() +
+                      cert?.type?.slice(1)}
                   </Badge>
                 </Td>
                 <Td py={4} px={6}>
@@ -212,7 +212,8 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                     fontWeight="medium"
                     {...getLevelProps(cert?.level)}
                   >
-                    {cert?.level?.charAt(0)?.toUpperCase() + cert?.level?.slice(1)}
+                    {cert?.level?.charAt(0)?.toUpperCase() +
+                      cert?.level?.slice(1)}
                   </Badge>
                 </Td>
                 <Td py={4} px={6}>
@@ -231,8 +232,8 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                 </Td>
                 <Td py={4} px={6}>
                   <Button
-                    as={Link}
-                    to={`/certificates/${cert?._id}`}
+                    as="a"
+                    href={`/certificates/${cert?._id}`}
                     size="sm"
                     variant="ghost"
                     colorScheme="lightblue"
@@ -241,7 +242,7 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                     fontWeight="medium"
                     _hover={{
                       bg: "blue.50",
-                      transform: "translateX(4px)"
+                      transform: "translateX(4px)", 
                     }}
                     transition="all 0.2s"
                   >

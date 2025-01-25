@@ -3,6 +3,7 @@ import Enrollment from "../models/Enrollment.js";
 import User from "../models/User.js";
 import { sendError, sendSuccess } from "../utils/sendResponse.js";
 import { Token } from "docsdepot-types/Token.js";
+import House from "../models/House.js";
 
 export const createEnrollment = async (c: Context) => {
   const { about, technical, projects, cgpa } = await c.req.json();
@@ -10,7 +11,10 @@ export const createEnrollment = async (c: Context) => {
   try {
     const user = await User.findOne({ _id: _id });
     if (user) {
-      await User.updateOne({ user: _id }, { $set: { "onboarding.firsttime": false } });
+      await User.updateOne(
+        { user: _id },
+        { $set: { "onboarding.firsttime": false } }
+      );
       await Enrollment.create({
         user: _id,
         about,
@@ -37,32 +41,35 @@ const getEnrollments = async (c: Context) => {
   }
 };
 
-const updateFirstTimeData = async (c: Context) => {
-  const { mid, about, technical, projects, cgpa } = await c.req.json();
-
+const acceptEnrollment = async (c: Context) => {
+  const { id } = await c.req.json();
+  const { _id } = (await c.get("user")) as Token;
   try {
-    const user = await User.findOne({ mid: mid.toString() });
+    const enrollment = await Enrollment.findOne({ _id: id });
+    if (!enrollment) return sendError(c, 400, "Enrollment not found");
 
-    if (user) {
-      await User.updateOne(
-        { mid: mid.toString() },
-        { $set: { firstTime: false, approved: false } }
-      );
-      await Enrollment.create({
-        mid: mid.toString(),
-        about: about.toString(),
-        technical: technical.toString(),
-        projects: projects.toString(),
-        cgpa: parseFloat(cgpa),
-      });
-      return sendSuccess(c, 200, "First time data updated successfully");
-    } else {
-      return sendError(c, 500, "User not found");
-    }
+    const facultyHouse = await House.findOne({ facultyCordinator: _id });
+    if (!facultyHouse)
+      return sendError(c, 400, "Faculty not assigned to any house");
+
+    const user = await User.findOne({ _id: enrollment.user });
+    if (!user) return sendError(c, 400, "User not found");
+
+    user.house = facultyHouse._id;
+    await user.save();
+
+    await House.updateOne(
+      { _id: facultyHouse._id },
+      { $push: { members: user._id } }
+    );
+
+    await Enrollment.deleteOne({ _id: id });
+
+    return sendSuccess(c, 200, "Enrollment accepted successfully");
   } catch (error) {
-    console.log(error);
-    return sendError(c, 500, "Error updating first time data");
+    console.error(error);
+    return sendError(c, 500, "Internal Server Error");
   }
 };
 
-export default { createEnrollment, getEnrollments, updateFirstTimeData };
+export default { createEnrollment, getEnrollments, acceptEnrollment };

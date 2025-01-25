@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import {
   Container,
@@ -21,10 +21,11 @@ import {
 } from "@chakra-ui/react";
 import { FileBadge as CertIcon, Upload, Filter, Search } from "lucide-react";
 import { CertificateFilters } from "./CertificateFilters";
-import { CertificateTable } from "./CertificateTable";
+import CertificateTable from "./CertificateTable";
 import { UploadModal } from "./UploadModal";
-import { ExtendedCertificate } from "@/types/ExtendedCertificate";
-import { useToast } from "@chakra-ui/react";
+import { useCertificates } from "./useCertificates";
+import Loader from "../../../components/Loader";
+import useAxios from "@/config/axios";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -48,28 +49,7 @@ const itemVariants = {
   },
 };
 
-interface FilterState {
-  types: string[];
-  levels: string[];
-  status: string[];
-  issueYears: string[];
-  expiryYears: string[];
-}
-
-const Certificates = () => {
-  const [certificates, setCertificates] = useState<ExtendedCertificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<ExtendedCertificate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<FilterState>({
-    types: [],
-    levels: [],
-    status: [],
-    issueYears: [],
-    expiryYears: [],
-  });
-
-  const toast = useToast();
+const Certificates: React.FC = () => {
   const {
     isOpen: isUploadOpen,
     onOpen: onUploadOpen,
@@ -80,86 +60,22 @@ const Certificates = () => {
     onOpen: onFilterOpen,
     onClose: onFilterClose,
   } = useDisclosure();
+  const {
+    certificates,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilters,
+    refreshCertificates,
+    resetFilters,
+  } = useCertificates();
 
   const hasActiveFilters = Object.values(filters).some((filter) =>
     Array.isArray(filter) ? filter.length > 0 : !!filter
   );
 
-  useEffect(() => {
-    fetchCertificates();
-  }, []);
-
-  const fetchCertificates = async () => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/certifications`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        const data = await response.json();
-        setCertificates(data.certificates);
-        setFilteredCertificates(data.certificates);
-      } else {
-        throw new Error("Failed to fetch certificates");
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpload = async (formData: FormData) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/certifications/upload`,
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }
-      );
-
-      if (response.status === 200) {
-        window.location.reload();
-      } else {
-        throw new Error("Failed to upload certificate");
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const resetFilters = () => {
-    setFilters({
-      types: [],
-      levels: [],
-      status: [],
-      issueYears: [],
-      expiryYears: [],
-    });
-  };
-
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loader />;
 
   return (
     <motion.div
@@ -252,13 +168,7 @@ const Certificates = () => {
                 <Input
                   placeholder="Search certificates..."
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    const filtered = certificates.filter(cert =>
-                      cert.name.toLowerCase().includes(e.target.value.toLowerCase())
-                    );
-                    setFilteredCertificates(filtered);
-                  }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   borderRadius="lg"
                   fontSize="md"
                   bg="white"
@@ -272,14 +182,20 @@ const Certificates = () => {
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <CertificateTable certificates={filteredCertificates} />
+            <CertificateTable certificates={certificates} />
           </motion.div>
         </VStack>
 
         <UploadModal
           isOpen={isUploadOpen}
           onClose={onUploadClose}
-          onUpload={handleUpload}
+          onUpload={async (formData) => {
+            const axios = useAxios();
+            const res = await axios.post("/certificates", formData);
+            if (res.status === 200) {
+              refreshCertificates();
+            }
+          }}
         />
       </Container>
     </motion.div>

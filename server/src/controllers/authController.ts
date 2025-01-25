@@ -42,9 +42,19 @@ const login = async (c: Context) => {
       if (firstTime) {
         token = "Invalid";
       } else {
+        let house: undefined | string = undefined;
+
+        const houseDoc = await House.findOne({
+          facultyCordinator: findUser._id,
+        });
+
+        if (houseDoc) {
+          house = houseDoc._id.toString();
+        }
+
         const data: Token = {
           _id: findUser._id.toString(),
-          house: findUser.house?.toString(),
+          house: house,
           profilePicture: findUser.profilePicture,
           mid,
           fname: findUser.fname,
@@ -69,7 +79,8 @@ const login = async (c: Context) => {
         token = "Invalid";
       } else {
         const thisYear = new Date().getFullYear();
-        const admissionYear = findUser.academicDetails?.admissionYear ?? thisYear;
+        const admissionYear =
+          findUser.academicDetails?.admissionYear ?? thisYear;
         const academicYear = thisYear - admissionYear + 1;
 
         const data: Token = {

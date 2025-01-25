@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import { Token } from "docsdepot-types/Token.js";
 import { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
 import { User } from "docsdepot-types/User.js";
+import House from "../models/House.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -442,6 +443,131 @@ const getFacultyCertificates = async (c: Context) => {
   }
 };
 
+const getHouseCertificates = async (c: Context) => {
+  try {
+    const { id } = c.req.param();
+    const house = await House.findById(id);
+    if (!house) {
+      return sendError(c, 404, "House not found", null);
+    }
+
+    const members = house.members;
+
+    const certificates = await Certificate.find({ user: { $in: members } })
+      .populate("user")
+      .lean();
+
+    if (!certificates) {
+      return sendSuccess(c, 200, "No certificates found", []);
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificates fetched successfully",
+      certificates
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error fetching certificates", error);
+  }
+};
+
+const getHouseAcceptedCertificates = async (c: Context) => {
+  try {
+    const { id } = c.req.param();
+    const house = await House.findById(id);
+    if (!house) {
+      return sendError(c, 404, "House not found", null);
+    }
+
+    const members = house.members;
+
+    const certificates = await Certificate.find({
+      user: { $in: members },
+      status: "approved",
+    })
+      .populate("user")
+      .lean();
+
+    if (!certificates) {
+      return sendSuccess(c, 200, "No certificates found", []);
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificates fetched successfully",
+      certificates
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error fetching certificates", error);
+  }
+};
+
+const getHousePendingCertificates = async (c: Context) => {
+  try {
+    const { id } = c.req.param();
+    const house = await House.findById(id);
+    if (!house) {
+      return sendError(c, 404, "House not found", null);
+    }
+
+    const members = house.members;
+
+    const certificates = await Certificate.find({
+      user: { $in: members },
+      status: "pending",
+    })
+      .populate("user")
+      .lean();
+
+    if (!certificates) {
+      return sendSuccess(c, 200, "No certificates found", []);
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificates fetched successfully",
+      certificates
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error fetching certificates", error);
+  }
+};
+
+const getHouseRejectedCertificates = async (c: Context) => {
+  try {
+    const { id } = c.req.param();
+    const house = await House.findById(id);
+    if (!house) {
+      return sendError(c, 404, "House not found", null);
+    }
+
+    const members = house.members;
+
+    const certificates = await Certificate.find({
+      user: { $in: members },
+      status: "rejected",
+    })
+      .populate("user")
+      .lean();
+
+    if (!certificates) {
+      return sendSuccess(c, 200, "No certificates found", []);
+    }
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificates fetched successfully",
+      certificates
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error fetching certificates", error);
+  }
+};  
+
 // Type guard functions
 function isCertificateType(value: string): value is CertificateType {
   return ["external", "internal", "event"].includes(value);
@@ -466,4 +592,8 @@ export default {
   getStudentCertificates,
   getFacultyCertificates,
   commentOnCertificate,
+  getHouseCertificates,
+  getHouseAcceptedCertificates,
+  getHousePendingCertificates,
+  getHouseRejectedCertificates,
 };

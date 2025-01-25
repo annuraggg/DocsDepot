@@ -22,6 +22,7 @@ import {
 import Loader from "../../../components/Loader";
 import { Enrollment } from "@shared-types/Enrollment";
 import { useToast } from "@chakra-ui/react";
+import useAxios from "@/config/axios";
 
 const Enrollments = () => {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -37,21 +38,14 @@ const Enrollments = () => {
   const [projects, setProjects] = useState("");
 
   const toast = useToast();
+  const axios = useAxios();
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/enrollments`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    axios
+      .get("/enrollment")
       .then((res) => {
         setLoading(false);
-        return res.json();
-      })
-      .then((data) => {
-        setEnrollments(data.enrollments);
+        setEnrollments(res.data.data);
       })
       .catch((err) => {
         console.error(err);
@@ -94,22 +88,8 @@ const Enrollments = () => {
   };
 
   const acceptDude = () => {
-    fetch(
-      `${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/enrollments/accept`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: selectedEnrollment,
-        }),
-      }
-    )
-      .then((res) => {
-        return res.json();
-      })
+    axios
+      .post("/enrollment/accept", { id: selectedEnrollment })
       .then(() => {
         setUpdate(!update);
         onClose();

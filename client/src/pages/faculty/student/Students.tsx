@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  FormLabel,
+  Container,
   Input,
-  Select,
   Table,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
   Tbody,
   Td,
   Th,
@@ -29,43 +22,61 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  Flex,
+  Heading,
+  Text,
+  InputGroup,
+  InputLeftElement,
+  VStack,
+  HStack,
+  Badge,
+  IconButton,
+  FormControl,
+  FormLabel,
   Checkbox,
+  CheckboxGroup,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, UserPlus, Edit2, Filter, Trash2 } from "lucide-react";
 import Loader from "../../../components/Loader";
-import { User } from "@shared-types/User";
+import { User, Gender } from "@shared-types/User";
+import useAxios from "@/config/axios";
 import { House } from "@shared-types/House";
+import { useNavigate } from "react-router";
+
+const MotionBox = motion(Box);
+
+interface ExtendedUser extends Omit<User, "house"> {
+  house: House;
+}
+
+interface FilterState {
+  gender: string[];
+  status: string[];
+  houses: string[];
+  years: string[];
+}
+
 const Students = () => {
   const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState<User[]>([]);
-  const [houses, setHouses] = useState<House[]>([]);
-
+  const [students, setStudents] = useState<ExtendedUser[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedYear, setSelectedYear] = useState("all");
-  const [selectedHouse, setSelectedHouse] = useState("all");
-  const [filteredStudents, setFilteredStudents] = useState<User[]>([]);
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isOpenBulk,
-    onOpen: onOpenBulk,
-    onClose: onCloseBulk,
-  } = useDisclosure();
-  const cancelRef = React.useRef<HTMLButtonElement>(null);
-
-  const [fname, setFname] = React.useState("");
-  const [lname, setLname] = React.useState("");
-  const [moodleid, setMoodleid] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [house, setHouse] = React.useState("");
-  const [gender, setGender] = React.useState("male");
-
-  const [update, setUpdate] = useState(false);
-  const [deleteID, setDeleteID] = useState("");
-  const [selectAll, setSelectAll] = useState(false);
-
-  const [deleteArr, setDeleteArr] = useState<string[]>([]);
-
-  const toast = useToast();
+  const [filteredStudents, setFilteredStudents] = useState<ExtendedUser[]>([]);
+  const [filters, setFilters] = useState<FilterState>({
+    gender: [],
+    status: [],
+    houses: [],
+    years: [],
+  });
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [studentToDelete, setStudentToDelete] = useState<string>("");
 
   const {
     isOpen: isEditOpen,
@@ -73,488 +84,611 @@ const Students = () => {
     onClose: onEditClose,
   } = useDisclosure();
 
+  const {
+    isOpen: isFilterOpen,
+    onOpen: onFilterOpen,
+    onClose: onFilterClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isDeleteAlertOpen,
+    onOpen: onDeleteAlertOpen,
+    onClose: onDeleteAlertClose,
+  } = useDisclosure();
+
+  const cancelRef = React.useRef(null);
+
+  const navigate = useNavigate();
+
+  const [fname, setFname] = useState("");
+  const [lname, setLname] = useState("");
+  const [moodleid, setMoodleid] = useState("");
+  const [email, setEmail] = useState("");
+  const [house, setHouse] = useState("");
+  const [gender, setGender] = useState<Gender>("M");
+  const [update, setUpdate] = useState(false);
+  const [studentId, setStudentId] = useState("");
+
+  const toast = useToast();
+  const axios = useAxios();
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/students`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({}),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    axios
+      .get("/user/students")
+      .then((res) => {
         setLoading(false);
-        setStudents(data.students);
-        setHouses(data.houses);
+        setStudents(res.data.data);
       })
       .catch((err) => {
-        console.error(err);
+        const errorMessage =
+          err.response?.data?.message || "Error fetching students";
         toast({
           title: "Error",
-          description: "Error fetching students",
+          description: errorMessage,
           status: "error",
           duration: 2000,
           isClosable: true,
         });
-      });
+      })
+      .finally(() => setLoading(false));
   }, [update]);
 
   useEffect(() => {
-    const currentYear = new Date().getFullYear();
-    students?.forEach((student) => {
-      if (student.academicDetails?.academicYear !== undefined) {
-        student.academicDetails.academicYear = currentYear - student.academicDetails.academicYear + 1;
+    const filtered = students.filter((student) => {
+      const matchesSearch = [
+        student.fname,
+        student.lname,
+        student.social.email,
+      ].some((value) =>
+        value.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
-        if (student.academicDetails.isDSE) {
-          student.academicDetails.academicYear += 1;
-        }
-      }
+      const matchesGender =
+        filters.gender.length === 0 || filters.gender.includes(student.gender);
+      const matchesYear =
+        filters.years.length === 0 ||
+        filters.years.includes(
+          student.academicDetails.academicYear?.toString() || ""
+        );
+      const matchesHouse =
+        filters.houses.length === 0 ||
+        filters.houses.includes(student.house?._id);
+
+      return matchesSearch && matchesGender && matchesYear && matchesHouse;
     });
-  }, [students]);
 
-  useEffect(() => {
-    const filtered = students?.filter(
-      (student) =>
-        (selectedYear === "all" || student.academicDetails.academicYear === Number(selectedYear)) &&
-        (selectedHouse === "all" || student.house === selectedHouse) &&
-        Object.values(student).some((value) =>
-          value.toString().toLowerCase().includes(searchQuery.toLowerCase())
-        )
-    );
     setFilteredStudents(filtered);
-  }, [searchQuery, students, selectedYear, selectedHouse]);
+  }, [searchQuery, students, filters]);
+
+  const toggleBulkDelete = () => {
+    setIsBulkDelete(!isBulkDelete);
+    setSelectedStudents([]);
+  };
+
+  const handleStudentSelect = (studentId: string) => {
+    setSelectedStudents((prev) =>
+      prev.includes(studentId)
+        ? prev.filter((id) => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  const handleSingleDelete = (studentId: string) => {
+    setStudentToDelete(studentId);
+    onDeleteAlertOpen();
+  };
+
+  const confirmDelete = async () => {
+    try {
+      if (studentToDelete) {
+        await axios.delete(`/user/${studentToDelete}`);
+      } else {
+        await axios.delete("/user/bulk", { data: { ids: selectedStudents } });
+      }
+
+      toast({
+        title: "Success",
+        description: "Student(s) deleted successfully",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+
+      setUpdate(!update);
+      setIsBulkDelete(false);
+      setSelectedStudents([]);
+      setStudentToDelete("");
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Something went wrong";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+    onDeleteAlertClose();
+  };
 
   const openEdit = (mid: string) => {
-    onEditOpen();
     const student = students.find((stu) => stu.mid === mid);
-    if (!student) return;
-
-    const fName = student.fname
-    const lName = student.lname
-
-    setFname(fName);
-    setLname(lName);
-    setMoodleid(student.mid);
-    setEmail(student.social.email);
-    setHouse(student.house);
-    setGender(student.gender);
-    onEditOpen();
+    if (student) {
+      setStudentId(student._id);
+      setFname(student.fname);
+      setLname(student.lname);
+      setMoodleid(student.mid);
+      setEmail(student.social.email);
+      setHouse(student.house?._id || "");
+      setGender(student.gender);
+      onEditOpen();
+    }
   };
 
   const updateStudent = () => {
     onEditClose();
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/students/update`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    axios
+      .put(`/user/${studentId}`, {
         mid: moodleid,
-        fName: fname,
-        lName: lname,
-        email: email,
-        house: house,
-        gender: gender,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          toast({
-            title: "Error",
-            description: data.error,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: "Student Updated Successfully",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-          setUpdate(!update);
-        }
+        fname,
+        lname,
+        email,
+        house,
+        gender,
+      })
+      .then(() => {
+        toast({
+          title: "Success",
+          description: "Student Updated Successfully",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        setUpdate(!update);
+      })
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Error updating student",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
       });
   };
 
-  const openDelete = (mid: string) => {
-    setDeleteID(mid);
-    onOpen();
-  };
-
-  const deleteStudent = () => {
-    onClose();
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/students/delete`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mid: deleteID }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          toast({
-            title: "Error",
-            description: data.error,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: "Student Deleted Successfully",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-          setUpdate(!update);
-        }
-      });
-  };
-
-  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>, studentMid: string) => {
-    const isChecked = event.target.checked;
-    if (isChecked) {
-      setDeleteArr([...deleteArr, studentMid]);
-      if (deleteArr.length === filteredStudents.length - 1) {
-        setSelectAll(true);
-      }
-    } else {
-      setDeleteArr(deleteArr.filter((mid) => mid !== studentMid));
-      setSelectAll(false);
-    }
-  };
-
-  const toggleSelectAll = () => {
-    if (selectAll) {
-      setDeleteArr([]);
-    } else {
-      setDeleteArr(filteredStudents.map((student) => student.mid));
-    }
-
-    setSelectAll(!selectAll);
-  };
-
-  useEffect(() => {
-    if (
-      deleteArr?.length === filteredStudents?.length ||
-      filteredStudents?.length < deleteArr?.length
-    ) {
-      setSelectAll(true);
-    } else {
-      setSelectAll(false);
-    }
-  }, [filteredStudents]);
-
-  const handleBulkDelete = () => {
-    onCloseBulk();
-    fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/faculty/students/bulkdelete`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mids: deleteArr }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          toast({
-            title: "Error",
-            description: data.error,
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: "Students Deleted Successfully",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-          setUpdate(!update);
-          setDeleteArr([]);
-        }
-      });
-  };
+  const uniqueHouses = Array.from(
+    new Set(students.map((student) => student.house?._id))
+  ).map((id) => students.find((student) => student.house?._id === id)?.house);
 
   if (loading) return <Loader />;
-  else
-    return (
-      <>
 
-        <Box className="AdminStudents-Admin">
-          <Box className="filters">
-            <Box className="filters">
-              <Box className="ipgroup">
-                <FormLabel>Search</FormLabel>
-                <Input
-                  placeholder="Search By Any Term"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </Box>
+  return (
+    <Container maxW="container.xl" py={8}>
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Flex justify="space-between" align="center" mb={8}>
+          <Box>
+            <Heading size="xl" mb={2}>
+              Student Management
+            </Heading>
+            <Text color="gray.500">
+              Manage and monitor all student information
+            </Text>
+          </Box>
+          <HStack spacing={4}>
+            <Button
+              leftIcon={<Trash2 />}
+              variant="outline"
+              colorScheme={isBulkDelete ? "red" : "gray"}
+              onClick={toggleBulkDelete}
+            >
+              {isBulkDelete ? "Cancel" : "Bulk Delete"}
+            </Button>
+            {isBulkDelete && selectedStudents.length > 0 && (
+              <Button colorScheme="red" onClick={onDeleteAlertOpen}>
+                Delete Selected ({selectedStudents.length})
+              </Button>
+            )}
+            <Button
+              leftIcon={<Filter />}
+              variant="outline"
+              onClick={onFilterOpen}
+              size="md"
+            >
+              Filters
+            </Button>
+            <Button
+              leftIcon={<UserPlus />}
+              colorScheme="blue"
+              onClick={() => navigate("/faculty/students/add")}
+              size="md"
+            >
+              Add Student
+            </Button>
+          </HStack>
+        </Flex>
 
-              <Box className="ipgroup">
-                <FormLabel>Select Year</FormLabel>
-                <Select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                >
-                  <option value="all">All</option>
-                  <option value="1">First Year</option>
-                  <option value="2">Second Year</option>
-                  <option value="3">Third Year</option>
-                  <option value="4">Fourth Year</option>
-                </Select>
-              </Box>
+        <InputGroup size="lg" mb={4}>
+          <InputLeftElement pointerEvents="none">
+            <Search />
+          </InputLeftElement>
+          <Input
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </InputGroup>
 
-              <Box className="ipgroup">
-                <FormLabel>Select House</FormLabel>
-                <Select
-                  value={selectedHouse}
-                  onChange={(e) => setSelectedHouse(e.target.value)}
-                >
-                  <option value="all">All</option>
-                  {houses?.map((house) => (
-                    <option value={house._id} key={house._id}>
-                      {house.name}
-                    </option>
+        <AnimatePresence>
+          <Box
+            bg="white"
+            borderRadius="lg"
+            boxShadow="sm"
+            border="1px"
+            borderColor="gray.200"
+            overflow="hidden"
+          >
+            <Box overflowX="auto">
+              <Table variant="simple">
+                <Thead>
+                  <Tr bg="gray.50" borderBottom="1px" borderColor="gray.200">
+                    {isBulkDelete && (
+                      <Th
+                        py={4}
+                        px={6}
+                        fontSize="sm"
+                        fontWeight="semibold"
+                        color="gray.900"
+                        textTransform="initial"
+                        width="5%"
+                      />
+                    )}
+                    <Th
+                      py={4}
+                      px={6}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      color="gray.900"
+                      textTransform="initial"
+                      width="15%"
+                    >
+                      MOODLE ID
+                    </Th>
+                    <Th
+                      py={4}
+                      px={6}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      color="gray.900"
+                      textTransform="initial"
+                      width="20%"
+                    >
+                      NAME
+                    </Th>
+                    <Th
+                      py={4}
+                      px={6}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      color="gray.900"
+                      textTransform="initial"
+                      width="15%"
+                    >
+                      YEAR
+                    </Th>
+                    <Th
+                      py={4}
+                      px={6}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      color="gray.900"
+                      textTransform="initial"
+                      width="25%"
+                    >
+                      EMAIL
+                    </Th>
+                    <Th
+                      py={4}
+                      px={6}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      color="gray.900"
+                      textTransform="initial"
+                      width="15%"
+                    >
+                      HOUSE
+                    </Th>
+                    <Th
+                      py={4}
+                      px={6}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      color="gray.900"
+                      textTransform="initial"
+                      width="10%"
+                    >
+                      ACTIONS
+                    </Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {filteredStudents.map((student) => (
+                    <Tr
+                      key={student.mid}
+                      _hover={{ bg: "gray.50" }}
+                      transition="background 0.15s"
+                      borderBottom="1px"
+                      borderColor="gray.200"
+                      opacity={isBulkDelete ? 0.7 : 1}
+                    >
+                      {isBulkDelete && (
+                        <Td py={4} px={6}>
+                          <Checkbox
+                            isChecked={selectedStudents.includes(student._id)}
+                            onChange={() => handleStudentSelect(student._id)}
+                          />
+                        </Td>
+                      )}
+                      <Td py={4} px={6}>
+                        <HStack spacing={2}>
+                          <Badge
+                            px={2.5}
+                            py={0.5}
+                            borderRadius="full"
+                            fontSize="xs"
+                            fontWeight="medium"
+                            colorScheme="blue"
+                          >
+                            {student.mid}
+                          </Badge>
+                        </HStack>
+                      </Td>
+                      <Td py={4} px={6}>
+                        <HStack spacing={2}>
+                          <Text
+                            fontSize="sm"
+                            fontWeight="medium"
+                            color="gray.900"
+                          >
+                            {`${student.fname} ${student.lname}`}
+                          </Text>
+                        </HStack>
+                      </Td>
+                      <Td py={4} px={6}>
+                        <Badge
+                          px={2.5}
+                          py={0.5}
+                          borderRadius="full"
+                          fontSize="xs"
+                          fontWeight="medium"
+                          colorScheme="green"
+                        >
+                          Year {student.academicDetails.academicYear}
+                        </Badge>
+                      </Td>
+                      <Td py={4} px={6}>
+                        <Text fontSize="sm" color="gray.600">
+                          {student.social.email}
+                        </Text>
+                      </Td>
+                      <Td py={4} px={6}>
+                        <Badge
+                          px={2.5}
+                          py={0.5}
+                          borderRadius="full"
+                          fontSize="xs"
+                          fontWeight="medium"
+                          colorScheme="gray"
+                        >
+                          {student.house?.name || "N/A"}
+                        </Badge>
+                      </Td>
+                      <Td py={4} px={6}>
+                        <HStack spacing={2}>
+                          <IconButton
+                            aria-label="Edit student"
+                            icon={<Edit2 size={16} />}
+                            size="sm"
+                            variant="ghost"
+                            colorScheme="blue"
+                            onClick={() => openEdit(student.mid)}
+                            _hover={{
+                              bg: "blue.50",
+                              transform: "translateX(2px)",
+                            }}
+                            transition="all 0.2s"
+                          />
+                          {!isBulkDelete && (
+                            <IconButton
+                              aria-label="Delete student"
+                              icon={<Trash2 size={16} />}
+                              size="sm"
+                              variant="ghost"
+                              colorScheme="red"
+                              onClick={() => handleSingleDelete(student._id)}
+                              _hover={{
+                                bg: "red.50",
+                                transform: "translateX(2px)",
+                              }}
+                              transition="all 0.2s"
+                            />
+                          )}
+                        </HStack>
+                      </Td>
+                    </Tr>
                   ))}
-                </Select>
-              </Box>
-              {deleteArr.length > 0 && (
-                <Box className="ipgroup" marginLeft="50px">
-                  <FormLabel>Actions</FormLabel>
-                  <Button colorScheme="red" onClick={onOpenBulk}>
-                    Bulk Delete
-                  </Button>
-                </Box>
-              )}
+                </Tbody>
+              </Table>
             </Box>
           </Box>
+        </AnimatePresence>
+      </MotionBox>
+      <AlertDialog
+        isOpen={isDeleteAlertOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteAlertClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Confirmation
+            </AlertDialogHeader>
 
-          <Box className="table">
-            <Table variant="striped">
-              <Thead>
-                <Tr
-                  position="sticky"
-                  top="0px"
-                  className="tabletop"
-                  zIndex="sticky"
-                  backgroundColor="#F7F6FA"
+            <AlertDialogBody>
+              {studentToDelete
+                ? "Are you sure you want to delete this student? This action cannot be undone."
+                : `Are you sure you want to delete ${selectedStudents.length} students? This action cannot be undone.`}
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteAlertClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      <Modal isOpen={isEditOpen} onClose={onEditClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Update Student Information</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              <Input
+                size="lg"
+                placeholder="First Name"
+                value={fname}
+                onChange={(e) => setFname(e.target.value)}
+              />
+              <Input
+                size="lg"
+                placeholder="Last Name"
+                value={lname}
+                onChange={(e) => setLname(e.target.value)}
+              />
+              <Input
+                size="lg"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <RadioGroup
+                value={gender}
+                onChange={(val) => setGender(val as Gender)}
+              >
+                <Stack direction="row" spacing={8}>
+                  <Radio value="M" size="lg">
+                    Male
+                  </Radio>
+                  <Radio value="F" size="lg">
+                    Female
+                  </Radio>
+                </Stack>
+              </RadioGroup>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={updateStudent} size="lg">
+              Update Student
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isFilterOpen} onClose={onFilterClose} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Filter Students</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={6} align="stretch">
+              <FormControl>
+                <FormLabel fontWeight="medium">Gender</FormLabel>
+                <CheckboxGroup
+                  value={filters.gender}
+                  onChange={(values) =>
+                    setFilters({ ...filters, gender: values as string[] })
+                  }
                 >
-                  <Th>
-                    <Checkbox
-                      isChecked={selectAll}
-                      onChange={toggleSelectAll}
-                    ></Checkbox>
-                  </Th>
-                  <Th>Moodle ID</Th>
-                  <Th>Name</Th>
-                  <Th>Admission Year</Th>
-                  <Th>Academic Year</Th>
-                  <Th>Email</Th>
-                  <Th>House</Th>
-                  <Th>Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {filteredStudents?.map((student) => (
-                  <Tr key={student.mid}>
-                    <Td>
-                      <Checkbox
-                        value={student.mid}
-                        isChecked={selectAll || deleteArr.includes(student.mid)}
-                        onChange={(event) =>
-                          handleCheckboxChange(event, student.mid)
-                        }
-                      />
-                    </Td>
-                    <Td>{student.mid}</Td>
-                    <Td>{student.fname} {student.lname}</Td>
-                    <Td>{student.academicDetails.admissionYear}</Td>
-                    <Td>{student.academicDetails.academicYear}</Td>
-                    <Td>{student.social.email}</Td>
-                    <Td>{student.house}</Td>
-                    <Td>
-                      <Box className="actions">
-                        <Box
-                          className="action"
-                          _hover={{
-                            cursor: "pointer",
-                            textDecoration: "underline",
-                          }}
-                          onClick={() => {
-                            openEdit(student.mid);
-                          }}
-                        >
-                          Edit
-                        </Box>
-                        <Box
-                          className="action"
-                          _hover={{
-                            cursor: "pointer",
-                            textDecoration: "underline",
-                          }}
-                          onClick={() => {
-                            openDelete(student.mid);
-                          }}
-                        >
-                          Delete
-                        </Box>
-                      </Box>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-        </Box>
-
-        <AlertDialog
-          isOpen={isOpen}
-          leastDestructiveRef={cancelRef}
-          onClose={onClose}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Delete Student
-              </AlertDialogHeader>
-
-              <AlertDialogBody>
-                Are you sure? You can't undo this action afterwards.
-              </AlertDialogBody>
-
-              <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button
-                  colorScheme="red"
-                  onClick={() => deleteStudent()}
-                  ml={3}
-                >
-                  Delete
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
-
-        <AlertDialog
-          isOpen={isOpenBulk}
-          leastDestructiveRef={cancelRef}
-          onClose={onCloseBulk}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                Bulk Delete Students
-              </AlertDialogHeader>
-
-              <AlertDialogBody>
-                Are you sure? You can't undo this action afterwards. All
-                Selected Students will be Deleted
-              </AlertDialogBody>
-
-              <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={onCloseBulk}>
-                  Cancel
-                </Button>
-                <Button
-                  colorScheme="red"
-                  onClick={() => handleBulkDelete()}
-                  ml={3}
-                >
-                  Delete All
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
-
-        <Modal isOpen={isEditOpen} onClose={onEditClose}>
-          <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)/" />
-          <ModalContent>
-            <ModalHeader>Update Student</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Box className="StudentModal">
-                <Box className="flex">
-                  <Input
-                    type="text"
-                    placeholder="First Name"
-                    value={fname}
-                    onChange={(e) => {
-                      setFname(e.target.value);
-                    }}
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Last Name"
-                    value={lname}
-                    onChange={(e) => setLname(e.target.value)}
-                  />
-                </Box>
-                <Input
-                  type="text"
-                  placeholder="Moodle ID"
-                  value={moodleid}
-                  onChange={(e) => setMoodleid(e.target.value)}
-                />
-                <Input
-                  type="text"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <Select
-                  placeholder="Select a House"
-                  onChange={(e) => setHouse(e.target.value)}
-                  value={house}
-                >
-                  {houses?.map((house) => (
-                    <option value={house._id} key={house._id}>
-                      {house.name}
-                    </option>
-                  ))}
-                </Select>
-
-                <RadioGroup onChange={setGender} value={gender}>
-                  <Stack direction="row">
-                    <Radio value="male">Male</Radio>
-                    <Radio value="female">Female</Radio>
-                    <Radio value="others">Others</Radio>
+                  <Stack direction="row" spacing={4}>
+                    <Checkbox value="M">Male</Checkbox>
+                    <Checkbox value="F">Female</Checkbox>
                   </Stack>
-                </RadioGroup>
-              </Box>
-            </ModalBody>
+                </CheckboxGroup>
+              </FormControl>
 
-            <ModalFooter>
-              <Button colorScheme="blue" mr={3} onClick={onEditClose}>
-                Close
-              </Button>
-              <Button colorScheme="green" onClick={updateStudent}>
-                Update
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </>
-    );
+              <FormControl>
+                <FormLabel fontWeight="medium">Academic Year</FormLabel>
+                <CheckboxGroup
+                  value={filters.years}
+                  onChange={(values) =>
+                    setFilters({ ...filters, years: values as string[] })
+                  }
+                >
+                  <Stack direction="row" spacing={4}>
+                    <Checkbox value="1">First Year</Checkbox>
+                    <Checkbox value="2">Second Year</Checkbox>
+                    <Checkbox value="3">Third Year</Checkbox>
+                    <Checkbox value="4">Fourth Year</Checkbox>
+                  </Stack>
+                </CheckboxGroup>
+              </FormControl>
+
+              <FormControl>
+                <FormLabel fontWeight="medium">Houses</FormLabel>
+                <CheckboxGroup
+                  value={filters.houses}
+                  onChange={(values) =>
+                    setFilters({ ...filters, houses: values as string[] })
+                  }
+                >
+                  <Stack direction="row" spacing={4} wrap="wrap">
+                    {uniqueHouses.map(
+                      (house) =>
+                        house && (
+                          <Checkbox key={house._id} value={house._id}>
+                            {house.name}
+                          </Checkbox>
+                        )
+                    )}
+                  </Stack>
+                </CheckboxGroup>
+              </FormControl>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              variant="ghost"
+              mr={3}
+              onClick={() =>
+                setFilters({
+                  gender: [],
+                  status: [],
+                  houses: [],
+                  years: [],
+                })
+              }
+            >
+              Clear All
+            </Button>
+            <Button colorScheme="blue" onClick={onFilterClose}>
+              Apply Filters
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Container>
+  );
 };
 
 export default Students;

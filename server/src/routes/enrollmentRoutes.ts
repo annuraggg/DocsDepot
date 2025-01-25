@@ -5,6 +5,6 @@ const app = new Hono();
 
 app.post("/", enrollmentController.createEnrollment);
 app.get("/", enrollmentController.getEnrollments);
-app.post("/first-time", enrollmentController.updateFirstTimeData);
+app.post("/accept", enrollmentController.acceptEnrollment);
 
 export default app;

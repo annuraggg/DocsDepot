@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import { 
+import {
   Box,
   Heading,
   Text,
@@ -27,9 +27,6 @@ export const Events = () => {
     }
   }, [events]);
 
-  const handleSearch = (query: string) => {
-    applyFilters(events, query, selectedFilters, selectedMode, pointsRange);
-  };
 
   const handleFilterChange = (filters: string[]) => {
     setSelectedFilters(filters);
@@ -66,9 +63,9 @@ export const Events = () => {
     points: [number, number]
   ) => {
     if (!eventsList) return;
-    
+
     let filtered = [...eventsList];
-    
+
     if (searchQuery) {
       filtered = filtered.filter((event) =>
         event.name?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -115,7 +112,7 @@ export const Events = () => {
       </Box>
     );
   }
-  
+
   if (error) {
     return (
       <Box className="flex items-center justify-center min-h-screen">
@@ -139,7 +136,9 @@ export const Events = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="w-full lg:w-80">
             <EventFilters
-              onSearch={handleSearch}
+              onSearch={(query) =>
+                applyFilters(events, query, selectedFilters, selectedMode, pointsRange)
+              }
               onFilterChange={handleFilterChange}
               onModeFilterChange={handleModeFilterChange}
               onPointsFilterChange={handlePointsFilterChange}
@@ -164,7 +163,7 @@ export const Events = () => {
                   </span>
                 </motion.button>
               )}
-              
+
               <AnimatePresence mode="popLayout">
                 {filteredEvents.map((event, index) => (
                   <motion.div

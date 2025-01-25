@@ -122,7 +122,6 @@ export const House: React.FC = () => {
 
   const handleUpdateHouse = async () => {
     try {
-      console.log(house);
       const response = await axios.put(`/houses/${houseID}`, { house });
       if (response.status === 200) {
         toast("Success", "House updated successfully", "success");
@@ -253,9 +252,9 @@ export const House: React.FC = () => {
     setUpdateImagesValue((prev) => prev + 1);
   };
 
-  const calculatePoints = () => {};
+  const calculatePoints = () => { };
 
-  const sortMembers = () => {};
+  const sortMembers = () => { };
 
   if (!house) {
     return <Loader />;

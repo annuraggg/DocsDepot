@@ -8,6 +8,12 @@ app.get("/student", certificationController.getStudentCertificates);
 app.get("/faculty", certificationController.getFacultyCertificates);
 app.get("/user", certificationController.getCertificatesByUserId);
 app.get("/user/:id", certificationController.getCertificatesByUserId);
+app.get("/house/:id", certificationController.getHouseCertificates);
+app.get("/house/:id/accepted", certificationController.getHouseAcceptedCertificates);
+app.get("/house/:id/pending", certificationController.getHousePendingCertificates);
+app.get("/house/:id/rejected", certificationController.getHouseRejectedCertificates);
+
+
 app.get("/:id", certificationController.getCertificateById);
 
 

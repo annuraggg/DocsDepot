@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Container,
   VStack,
@@ -13,17 +13,18 @@ import {
   InputGroup,
   InputLeftElement,
   Popover,
-  PopoverTrigger,
   PopoverContent,
   PopoverBody,
   PopoverFooter,
   ButtonGroup,
   useToast,
-} from '@chakra-ui/react';
-import { FileBadge, Filter, Search } from 'lucide-react';
-import { CertificateFilters } from './CertificateFilters';
-import { CertificateTable } from './CertificateTable';
-import { ExtendedCertificate } from '@/types/ExtendedCertificate';
+} from "@chakra-ui/react";
+import { FileBadge, Filter, Search } from "lucide-react";
+import { CertificateFilters } from "./CertificateFilters";
+import { CertificateTable } from "./CertificateTable";
+import { ExtendedCertificate } from "@/types/ExtendedCertificate";
+import useAxios from "@/config/axios";
+import useUser from "@/config/user";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -53,9 +54,11 @@ interface FilterState {
 
 const Certificates = () => {
   const [certificates, setCertificates] = useState<ExtendedCertificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<ExtendedCertificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<
+    ExtendedCertificate[]
+  >([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<FilterState>({
     types: [],
     levels: [],
@@ -65,6 +68,9 @@ const Certificates = () => {
   });
 
   const toast = useToast();
+  const axios = useAxios();
+  const user = useUser();
+
   const {
     isOpen: isFilterOpen,
     onOpen: onFilterOpen,
@@ -76,46 +82,52 @@ const Certificates = () => {
   }, []);
 
   const fetchCertificates = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_ADDRESS}/certificates`, {
-        credentials: 'include',
+    const houseId = user?.house;
+    axios
+      .get(`/certificates/house/${houseId}`)
+      .then((res) => {
+        setCertificates(res.data.data);
+        setFilteredCertificates(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err); 
+        toast({
+          title: "Error",
+          description: "Failed to fetch certificates",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      const data = await response.json();
-      setCertificates(data.certificates);
-      setFilteredCertificates(data.certificates);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch certificates',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
   };
 
   const applyFilters = () => {
     let filtered = [...certificates];
 
     if (searchTerm) {
-      filtered = filtered.filter(cert =>
+      filtered = filtered.filter((cert) =>
         cert.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     if (filters.levels.length) {
-      filtered = filtered.filter(cert => filters.levels.includes(cert.level));
+      filtered = filtered.filter((cert) => filters.levels.includes(cert.level));
     }
 
     if (filters.status.length) {
-      filtered = filtered.filter(cert => filters.status.includes(cert.status));
+      filtered = filtered.filter((cert) =>
+        filters.status.includes(cert.status)
+      );
     }
 
     if (filters.issueYears.length) {
-      filtered = filtered.filter(cert => 
-        filters.issueYears.includes(new Date(cert.issueDate.toString()).getFullYear().toString())
+      filtered = filtered.filter((cert) =>
+        filters.issueYears.includes(
+          new Date(cert.issueDate.toString()).getFullYear().toString()
+        )
       );
     }
 
@@ -181,10 +193,7 @@ const Certificates = () => {
         >
           <PopoverContent>
             <PopoverBody>
-              <CertificateFilters
-                filters={filters}
-                setFilters={setFilters}
-              />
+              <CertificateFilters filters={filters} setFilters={setFilters} />
             </PopoverBody>
             <PopoverFooter>
               <ButtonGroup size="sm" width="full">

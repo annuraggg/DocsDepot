@@ -110,9 +110,7 @@ const FacultyNavbar = () => {
   }
 
   const decoded = jwtDecode(token) as Token;
-  const hasHouseCoordinatorPerms = decoded?.perms?.some((perm) =>
-    ["HCO0", "HCO1", "HCO2", "HCO3"].includes(perm)
-  );
+  const hasHouseCoordinatorPerms =( decoded?.house && decoded?.role === "F") || false;
 
   const logout = () => {
     [

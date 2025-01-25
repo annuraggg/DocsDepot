@@ -36,8 +36,9 @@ import Enrollments from "./pages/faculty/enrollments/Enrollments";
 import FacultySettings from "./pages/faculty/settings/Settings";
 import FacultyStudent from "./pages/faculty/student/Students.js";
 import FacultyStudentAdd from "./pages/faculty/student/import/StudentImport.js";
-import FacultyCertifications from "./pages/faculty/certifications/Certifications";
+import FacultyCertifications from "./pages/faculty/certifications/Certificates.js";
 import FacultyLayout from "./components/layouts/FacultyLayout.js";
+import About from "./pages/about/About.js";
 
 function App() {
   const studentRoutes = [
@@ -88,6 +89,7 @@ function App() {
     { path: "/student", element: <StudentLayout />, children: studentRoutes },
     { path: "/admin", element: <AdminLayout />, children: adminRoutes },
     { path: "/faculty", element: <FacultyLayout />, children: facultyRoutes },
+    { path: "/about", element: <About /> },
     // { path: "/profile/:id/generate/report", element: <Report /> },
     // { path: "/profile/faculty/:id", element },
   ]);
@@ -96,6 +98,7 @@ function App() {
     { path: "*", element: <Maintainance /> },
     { path: "/auth", element: <Auth /> },
     { path: "/admin", element: <AdminLayout />, children: adminRoutes },
+    { path: "/about", element: <About /> },
   ]);
 
   const [maintainenaceMode, setMaintainenaceMode] = useState(false);
