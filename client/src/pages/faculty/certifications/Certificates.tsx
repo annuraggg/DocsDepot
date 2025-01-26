@@ -83,7 +83,7 @@ const Certificates: React.FC = () => {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="min-h-screen bg-gray-50"
+      className="min-h-screen"
     >
       <Container maxW="7xl" py={8}>
         <VStack spacing={8} align="stretch">
@@ -175,7 +175,6 @@ const Certificates: React.FC = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   borderRadius="lg"
                   fontSize="md"
-                  bg="white"
                   _focus={{
                     borderColor: "green.500",
                     boxShadow: "0 0 0 1px var(--chakra-colors-green-500)",

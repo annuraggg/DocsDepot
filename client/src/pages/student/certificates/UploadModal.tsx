@@ -184,6 +184,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         isClosable: true,
         position: "top-right",
       });
+
+      resetForm();
+      onClose();
     } catch (error) {
       toast({
         title: "Error",

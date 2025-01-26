@@ -73,7 +73,7 @@ const NavLink = ({
 
   return (
     <a
-      className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
+      className="flex items-center text-sm font-medium dark:text-gray-400 text-gray-600  hover:text-gray-900 dark:hover:text-gray-100  cursor-pointer"
       onClick={() => {
         onClose?.();
         to ? navigate(to) : onClick?.();
@@ -166,7 +166,7 @@ const FacultyNavbar = () => {
   };
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div>
       <div className="w-full px-5 mx-auto">
         <div className="flex justify-between items-center h-16">
           <div className="md:hidden flex items-center">
@@ -269,7 +269,7 @@ const FacultyNavbar = () => {
           <div className="flex items-center space-x-4">
             <Menu>
               <Box className="flex items-center gap-5">
-                <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
+                <Box className="flex items-center justify-end bg-gray-100 dark:bg-gray-800 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
                     {decoded.fname} {decoded.lname}
                   </Text>

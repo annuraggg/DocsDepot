@@ -129,12 +129,12 @@ const DetailCard = ({
   title: string;
   value: React.ReactNode;
 }) => (
-  <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
     <div className="flex items-start gap-4">
-      <div className="p-3 bg-gray-50 rounded-lg">{icon}</div>
+      <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">{icon}</div>
       <div>
-        <Text className="text-sm text-gray-500 mb-1">{title}</Text>
-        <div className="text-gray-900">{value}</div>
+        <Text className="text-sm text-gray-500 dark:text-white mb-1">{title}</Text>
+        <div className="text-gray-900 dark:text-gray-300">{value}</div>
       </div>
     </div>
   </div>

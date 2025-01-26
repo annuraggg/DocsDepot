@@ -41,8 +41,7 @@ import Loader from "../../../components/Loader";
 import FacultyTable from "./FacultyTable";
 import EditModal from "./EditModal";
 import PermissionsModal from "./PermissionsModal";
-import DeleteAlert from "./DeleteAlert";
-import { Gender, User } from "@shared-types/User";
+import { User } from "@shared-types/User";
 
 const MotionBox = motion(Box);
 
@@ -83,8 +82,9 @@ const Faculty = () => {
     houses: [],
   });
 
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const [update, setUpdate] = useState(false);
 
   const paginatedFaculty = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -195,7 +195,7 @@ const Faculty = () => {
           isClosable: true,
         });
       });
-  }, []);
+  }, [update]);
 
   useEffect(() => {
     const filtered = faculty.filter((fac) => {
@@ -228,26 +228,6 @@ const Faculty = () => {
     onDeleteOpen();
   };
 
-  const alertDelete = () => {
-    let fac: User = {} as User;
-    faculty.filter((faculty: User) => {
-      if (faculty.mid === state.delItem) {
-        fac = faculty;
-      }
-    });
-
-    if (
-      fac?.permissions?.includes("H1") ||
-      fac?.permissions?.includes("H2") ||
-      fac?.permissions?.includes("H3") ||
-      fac?.permissions?.includes("H4")
-    ) {
-      onDeleteOpen();
-    } else {
-      confirmDelete();
-    }
-  };
-
   const confirmDelete = () => {
     axios.delete(`/user/${state.delItem}`).then((res) => {
       if (res.data.success) {
@@ -263,6 +243,7 @@ const Faculty = () => {
         setFaculty(faculty.filter((faculty) => faculty._id !== state.delItem));
 
         onDeleteAlertClose();
+        onDeleteClose();
       } else {
         onDeleteClose();
         toast({
@@ -343,17 +324,8 @@ const Faculty = () => {
             duration: 2000,
             isClosable: true,
           });
-          const index = faculty.findIndex(
-            (faculty) => faculty._id === state.facOID
-          );
-          faculty[index].mid = state.mid;
-          faculty[index].fname = state.fname;
-          faculty[index].lname = state.lname;
-          faculty[index].social.email = state.email;
-          faculty[index].gender = state.gender as Gender;
-          faculty[index].permissions = state.perms;
 
-          setFaculty(faculty);
+          setUpdate(!update);
         } else {
           onEditClose();
           toast({
@@ -598,12 +570,33 @@ const Faculty = () => {
           }
         />
 
-        <DeleteAlert
+        <AlertDialog
           isOpen={isDeleteOpen}
+          leastDestructiveRef={cancelRef}
           onClose={onDeleteClose}
-          onConfirm={alertDelete}
-          cancelRef={cancelRef}
-        />
+          isCentered
+        >
+          <AlertDialogOverlay bg="blackAlpha.300" backdropFilter="blur(10px)">
+            <AlertDialogContent>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                Delete Faculty Member
+              </AlertDialogHeader>
+
+              <AlertDialogBody>
+                This action cannot be undone. Are you sure you want to proceed?
+              </AlertDialogBody>
+
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={onDeleteAlertClose}>
+                  Cancel
+                </Button>
+                <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
 
         <AlertDialog
           isOpen={isDeleteAlertOpen}

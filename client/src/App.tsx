@@ -40,6 +40,7 @@ import FacultyCertifications from "./pages/faculty/certifications/Certificates.j
 import FacultyLayout from "./components/layouts/FacultyLayout.js";
 import About from "./pages/about/About.js";
 import Lander from "./pages/lander/Lander.js";
+import { useColorMode } from "@chakra-ui/react";
 
 function App() {
   const studentRoutes = [
@@ -117,6 +118,13 @@ function App() {
       console.log(err);
     });
   }, []);
+
+  const { colorMode } = useColorMode();
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    if (colorMode === "dark") htmlElement.classList.add("dark");
+    else htmlElement.classList.remove("dark");
+  }, [colorMode]);
 
   return (
     <RouterProvider

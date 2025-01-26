@@ -265,7 +265,7 @@ export const House: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-8"
+      className="min-h-screen"
     >
       <div className="max-w-7xl mx-auto">
         <Card className="w-full shadow-xl">
@@ -302,7 +302,7 @@ export const House: React.FC = () => {
             <div className="pt-5 px-8 pb-8">
               <SocialLinks house={house} />
               <h2 className="text-xl font-semibold mb-3">{house?.abstract || "No Abstract Provided."}</h2>
-              <p className="text-gray-600 leading-relaxed">{house?.desc || "No Description Provided. "}</p>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{house?.desc || "No Description Provided. "}</p>
             </div>
           </CardBody>
         </Card>

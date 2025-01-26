@@ -53,7 +53,7 @@ import { House } from "@shared-types/House";
 import { useNavigate } from "react-router";
 import getAcademicYear from "@/utils/getAcademicYear";
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 10;
 const MotionBox = motion(Box);
 
 interface ExtendedUser extends Omit<User, "house"> {

@@ -21,9 +21,13 @@ const Houses = () => {
 
   const [houses, setHouses] = useState<House[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  const [selectedMonth, _setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [currentYear, _setCurrentYear] = useState<number>(new Date().getFullYear());
+
+  const [selectedMonth, _setSelectedMonth] = useState<number>(
+    new Date().getMonth() + 1
+  );
+  const [currentYear, _setCurrentYear] = useState<number>(
+    new Date().getFullYear()
+  );
   const [prevMonth, _setPrevMonth] = useState<number>(new Date().getMonth());
 
   const calculateTotalPoints = (data: House) => {
@@ -94,22 +98,20 @@ const Houses = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-indigo-50 to-indigo-100">
-        <Loader />
-      </div>
-    );
+    return <Loader />;
   }
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white p-4 rounded-xl shadow-2xl border border-gray-200"
         >
-          <p className="font-bold text-lg text-gray-800">{payload[0].payload.name}</p>
+          <p className="font-bold text-lg text-gray-800">
+            {payload[0].payload.name}
+          </p>
           <p className="text-gray-600 flex items-center gap-2">
             <Award className="w-4 h-4 text-indigo-500" />
             Points: {payload[0].value}
@@ -151,7 +153,7 @@ const Houses = () => {
           x: type === "monthly" ? -20 : type === "yearly" ? 20 : 0,
         }}
         animate={{ opacity: 1, x: 0 }}
-        className="bg-white rounded-xl shadow-lg p-6 w-full"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full"
       >
         <div className="flex items-center gap-2 mb-6">
           <barProps.icon className="w-6 h-6" style={{ color: barProps.fill }} />

@@ -65,11 +65,9 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
 
   return (
     <Box
-      bg="white"
       borderRadius="lg"
       boxShadow="sm"
-      border="1px"
-      borderColor="gray.200"
+      className="dark:border-gray-700  border-gray-200 border-2"
       overflow="hidden"
     >
       <AnimatePresence>
@@ -82,7 +80,6 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.2 }}
-                bg="white"
                 borderRadius="lg"
                 p={4}
                 boxShadow="sm"
@@ -163,7 +160,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
           <Box overflowX="auto">
             <Table variant="simple">
               <Thead>
-                <Tr bg="gray.50" borderBottom="1px" borderColor="gray.200">
+                <Tr borderBottom="1px">
                   <Th
                     py={4}
                     px={6}
@@ -242,7 +239,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                 {certificates?.map((cert, index) => (
                   <Tr
                     key={cert?._id}
-                    _hover={{ bg: "gray.50" }}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
                     transition="background 0.15s"
                   >
                     <Td py={4} px={6} fontSize="sm">

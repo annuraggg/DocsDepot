@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -19,6 +19,7 @@ import {
   InputRightElement,
   FormControl,
   FormLabel,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import {
   Settings,
@@ -47,8 +48,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [showColorPicker, setShowColorPicker] = React.useState(false);
-  const [isAdmin, setIsAdmin] = React.useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const [validationErrors, setValidationErrors] = useState({
+    abstract: "",
+    desc: "",
+  });
 
   const user = useUser();
   useEffect(() => {
@@ -56,6 +62,64 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       setIsAdmin(user.role === "A");
     }
   }, [user]);
+
+  const validateWordCount = (text: string, maxWords: number) => {
+    const words = text.trim().split(/\s+/);
+    return words.length <= maxWords;
+  };
+
+  const handleAbstractChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newAbstract = e.target.value;
+
+    if (!validateWordCount(newAbstract, 50)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        abstract: "Abstract must be 50 words or less",
+      }));
+    } else {
+      setValidationErrors((prev) => ({
+        ...prev,
+        abstract: "",
+      }));
+    }
+
+    setHouse({ ...house, abstract: newAbstract });
+  };
+
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const newDesc = e.target.value;
+
+    if (!validateWordCount(newDesc, 200)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        desc: "Description must be 200 words or less",
+      }));
+    } else {
+      setValidationErrors((prev) => ({
+        ...prev,
+        desc: "",
+      }));
+    }
+
+    setHouse({ ...house, desc: newDesc });
+  };
+
+  const handleSave = () => {
+    const abstractValid = validateWordCount(house.abstract, 50);
+    const descValid = validateWordCount(house.desc, 200);
+
+    if (!abstractValid || !descValid) {
+      setValidationErrors({
+        abstract: !abstractValid ? "Abstract must be 50 words or less" : "",
+        desc: !descValid ? "Description must be 200 words or less" : "",
+      });
+      return;
+    }
+
+    onSave();
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" isCentered>
@@ -134,27 +198,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </FormControl>
             </Box>
 
-            <FormControl isRequired>
+            <FormControl isRequired isInvalid={!!validationErrors.abstract}>
               <FormLabel>House Abstract</FormLabel>
-              <Input
-                value={house.abstract}
-                onChange={(e) =>
-                  setHouse({ ...house, abstract: e.target.value })
-                }
-              />
+              <Input value={house.abstract} onChange={handleAbstractChange} />
+              <FormErrorMessage>{validationErrors.abstract}</FormErrorMessage>
+              <Text fontSize="xs" color="gray.500" mt={1}>
+                Max 50 words
+              </Text>
             </FormControl>
 
-            <FormControl>
+            <FormControl isInvalid={!!validationErrors.desc}>
               <FormLabel>House Description</FormLabel>
               <Textarea
                 value={house.desc}
-                onChange={(e) => setHouse({ ...house, desc: e.target.value })}
+                onChange={handleDescriptionChange}
                 size="sm"
                 rows={6}
               />
+              <FormErrorMessage>{validationErrors.desc}</FormErrorMessage>
+              <Text fontSize="xs" color="gray.500" mt={1}>
+                Max 200 words
+              </Text>
             </FormControl>
 
-            {/* Social Links Section */}
             <Box>
               <Text fontSize="lg" fontWeight="semibold" mb={3}>
                 Social Links
@@ -232,7 +298,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <Button variant="ghost" colorScheme="red" onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme="blue" onClick={onSave}>
+            <Button colorScheme="blue" onClick={handleSave}>
               Save Changes
             </Button>
           </HStack>

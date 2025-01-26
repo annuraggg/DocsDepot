@@ -39,7 +39,7 @@ export const EventCard = ({ event }: EventCardProps) => {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
-      className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300"
+      className="group dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300"
     >
       <div className="relative aspect-video overflow-hidden rounded-t-xl">
         <img

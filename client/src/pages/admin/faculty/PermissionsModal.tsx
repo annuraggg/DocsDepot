@@ -53,7 +53,12 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({
   }, [userid]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={isMobile ? "full" : "3xl"} scrollBehavior="inside">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size={isMobile ? "full" : "3xl"}
+      scrollBehavior="inside"
+    >
       <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)" />
       <ModalContent>
         <ModalHeader>Faculty Permissions</ModalHeader>
@@ -112,15 +117,19 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({
                   <Td>
                     <RadioGroup
                       value={
+                        perms.find((perm) => perm.startsWith("H")) ||
                         houses.find(
                           (house) => house.facultyCordinator === userid
-                        )?.id
+                        )?.id ||
+                        ""
                       }
                       onChange={(value) => {
+                        console.log(value);
                         const updatedPerms = [
                           ...perms.filter((perm) => !perm.startsWith("H")),
                           value,
                         ].filter(Boolean);
+                        console.log(perms);
                         setPerms(updatedPerms);
                       }}
                     >

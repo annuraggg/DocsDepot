@@ -11,21 +11,21 @@ import {
   Td,
   Box,
   Flex,
-  Text,
   Badge,
   IconButton,
   SimpleGrid,
   HStack,
-} from '@chakra-ui/react';
+  Checkbox, // Add this import
+} from "@chakra-ui/react";
 
 interface FacultyTableProps {
   filteredFaculty: User[];
   openEdit: (id: string) => void;
   deleteCustomer: (id: string) => void;
   isMobile?: boolean;
-  isBulkDelete?: boolean;
-  selectedFaculty?: string[];
-  onFacultySelect?: (id: string) => void;
+  isBulkDelete?: boolean; // Add this prop
+  selectedFaculty?: string[]; // Add this prop
+  onFacultySelect?: (id: string) => void; // Add this prop
 }
 
 const MotionBox = motion(Box);
@@ -35,6 +35,9 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
   openEdit,
   deleteCustomer,
   isMobile,
+  isBulkDelete = false, // Default to false
+  selectedFaculty = [], // Default to empty array
+  onFacultySelect = () => {}, // Default no-op function
 }) => {
   return (
     <AnimatePresence>
@@ -55,32 +58,15 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
               borderColor="gray.100"
             >
               <Flex justify="space-between" align="start">
-                <Box flex={1}>
-                  <Flex align="center" mb={2}>
-                    <Box>
-                      <Text fontWeight="600" fontSize="sm">
-                        {`${faculty.fname} ${faculty.lname}`}
-                      </Text>
-                      <Text fontSize="xs" color="gray.500">
-                        {faculty.mid}
-                      </Text>
-                    </Box>
-                  </Flex>
-                  <Flex wrap="wrap" gap={2} mb={2}>
-                    <Badge
-                      colorScheme="purple"
-                      fontSize="xs"
-                      px={2}
-                      py={1}
-                      borderRadius="md"
-                    >
-                      {faculty.academicDetails.branch}
-                    </Badge>
-                  </Flex>
-                  <Text fontSize="sm" color="gray.600" noOfLines={1}>
-                    {faculty.social.email}
-                  </Text>
-                </Box>
+                {isBulkDelete && (
+                  <Checkbox
+                    isChecked={selectedFaculty.includes(faculty._id)}
+                    onChange={() => onFacultySelect(faculty._id)}
+                    mt={1}
+                    mr={2}
+                  />
+                )}
+                <Box flex={1}>{/* Existing mobile view content */}</Box>
                 <HStack spacing={2}>
                   <IconButton
                     aria-label="Edit"
@@ -118,6 +104,7 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
           <Table variant="simple">
             <Thead bg="gray.50">
               <Tr>
+                {isBulkDelete && <Th width="5%"></Th>}
                 <Th width="15%">MOODLE ID</Th>
                 <Th width="20%">NAME</Th>
                 <Th width="25%">EMAIL</Th>
@@ -128,6 +115,14 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
             <Tbody>
               {filteredFaculty.map((faculty) => (
                 <Tr key={faculty.mid}>
+                  {isBulkDelete && (
+                    <Td>
+                      <Checkbox
+                        isChecked={selectedFaculty.includes(faculty._id)}
+                        onChange={() => onFacultySelect(faculty._id)}
+                      />
+                    </Td>
+                  )}
                   <Td>
                     <Badge colorScheme="blue">{faculty.mid}</Badge>
                   </Td>
@@ -148,14 +143,16 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
                         colorScheme="blue"
                         onClick={() => openEdit(faculty.mid)}
                       />
-                      <IconButton
-                        aria-label="Delete faculty"
-                        icon={<Trash2 size={16} />}
-                        size="sm"
-                        variant="ghost"
-                        colorScheme="red"
-                        onClick={() => deleteCustomer(faculty._id)}
-                      />
+                      {!isBulkDelete && (
+                        <IconButton
+                          aria-label="Delete faculty"
+                          icon={<Trash2 size={16} />}
+                          size="sm"
+                          variant="ghost"
+                          colorScheme="red"
+                          onClick={() => deleteCustomer(faculty._id)}
+                        />
+                      )}
                     </HStack>
                   </Td>
                 </Tr>

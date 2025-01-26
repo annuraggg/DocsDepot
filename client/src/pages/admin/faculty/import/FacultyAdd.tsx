@@ -42,7 +42,6 @@ import {
 } from "lucide-react";
 import { House } from "@shared-types/House";
 import useAxios from "@/config/axios";
-import useUser from "@/config/user";
 
 const MotionModalContent = motion(ModalContent);
 
@@ -67,10 +66,10 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const [houses, setHouses] = React.useState<House[]>([]);
 
   const toast = useToast();
-  const user = useUser();
 
   useEffect(() => {
     const houseObjects = h.houses.map((house: House) => house);
+
     setHouses(houseObjects);
     onOpen();
   }, []);
@@ -119,7 +118,6 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
     axios
       .post("/user/faculty", data)
       .then(() => {
-    
         toast({
           title: "Faculty Added",
           description: "Faculty has been added successfully",
@@ -127,6 +125,8 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
           duration: 3000,
           isClosable: true,
         });
+
+        setClose();
       })
       .catch((err) => {
         if (err.response.status === 409) {
@@ -140,7 +140,8 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
         } else {
           toast({
             title: "Error",
-            description: err?.response?.data?.message || "Failed to add faculty",
+            description:
+              err?.response?.data?.message || "Failed to add faculty",
             status: "error",
             duration: 3000,
             isClosable: true,
@@ -152,6 +153,14 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const closePerms = () => {
     setPermClose();
     onOpen();
+  };
+
+  const setupPermissions = (checkboxPerms: string[]) => {
+    const hPermissions = perms.filter((perm) => perm.startsWith("H"));
+    const finalPermissions = [...hPermissions, ...checkboxPerms].filter(
+      Boolean
+    );
+    setPerms(finalPermissions);
   };
 
   return (
@@ -285,7 +294,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                 <Tbody>
                   <CheckboxGroup
                     value={perms}
-                    onChange={(e) => setPerms(e as string[])}
+                    onChange={(e) => setupPermissions(e as string[])}
                   >
                     <Tr>
                       <Td>
@@ -332,11 +341,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                   <Tr>
                     <Td>
                       <RadioGroup
-                        value={
-                          houses.find(
-                            (house) => house.facultyCordinator === user?._id
-                          )?.id
-                        }
+                        value={perms.find((perm) => perm.startsWith("H")) || ""}
                         onChange={(value) => {
                           const updatedPerms = [
                             ...perms.filter((perm) => !perm.startsWith("H")),
@@ -370,13 +375,8 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                   </Tr>
 
                   <CheckboxGroup
-                    value={perms.filter((perm) => !perm.startsWith("H"))}
-                    onChange={(values) => {
-                      const nonHValues = values.filter(
-                        (value) => !(value as string).startsWith("H")
-                      );
-                      setPerms([...nonHValues].map(String));
-                    }}
+                    value={perms}
+                    onChange={(e) => setupPermissions(e as string[])}
                   >
                     <Tr>
                       <Td>

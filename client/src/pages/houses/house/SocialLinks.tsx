@@ -9,7 +9,7 @@ export const SocialLinks = ({ house }: { house: ExtendedHouse }) => {
         <motion.a
           whileHover={{ scale: 1.1 }}
           className="p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-          href="#"
+          href={house.social.instagram}
         >
           <Instagram className="w-5 h-5 text-gray-700" />
         </motion.a>
@@ -18,7 +18,7 @@ export const SocialLinks = ({ house }: { house: ExtendedHouse }) => {
         <motion.a
           whileHover={{ scale: 1.1 }}
           className="p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-          href="#"
+          href={house.social.linkedin}
         >
           <Linkedin className="w-5 h-5 text-gray-700" />
         </motion.a>
@@ -27,7 +27,7 @@ export const SocialLinks = ({ house }: { house: ExtendedHouse }) => {
         <motion.a
           whileHover={{ scale: 1.1 }}
           className="p-3 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
-          href="#"
+          href={house.social.twitter}
         >
           <Twitter className="w-5 h-5 text-gray-700" />
         </motion.a>
