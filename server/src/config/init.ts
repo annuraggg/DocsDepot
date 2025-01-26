@@ -33,7 +33,7 @@ export const setMaintainanceMode = (mode: boolean) => {
 };
 
 app.use(prettyJSON());
-app.use(cors({ origin: ["http://localhost:5173"], credentials: true }));
+app.use(cors({ origin: ["http://localhost:5173", "https://docsdepot.anuragsawant.in"], credentials: true }));
 app.use(performanceMiddleware);
 app.use(attachAuth);
 
