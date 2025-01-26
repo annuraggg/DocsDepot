@@ -51,8 +51,8 @@ export const useStudentManagement = () => {
       ...student,
       academicDetails: {
         ...student.academicDetails,
-        academicYear: student.academicDetails.academicYear !== undefined
-          ? currentYear - student.academicDetails.academicYear + 1 + 
+        academicYear: student.academicDetails.admissionYear !== undefined
+          ? currentYear - student.academicDetails.admissionYear + 1 + 
             (student.academicDetails.isDSE ? 1 : 0)
           : undefined
       }
@@ -63,8 +63,8 @@ export const useStudentManagement = () => {
     const filtered = students.filter(
       student =>
         (selectedYear === 'all' || 
-         (student.academicDetails.academicYear !== undefined && 
-          student.academicDetails.academicYear === Number(selectedYear))) &&
+         (student.academicDetails.admissionYear !== undefined && 
+          student.academicDetails.admissionYear === Number(selectedYear))) &&
         (selectedHouse === 'all' || student.house === selectedHouse) &&
         Object.values(student).some(value =>
           value && value.toString().toLowerCase().includes(searchQuery.toLowerCase())

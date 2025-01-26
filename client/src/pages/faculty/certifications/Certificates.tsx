@@ -6,7 +6,6 @@ import {
   Flex,
   HStack,
   Button,
-  Icon,
   Heading,
   useDisclosure,
   Input,
@@ -21,7 +20,7 @@ import {
   Box,
   Text,
 } from "@chakra-ui/react";
-import { FileBadge as CertIcon, Upload, Filter, Search } from "lucide-react";
+import { Upload, Filter, Search } from "lucide-react";
 import { CertificateFilters } from "./CertificateFilters";
 import CertificateTable from "./CertificateTable";
 import { UploadModal } from "./UploadModal";

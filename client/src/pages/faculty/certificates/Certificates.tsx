@@ -6,7 +6,6 @@ import {
   Flex,
   HStack,
   Button,
-  Icon,
   Heading,
   useDisclosure,
   Input,
@@ -19,7 +18,7 @@ import {
   ButtonGroup,
   useToast,
 } from "@chakra-ui/react";
-import { FileBadge, Filter, Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 import { CertificateFilters } from "./CertificateFilters";
 import { CertificateTable } from "./CertificateTable";
 import { ExtendedCertificate } from "@/types/ExtendedCertificate";
@@ -90,7 +89,7 @@ const Certificates = () => {
         setFilteredCertificates(res.data.data);
       })
       .catch((err) => {
-        console.error(err); 
+        console.error(err);
         toast({
           title: "Error",
           description: "Failed to fetch certificates",

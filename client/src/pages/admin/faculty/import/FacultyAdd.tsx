@@ -30,7 +30,6 @@ import {
   Checkbox,
   CheckboxGroup,
   Flex,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -69,8 +68,6 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
 
   const toast = useToast();
   const user = useUser();
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   useEffect(() => {
     const houseObjects = h.houses.map((house: House) => house);

@@ -148,7 +148,7 @@ const Students = () => {
       const matchesYear =
         filters.years.length === 0 ||
         filters.years.includes(
-          student.academicDetails.academicYear?.toString() || ""
+          student.academicDetails.admissionYear?.toString() || ""
         );
       const matchesHouse =
         filters.houses.length === 0 ||
@@ -468,7 +468,7 @@ const Students = () => {
                           fontWeight="medium"
                           colorScheme="green"
                         >
-                          Year {student.academicDetails.academicYear}
+                          Year {student.academicDetails.admissionYear}
                         </Badge>
                       </Td>
                       <Td py={4} px={6}>

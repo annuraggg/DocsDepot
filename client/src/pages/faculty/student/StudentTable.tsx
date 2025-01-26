@@ -163,7 +163,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                   {student.academicDetails.admissionYear}
                 </Td>
                 <Td py={4} px={6} fontSize="sm" color="gray.600">
-                  {student.academicDetails.academicYear}
+                  {student.academicDetails.admissionYear}
                 </Td>
                 <Td py={4} px={6} fontSize="sm" color="gray.600">
                   {student.social.email}
