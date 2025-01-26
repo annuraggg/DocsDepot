@@ -125,8 +125,8 @@ const Event = () => {
       setEventLocation(res.data.data.location);
       setEventMode(res.data.data.mode);
       setEventLink(res.data.data.link);
-      setEventEmail(res.data.data.email);
-      setEventPhone(res.data.data.phone);
+      setEventEmail(res.data.data.contact.email);
+      setEventPhone(res.data.data.contact.phone);
       setParticipants(res.data.data.participants);
 
       const eventStartsDate = new Date(res.data.data.eventTimeline.start);
@@ -548,7 +548,7 @@ const Event = () => {
                   isLoading={registerLoading}
                   isDisabled={
                     new Date(date) <
-                      new Date(event?.registrationTimeline?.start) ||
+                    new Date(event?.registrationTimeline?.start) ||
                     new Date(date) > new Date(event?.registrationTimeline?.end)
                   }
                   leftIcon={<UserPlus className="w-4 h-4" />}
@@ -561,10 +561,10 @@ const Event = () => {
               {/* Show messages for: registeration not started, registeration ended, event started, event edned */}
               {new Date(date) <
                 new Date(event?.registrationTimeline?.start) && (
-                <Text mt={4} color="red.500">
-                  Registration has not started yet
-                </Text>
-              )}
+                  <Text mt={4} color="red.500">
+                    Registration has not started yet
+                  </Text>
+                )}
 
               {new Date(date) > new Date(event?.registrationTimeline?.end) && (
                 <Text mt={4} color="red.500">
