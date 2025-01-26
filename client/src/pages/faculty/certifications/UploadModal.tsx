@@ -20,7 +20,7 @@ import {
   Alert,
   AlertIcon,
   useToast,
-  useBreakpointValue,
+  // useBreakpointValue,
   Stack,
 } from "@chakra-ui/react";
 import { Upload, Check } from "lucide-react";
@@ -39,7 +39,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 }) => {
   const toast = useToast();
   const [btnLoading, setBtnLoading] = useState(false);
-  const isMobile = useBreakpointValue({ base: true, lg: false });
+  // const isMobile = useBreakpointValue({ base: true, lg: false });
 
   // Form states
   const [certificateName, setCertificateName] = useState("");

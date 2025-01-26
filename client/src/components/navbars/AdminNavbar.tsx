@@ -40,7 +40,6 @@ import {
   User,
   Menu as MenuIcon,
 } from "lucide-react";
-import { Notification } from "@shared-types/Notification";
 import useUser from "@/config/user";
 import useAxios from "@/config/axios";
 import Cookies from "js-cookie";

@@ -35,9 +35,6 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
   openEdit,
   deleteCustomer,
   isMobile,
-  isBulkDelete = false,
-  selectedFaculty = [],
-  onFacultySelect = () => {},
 }) => {
   return (
     <AnimatePresence>

@@ -10,7 +10,7 @@ import {
   AlertDialogOverlay,
   Button,
   Flex,
-  useBreakpointValue,
+  // useBreakpointValue,
 } from "@chakra-ui/react";
 import { DeleteAlertProps } from '../../../types/faculty';
 
@@ -20,7 +20,7 @@ const DeleteAlert: React.FC<DeleteAlertProps> = ({
   onConfirm,
   cancelRef,
 }) => {
-  const isMobile = useBreakpointValue({ base: true, md: false });
+  // const isMobile = useBreakpointValue({ base: true, md: false });
 
   return (
     <AlertDialog

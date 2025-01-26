@@ -54,9 +54,13 @@ const MotionBox = motion(Box);
 
 const FacultyCertificates = () => {
   const isMobile = useBreakpointValue({ base: true, md: false });
-  const [pendingCertificates, _setPendingCertificates] = useState<Certificate[]>([]);
+  const [pendingCertificates, _setPendingCertificates] = useState<
+    Certificate[]
+  >([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<
+    Certificate[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [update, setUpdate] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState<string>("");
@@ -82,12 +86,12 @@ const FacultyCertificates = () => {
   const {
     isOpen: isModalOpen,
     onOpen: onModalOpen,
-    onClose: onModalClose
+    onClose: onModalClose,
   } = useDisclosure();
   const {
     isOpen: isFilterOpen,
     onOpen: onFilterOpen,
-    onClose: onFilterClose
+    onClose: onFilterClose,
   } = useDisclosure();
   const toast = useToast();
   const axios = useAxios();
@@ -124,16 +128,20 @@ const FacultyCertificates = () => {
     }
 
     if (filters.types.length > 0) {
-      result = result.filter((cert) => filters.types.includes(cert.type.toLowerCase()));
+      result = result.filter((cert) =>
+        filters.types.includes(cert.type.toLowerCase())
+      );
     }
 
     if (filters.levels.length > 0) {
-      result = result.filter((cert) => filters.levels.includes(cert.level.toLowerCase()));
+      result = result.filter((cert) =>
+        filters.levels.includes(cert.level.toLowerCase())
+      );
     }
 
     if (filters.status.length > 0) {
       result = result.filter((cert) =>
-        filters.status.includes((cert.status || 'pending').toLowerCase())
+        filters.status.includes((cert.status || "pending").toLowerCase())
       );
     }
 
@@ -306,7 +314,7 @@ const FacultyCertificates = () => {
     </Box>
   );
 
-  const CertificateCard = ({ cert, index }: { cert: Certificate; index: number }) => (
+  const CertificateCard = ({ cert }: { cert: Certificate; index: number }) => (
     <MotionBox
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -325,7 +333,7 @@ const FacultyCertificates = () => {
               {cert.name}
             </Text>
           </Flex>
-          
+
           <Flex align="center" mb={2}>
             <Icon as={Building2} color="gray.400" boxSize={5} mr={2} />
             <Text fontSize="sm" color="gray.600">
@@ -397,7 +405,13 @@ const FacultyCertificates = () => {
         transition={{ duration: 0.3 }}
       >
         <Tabs variant="soft-rounded" colorScheme="green">
-          <Flex justify="space-between" align="center" mb={6} direction={{ base: "column", md: "row" }} gap={4}>
+          <Flex
+            justify="space-between"
+            align="center"
+            mb={6}
+            direction={{ base: "column", md: "row" }}
+            gap={4}
+          >
             <TabList>
               <Tab>All Certificates</Tab>
               <Tab>
@@ -409,7 +423,7 @@ const FacultyCertificates = () => {
                 )}
               </Tab>
             </TabList>
-            
+
             <InputGroup maxW={{ base: "full", md: "300px" }} size="sm">
               <InputLeftElement pointerEvents="none">
                 <Search size={18} />
@@ -441,7 +455,11 @@ const FacultyCertificates = () => {
                 {isMobile ? (
                   <SimpleGrid columns={1} spacing={4}>
                     {filteredCertificates.map((cert, index) => (
-                      <CertificateCard key={cert._id} cert={cert} index={index} />
+                      <CertificateCard
+                        key={cert._id}
+                        cert={cert}
+                        index={index}
+                      />
                     ))}
                   </SimpleGrid>
                 ) : (
@@ -455,7 +473,11 @@ const FacultyCertificates = () => {
                 {isMobile ? (
                   <SimpleGrid columns={1} spacing={4}>
                     {pendingCertificates.map((cert, index) => (
-                      <CertificateCard key={cert._id} cert={cert} index={index} />
+                      <CertificateCard
+                        key={cert._id}
+                        cert={cert}
+                        index={index}
+                      />
                     ))}
                   </SimpleGrid>
                 ) : (
@@ -466,7 +488,11 @@ const FacultyCertificates = () => {
           </TabPanels>
         </Tabs>
 
-        <Modal isOpen={isModalOpen} onClose={onModalClose} size={{ base: "full", md: "md" }}>
+        <Modal
+          isOpen={isModalOpen}
+          onClose={onModalClose}
+          size={{ base: "full", md: "md" }}
+        >
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Review Certificate</ModalHeader>
@@ -487,10 +513,12 @@ const FacultyCertificates = () => {
                   placeholder="Add your comments..."
                   value={comments[0]?.comment || ""}
                   onChange={(e) =>
-                    setComments([{
-                      comment: e.target.value,
-                      user: user?._id!,
-                    }])
+                    setComments([
+                      {
+                        comment: e.target.value,
+                        user: user?._id!,
+                      },
+                    ])
                   }
                   size="sm"
                   minH="120px"
@@ -509,7 +537,11 @@ const FacultyCertificates = () => {
           </ModalContent>
         </Modal>
 
-        <Modal isOpen={isFilterOpen} onClose={onFilterClose} size={{ base: "full", md: "md" }}>
+        <Modal
+          isOpen={isFilterOpen}
+          onClose={onFilterClose}
+          size={{ base: "full", md: "md" }}
+        >
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Filter Certificates</ModalHeader>
@@ -565,7 +597,12 @@ const FacultyCertificates = () => {
               </Stack>
             </ModalBody>
             <ModalFooter>
-              <Button size="sm" variant="outline" mr={3} onClick={onFilterClose}>
+              <Button
+                size="sm"
+                variant="outline"
+                mr={3}
+                onClick={onFilterClose}
+              >
                 Close
               </Button>
             </ModalFooter>
