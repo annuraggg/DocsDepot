@@ -64,7 +64,7 @@ interface FilterState {
   gender: string[];
   status: string[];
   houses: string[];
-  years: string[];
+  years: number[];
 }
 
 const Students = () => {
@@ -152,9 +152,9 @@ const Students = () => {
         student.academicDetails.admissionYear,
         student.academicDetails.isDSE,
         student.academicDetails.yearBacklog
-      ).toString();
+      );
       const matchesYear =
-        filters.years.length === 0 || filters.years.includes(academicYear);
+        filters.years.length === 0 || filters.years.includes(Number(academicYear));
       const matchesHouse =
         filters.houses.length === 0 ||
         filters.houses.includes(student.house?._id);
@@ -274,6 +274,17 @@ const Students = () => {
   const uniqueHouses = Array.from(
     new Set(students.map((student) => student.house?._id))
   ).map((id) => students.find((student) => student.house?._id === id)?.house);
+
+  const uniqueYears = useMemo(() => {
+    const years = students.map((student) =>
+      getAcademicYear(
+        student.academicDetails.admissionYear,
+        student.academicDetails.isDSE,
+        student.academicDetails.yearBacklog
+      )
+    );
+    return Array.from(new Set(years)).sort();
+  }, [students]);
 
   if (loading) return <Loader />;
 
@@ -535,7 +546,6 @@ const Students = () => {
           )}
         </AnimatePresence>
 
-        {/* Keep all modals and dialogs the same as original */}
         <AlertDialog
           isOpen={isDeleteAlertOpen}
           leastDestructiveRef={cancelRef}
@@ -629,13 +639,16 @@ const Students = () => {
                 <FormControl>
                   <FormLabel>Academic Year</FormLabel>
                   <CheckboxGroup
-                    value={filters.years}
+                    value={filters.years.map(String)}
                     onChange={(values) =>
-                      setFilters({ ...filters, years: values as string[] })
+                      setFilters({
+                        ...filters,
+                        years: (values as string[]).map(v => parseInt(v, 10))
+                      })
                     }
                   >
                     <Stack direction="row" wrap="wrap">
-                      {[1, 2, 3, 4].map((year) => (
+                      {uniqueYears.map((year) => (
                         <Checkbox key={year} value={String(year)}>
                           Year {year}
                         </Checkbox>
