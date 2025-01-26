@@ -161,27 +161,6 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
       };
 
       await onSubmit(eventData);
-      // setFormData({
-      //   name: '',
-      //   image: '',
-      //   desc: '',
-      //   location: '',
-      //   mode: '',
-      //   link: '',
-      //   email: '',
-      //   phone: '',
-      //   registerationType: '',
-      //   eventStartDate: '',
-      //   eventEndDate: '',
-      //   registrationStartDate: '',
-      //   registrationEndDate: '',
-      //   eventStartTime: '',
-      //   eventEndTime: '',
-      //   registrationStartTime: '',
-      //   registrationEndTime: '',
-      //   points: 0
-      // });
-      // onClose();
     } catch (error) {
       toast({
         title: "Error",

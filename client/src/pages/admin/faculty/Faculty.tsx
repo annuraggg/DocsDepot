@@ -25,6 +25,7 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  useBreakpointValue,
   AlertDialog,
   AlertDialogOverlay,
   AlertDialogContent,
@@ -56,6 +57,7 @@ const Faculty = () => {
   const navigate = useNavigate();
   const axios = useAxios();
   const cancelRef = React.useRef(null);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   const [loading, setLoading] = useState(true);
   const [faculty, setFaculty] = useState<User[]>([]);
@@ -404,8 +406,8 @@ const Faculty = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Flex justify="space-between" align="center" mb={8}>
-          <Box>
+        <Flex justify="space-between" align="center" mb={8} direction={{ base: "column", md: "row" }} gap={4}>
+          <Box textAlign={{ base: "center", md: "left" }}>
             <Heading size="lg" mb={2}>
               Faculty Management
             </Heading>
@@ -413,7 +415,7 @@ const Faculty = () => {
               Manage and monitor all faculty information
             </Text>
           </Box>
-          <HStack spacing={4}>
+          <HStack spacing={4} flexWrap="wrap" justify="center">
             <Button
               leftIcon={<Trash2 />}
               variant="outline"
@@ -431,7 +433,7 @@ const Faculty = () => {
               leftIcon={<Filter />}
               variant="outline"
               onClick={onFilterOpen}
-              size="md"
+              size="sm"
             >
               Filters
             </Button>
@@ -439,7 +441,7 @@ const Faculty = () => {
               leftIcon={<Plus />}
               colorScheme="blue"
               onClick={() => navigate("/admin/faculty/add")}
-              size="md"
+              size="sm"
             >
               Add Faculty
             </Button>
@@ -457,14 +459,17 @@ const Faculty = () => {
           </Button>
         </Flex>
 
-        <InputGroup size="lg" mb={4}>
+        <InputGroup size="md" mb={6}>
           <InputLeftElement pointerEvents="none">
-            <Search />
+            <Search size={18} />
           </InputLeftElement>
           <Input
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            borderRadius="full"
+            bg="white"
+            fontSize="sm"
           />
         </InputGroup>
 
@@ -472,6 +477,7 @@ const Faculty = () => {
           filteredFaculty={paginatedFaculty}
           openEdit={openEdit}
           deleteCustomer={deleteCustomer}
+          isMobile={isMobile}
           isBulkDelete={isBulkDelete}
           selectedFaculty={selectedFaculty}
           onFacultySelect={handleFacultySelect}

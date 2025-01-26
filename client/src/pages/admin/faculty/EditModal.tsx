@@ -17,6 +17,7 @@ import {
   Grid,
   VStack,
   HStack,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { EditModalProps } from "../../../types/faculty";
 
@@ -30,6 +31,7 @@ const EditModal: React.FC<EditModalProps> = ({
 }) => {
   const MotionVStack = VStack;
   const MotionFormControl = motion(FormControl);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>

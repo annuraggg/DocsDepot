@@ -4,7 +4,6 @@ import {
   Button,
   Container,
   Flex,
-  Heading,
   HStack,
   Icon,
   Input,
@@ -16,6 +15,7 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
+  SimpleGrid,
   Table,
   Thead,
   Tbody,
@@ -36,16 +36,24 @@ import {
   Checkbox,
   CheckboxGroup,
   FormLabel,
-  FormControl
+  FormControl,
+  useBreakpointValue,
+  InputGroup,
+  InputLeftElement,
+  IconButton,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router";
-import { Award, Building2, ChevronRight, Filter } from "lucide-react";
+import { Award, Building2, ChevronRight, Filter, Search } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Loader from "@/components/Loader";
 import { Certificate, Comment } from "@shared-types/Certificate";
 import useUser from "@/config/user";
 import useAxios from "@/config/axios";
 
+const MotionBox = motion(Box);
+
 const FacultyCertificates = () => {
+  const isMobile = useBreakpointValue({ base: true, md: false });
   const [pendingCertificates, _setPendingCertificates] = useState<Certificate[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
@@ -132,12 +140,6 @@ const FacultyCertificates = () => {
     if (filters.issueYears.length > 0) {
       result = result.filter((cert) =>
         filters.issueYears.includes(cert.issueDate.year.toString())
-      );
-    }
-
-    if (filters.expiryYears.length > 0) {
-      result = result.filter(() =>
-        false
       );
     }
 
@@ -229,241 +231,290 @@ const FacultyCertificates = () => {
       boxShadow="sm"
       border="1px"
       borderColor="gray.200"
-      overflow="hidden"
+      overflowX="auto"
     >
-      <Box overflowX="auto">
-        <Table variant="simple">
-          <Thead>
-            <Tr bg="gray.50" borderBottom="1px" borderColor="gray.200">
-              <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                Sr No.
-              </Th>
-              <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                Certificate
-              </Th>
-              <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                Organization
-              </Th>
-              <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                Type
-              </Th>
-              <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                Level
-              </Th>
-              <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                Status
-              </Th>
-              <Th py={4} px={6} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                Actions
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {data.map((cert, index) => (
-              <Tr
-                key={cert._id}
-                _hover={{ bg: "gray.50" }}
-                transition="background 0.15s"
-                borderBottom="1px"
-                borderColor="gray.200"
-              >
-                <Td py={4} px={6} fontSize="sm" color="gray.900">
-                  {index + 1}
-                </Td>
-                <Td py={4} px={6}>
-                  <HStack spacing={2}>
-                    <Icon as={Award} color="green.500" boxSize={5} />
-                    <Text fontSize="sm" fontWeight="medium" color="gray.900">
-                      {cert.name}
-                    </Text>
-                  </HStack>
-                </Td>
-                <Td py={4} px={6}>
-                  <HStack spacing={2}>
-                    <Icon as={Building2} color="gray.400" boxSize={5} />
-                    <Text fontSize="sm" color="gray.600">
-                      {cert.issuingOrganization}
-                    </Text>
-                  </HStack>
-                </Td>
-                <Td py={4} px={6}>
-                  <Badge
-                    px={2.5}
-                    py={0.5}
-                    borderRadius="full"
-                    fontSize="xs"
-                    textTransform="initial"
-                    fontWeight="medium"
-                    {...getTypeProps(cert.type)}
+      <Table variant="simple">
+        <Thead bg="gray.50">
+          <Tr>
+            <Th>Sr No.</Th>
+            <Th>Certificate</Th>
+            <Th>Organization</Th>
+            <Th>Type</Th>
+            <Th>Level</Th>
+            <Th>Status</Th>
+            <Th>Actions</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {data.map((cert, index) => (
+            <Tr key={cert._id}>
+              <Td>{index + 1}</Td>
+              <Td>
+                <HStack>
+                  <Icon as={Award} color="green.500" />
+                  <Text>{cert.name}</Text>
+                </HStack>
+              </Td>
+              <Td>
+                <HStack>
+                  <Icon as={Building2} color="gray.400" />
+                  <Text>{cert.issuingOrganization}</Text>
+                </HStack>
+              </Td>
+              <Td>
+                <Badge {...getTypeProps(cert.type)}>
+                  {cert.type?.charAt(0).toUpperCase() + cert.type?.slice(1)}
+                </Badge>
+              </Td>
+              <Td>
+                <Badge {...getLevelProps(cert.level)}>
+                  {cert.level?.charAt(0).toUpperCase() + cert.level?.slice(1)}
+                </Badge>
+              </Td>
+              <Td>
+                <Badge {...getStatusProps(cert.status)}>
+                  {(cert.status ?? "Pending")?.charAt(0).toUpperCase() +
+                    (cert.status ?? "pending")?.slice(1)}
+                </Badge>
+              </Td>
+              <Td>
+                <HStack>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    colorScheme="blue"
+                    rightIcon={<ChevronRight />}
+                    onClick={() => navigate(`/certificates/${cert._id}`)}
                   >
-                    {cert.type?.charAt(0).toUpperCase() + cert.type?.slice(1)}
-                  </Badge>
-                </Td>
-                <Td py={4} px={6}>
-                  <Badge
-                    px={2.5}
-                    py={0.5}
-                    borderRadius="full"
-                    fontSize="xs"
-                    textTransform="initial"
-                    fontWeight="medium"
-                    {...getLevelProps(cert.level)}
-                  >
-                    {cert.level?.charAt(0).toUpperCase() + cert.level?.slice(1)}
-                  </Badge>
-                </Td>
-                <Td py={4} px={6}>
-                  <Badge
-                    px={2.5}
-                    py={0.5}
-                    borderRadius="full"
-                    fontSize="xs"
-                    fontWeight="medium"
-                    textTransform="initial"
-                    {...getStatusProps(cert.status)}
-                  >
-                    {(cert.status ?? "Pending")?.charAt(0).toUpperCase() +
-                      (cert.status ?? "pending")?.slice(1)}
-                  </Badge>
-                </Td>
-                <Td py={4} px={6}>
-                  <HStack spacing={2}>
+                    View
+                  </Button>
+                  {pendingCertificates.includes(cert) && (
                     <Button
                       size="sm"
-                      variant="ghost"
-                      colorScheme="blue"
-                      rightIcon={<ChevronRight size={16} />}
-                      onClick={() => navigate(`/certificates/${cert._id}`)}
-                      _hover={{
-                        bg: "blue.50",
-                        transform: "translateX(4px)",
-                      }}
-                      transition="all 0.2s"
+                      colorScheme="green"
+                      onClick={() => openCert(cert._id)}
                     >
-                      View
+                      Review
                     </Button>
-                    {pendingCertificates.includes(cert) && (
-                      <Button
-                        size="sm"
-                        colorScheme="green"
-                        onClick={() => openCert(cert._id)}
-                      >
-                        Review
-                      </Button>
-                    )}
-                  </HStack>
-                </Td>
-              </Tr>
-            ))}
-          </Tbody>
-        </Table>
-      </Box>
+                  )}
+                </HStack>
+              </Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
     </Box>
+  );
+
+  const CertificateCard = ({ cert, index }: { cert: Certificate; index: number }) => (
+    <MotionBox
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      bg="white"
+      borderRadius="lg"
+      p={4}
+      boxShadow="sm"
+      border="1px"
+      borderColor="gray.100"
+    >
+      <Flex justify="space-between" align="start">
+        <Box flex={1}>
+          <Flex align="center" mb={2}>
+            <Icon as={Award} color="green.500" boxSize={5} mr={2} />
+            <Text fontWeight="600" fontSize="sm">
+              {cert.name}
+            </Text>
+          </Flex>
+          
+          <Flex align="center" mb={2}>
+            <Icon as={Building2} color="gray.400" boxSize={5} mr={2} />
+            <Text fontSize="sm" color="gray.600">
+              {cert.issuingOrganization}
+            </Text>
+          </Flex>
+
+          <Flex wrap="wrap" gap={2} mb={2}>
+            <Badge
+              px={2.5}
+              py={0.5}
+              borderRadius="full"
+              fontSize="xs"
+              {...getTypeProps(cert.type)}
+            >
+              {cert.type?.charAt(0).toUpperCase() + cert.type?.slice(1)}
+            </Badge>
+            <Badge
+              px={2.5}
+              py={0.5}
+              borderRadius="full"
+              fontSize="xs"
+              {...getLevelProps(cert.level)}
+            >
+              {cert.level?.charAt(0).toUpperCase() + cert.level?.slice(1)}
+            </Badge>
+            <Badge
+              px={2.5}
+              py={0.5}
+              borderRadius="full"
+              fontSize="xs"
+              {...getStatusProps(cert.status)}
+            >
+              {(cert.status ?? "Pending")?.charAt(0).toUpperCase() +
+                (cert.status ?? "pending")?.slice(1)}
+            </Badge>
+          </Flex>
+        </Box>
+        <HStack spacing={2}>
+          <IconButton
+            aria-label="View certificate"
+            icon={<ChevronRight size={16} />}
+            size="sm"
+            variant="ghost"
+            colorScheme="blue"
+            onClick={() => navigate(`/certificates/${cert._id}`)}
+          />
+          {pendingCertificates.includes(cert) && (
+            <Button
+              size="sm"
+              colorScheme="green"
+              onClick={() => openCert(cert._id)}
+            >
+              Review
+            </Button>
+          )}
+        </HStack>
+      </Flex>
+    </MotionBox>
   );
 
   if (loading) return <Loader />;
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <Tabs variant="soft-rounded" colorScheme="green">
-        <TabList mb={6}>
-          <Tab>All Certificates</Tab>
-          <Tab>
-            Pending Review
-            {pendingCertificates.length > 0 && (
-              <Badge ml={2} colorScheme="red">
-                {pendingCertificates.length}
-              </Badge>
-            )}
-          </Tab>
-        </TabList>
+    <Container maxW="container.xl" p={{ base: 4, md: 8 }}>
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Tabs variant="soft-rounded" colorScheme="green">
+          <Flex justify="space-between" align="center" mb={6} direction={{ base: "column", md: "row" }} gap={4}>
+            <TabList>
+              <Tab>All Certificates</Tab>
+              <Tab>
+                Pending Review
+                {pendingCertificates.length > 0 && (
+                  <Badge ml={2} colorScheme="red">
+                    {pendingCertificates.length}
+                  </Badge>
+                )}
+              </Tab>
+            </TabList>
+            
+            <InputGroup maxW={{ base: "full", md: "300px" }} size="sm">
+              <InputLeftElement pointerEvents="none">
+                <Search size={18} />
+              </InputLeftElement>
+              <Input
+                placeholder="Search certificates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                borderRadius="full"
+                bg="white"
+              />
+            </InputGroup>
+          </Flex>
 
-        <TabPanels>
-          <TabPanel px={0}>
-            <Flex justify="space-between" align="center" mb={6}>
-              <Heading size="lg">All Certificates</Heading>
-              <HStack spacing={4}>
-                <Input
-                  placeholder="Search certificates..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  w="300px"
-                />
+          <TabPanels>
+            <TabPanel px={0}>
+              <Flex justify="end" mb={4}>
                 <Button
-                  leftIcon={<Icon as={Filter} />}
+                  leftIcon={<Filter size={16} />}
                   onClick={onFilterOpen}
-                  colorScheme="blue"
-                  variant="ghost"
+                  size="sm"
+                  variant="outline"
                 >
                   Filters
                 </Button>
-              </HStack>
-            </Flex>
+              </Flex>
 
-            <CertificateTableComponent data={filteredCertificates} />
-          </TabPanel>
+              <AnimatePresence>
+                {isMobile ? (
+                  <SimpleGrid columns={1} spacing={4}>
+                    {filteredCertificates.map((cert, index) => (
+                      <CertificateCard key={cert._id} cert={cert} index={index} />
+                    ))}
+                  </SimpleGrid>
+                ) : (
+                  <CertificateTableComponent data={filteredCertificates} />
+                )}
+              </AnimatePresence>
+            </TabPanel>
 
-          <TabPanel px={0}>
-            <Flex justify="space-between" align="center" mb={6}>
-              <Heading size="lg">Pending Review</Heading>
-            </Flex>
+            <TabPanel px={0}>
+              <AnimatePresence>
+                {isMobile ? (
+                  <SimpleGrid columns={1} spacing={4}>
+                    {pendingCertificates.map((cert, index) => (
+                      <CertificateCard key={cert._id} cert={cert} index={index} />
+                    ))}
+                  </SimpleGrid>
+                ) : (
+                  <CertificateTableComponent data={pendingCertificates} />
+                )}
+              </AnimatePresence>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
 
-            <CertificateTableComponent data={pendingCertificates} />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+        <Modal isOpen={isModalOpen} onClose={onModalClose} size={{ base: "full", md: "md" }}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Review Certificate</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Stack spacing={4}>
+                <Select
+                  placeholder="Choose an action"
+                  value={action}
+                  onChange={(e) => setAction(e.target.value)}
+                  size="sm"
+                >
+                  <option value="approved">Accept Certificate</option>
+                  <option value="rejected">Reject Certificate</option>
+                </Select>
 
-      <Modal isOpen={isModalOpen} onClose={onModalClose}>
-        <ModalOverlay backdropFilter="blur(10px)" />
-        <ModalContent>
-          <ModalHeader>Review Certificate</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Select
-              placeholder="Choose an action"
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              mb={4}
-            >
-              <option value="approved">Accept Certificate</option>
-              <option value="rejected">Reject Certificate</option>
-            </Select>
-
-            {comments.map((comment, index) => (
-              <Textarea
-                key={index}
-                placeholder="Add your comments..."
-                value={comment.comment}
-                onChange={(e) =>
-                  setComments([
-                    ...comments,
-                    {
+                <Textarea
+                  placeholder="Add your comments..."
+                  value={comments[0]?.comment || ""}
+                  onChange={(e) =>
+                    setComments([{
                       comment: e.target.value,
                       user: user?._id!,
-                    },
-                  ])
-                }
-              />
-            ))}
-          </ModalBody>
+                    }])
+                  }
+                  size="sm"
+                  minH="120px"
+                />
+              </Stack>
+            </ModalBody>
 
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onModalClose}>
-              Cancel
-            </Button>
-            <Button colorScheme="green" onClick={updateCert}>
-              Submit Review
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      
-      <Modal isOpen={isFilterOpen} onClose={onFilterClose} size="md">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Filter Certificates</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
+            <ModalFooter>
+              <Button variant="outline" mr={3} onClick={onModalClose} size="sm">
+                Cancel
+              </Button>
+              <Button colorScheme="green" onClick={updateCert} size="sm">
+                Submit
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        <Modal isOpen={isFilterOpen} onClose={onFilterClose} size={{ base: "full", md: "md" }}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Filter Certificates</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
               <Stack spacing={4}>
                 <FormControl>
                   <FormLabel>Certificate Type</FormLabel>
@@ -513,8 +564,14 @@ const FacultyCertificates = () => {
                 </FormControl>
               </Stack>
             </ModalBody>
-        </ModalContent>
-      </Modal>
+            <ModalFooter>
+              <Button size="sm" variant="outline" mr={3} onClick={onFilterClose}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </MotionBox>
     </Container>
   );
 };

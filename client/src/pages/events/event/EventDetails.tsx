@@ -26,7 +26,7 @@ export const EventDetails = ({
       transition={{ duration: 0.5, delay: 0.2 }}
     >
       <Grid
-        templateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+        templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
         gap={6}
         className="w-full"
       >
@@ -60,14 +60,14 @@ export const EventDetails = ({
             <>
               <Text className="font-medium">
                 Opens:{" "}
-                {new Date(event?.registeration.start).toLocaleDateString(
+                {new Date(event?.registeration?.start).toLocaleDateString(
                   "en-US",
                   dateOptions
                 )}
               </Text>
               <Text className="font-medium">
                 Closes:{" "}
-                {new Date(event?.registeration.end).toLocaleDateString(
+                {new Date(event?.registeration?.end).toLocaleDateString(
                   "en-US",
                   dateOptions
                 )}

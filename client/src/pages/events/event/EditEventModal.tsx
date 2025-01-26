@@ -100,7 +100,12 @@ export const EditEventModal = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <Modal isOpen={isOpen} onClose={onClose} size="4xl">
+        <Modal 
+          isOpen={isOpen} 
+          onClose={onClose} 
+          size={{ base: "full", md: "4xl" }}
+          scrollBehavior="inside"
+        >
           <ModalOverlay backdropFilter="blur(10px)" />
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -108,23 +113,22 @@ export const EditEventModal = ({
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            <ModalContent className="bg-white rounded-2xl shadow-2xl">
-              <ModalHeader className="border-b border-gray-100 pb-4 px-6">
-                <Text className="text-2xl font-bold text-gray-900">
-                  Edit Event
-                </Text>
+            <ModalContent className="bg-white rounded-2xl shadow-2xl max-h-[95vh] overflow-y-auto">
+              <ModalHeader className="border-b border-gray-100 pb-4 px-4 sm:px-6">
+                <Text className="text-xl sm:text-2xl font-bold text-gray-900">Edit Event</Text>
               </ModalHeader>
-              <ModalCloseButton className="text-gray-500 hover:text-gray-700" />
+              <ModalCloseButton className="text-gray-500 hover:text-gray-700 top-3 right-3" />
 
-              <ModalBody className="py-8 px-6 space-y-8">
-                <VStack spacing={8}>
-                  <Flex gap={6} className="w-full">
-                    <FormControl>
-                      <Text className="text-sm font-medium text-gray-700 mb-2">
-                        Event Name
-                      </Text>
+              <ModalBody className="py-6 px-4 sm:px-6 space-y-6">
+                <VStack spacing={6}>
+                  <Flex 
+                    gap={4} 
+                    className="w-full flex-col sm:flex-row items-start"
+                  >
+                    <FormControl className="w-full">
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Event Name</Text>
                       <InputGroup>
-                        <InputLeftAddon>
+                        <InputLeftAddon className="bg-gray-50">
                           <Type className="w-4 h-4 text-gray-500" />
                         </InputLeftAddon>
                         <Input
@@ -136,12 +140,10 @@ export const EditEventModal = ({
                       </InputGroup>
                     </FormControl>
 
-                    <FormControl>
-                      <Text className="text-sm font-medium text-gray-700 mb-2">
-                        Event Image
-                      </Text>
+                    <FormControl className="w-full mt-4 sm:mt-0">
+                      <Text className="text-sm font-medium text-gray-700 mb-2">Event Image</Text>
                       <InputGroup>
-                        <InputLeftAddon>
+                        <InputLeftAddon className="bg-gray-50">
                           <LinkIcon className="w-4 h-4 text-gray-500" />
                         </InputLeftAddon>
                         <Input
@@ -164,11 +166,14 @@ export const EditEventModal = ({
                     />
                   </FormControl>
 
-                  <Flex gap={4}>
-                    <FormControl>
+                  <Flex 
+                    gap={4} 
+                    className="flex-col sm:flex-row w-full"
+                  >
+                    <FormControl className="w-full">
                       <InputGroup>
-                        <InputLeftAddon>
-                          <MapPin className="w-4 h-4" />
+                        <InputLeftAddon className="bg-gray-50">
+                          <MapPin className="w-4 h-4 text-gray-500" />
                         </InputLeftAddon>
                         <Input
                           placeholder="Event Location"
@@ -179,13 +184,13 @@ export const EditEventModal = ({
                       </InputGroup>
                     </FormControl>
 
-                    <FormControl>
+                    <FormControl className="w-full mt-4 sm:mt-0">
                       <Select
                         value={eventMode}
                         onChange={(e) => setEventMode(e.target.value)}
+                        placeholder="Select Mode"
                         className="focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">Select Mode</option>
                         <option value="online">Online</option>
                         <option value="offline">Offline</option>
                       </Select>
@@ -194,8 +199,8 @@ export const EditEventModal = ({
 
                   <FormControl>
                     <InputGroup>
-                      <InputLeftAddon>
-                        <LinkIcon className="w-4 h-4" />
+                      <InputLeftAddon className="bg-gray-50">
+                        <LinkIcon className="w-4 h-4 text-gray-500" />
                       </InputLeftAddon>
                       <Input
                         placeholder="Event Link"
@@ -206,11 +211,14 @@ export const EditEventModal = ({
                     </InputGroup>
                   </FormControl>
 
-                  <Flex gap={4}>
-                    <FormControl>
+                  <Flex 
+                    gap={4} 
+                    className="flex-col sm:flex-row w-full"
+                  >
+                    <FormControl className="w-full">
                       <InputGroup>
-                        <InputLeftAddon>
-                          <Mail className="w-4 h-4" />
+                        <InputLeftAddon className="bg-gray-50">
+                          <Mail className="w-4 h-4 text-gray-500" />
                         </InputLeftAddon>
                         <Input
                           placeholder="Contact Email"
@@ -221,10 +229,10 @@ export const EditEventModal = ({
                       </InputGroup>
                     </FormControl>
 
-                    <FormControl>
+                    <FormControl className="w-full mt-4 sm:mt-0">
                       <InputGroup>
-                        <InputLeftAddon>
-                          <Phone className="w-4 h-4" />
+                        <InputLeftAddon className="bg-gray-50">
+                          <Phone className="w-4 h-4 text-gray-500" />
                         </InputLeftAddon>
                         <Input
                           placeholder="Contact Phone"
@@ -236,33 +244,39 @@ export const EditEventModal = ({
                     </FormControl>
                   </Flex>
 
-                  <VStack spacing={4} align="stretch">
-                    <Text fontWeight="medium" className="text-gray-700">
+                  <VStack 
+                    spacing={4} 
+                    align="stretch" 
+                    className="w-full"
+                  >
+                    <Text 
+                      fontWeight="medium" 
+                      className="text-gray-700 text-sm"
+                    >
                       Event Registration Period
                     </Text>
-                    <Flex gap={4} align="center">
-                      <FormControl>
+                    <Flex 
+                      gap={2} 
+                      className="flex-col sm:flex-row items-center w-full"
+                    >
+                      <FormControl className="w-full">
                         <Input
                           type="date"
                           value={registerationStarts}
-                          onChange={(e) =>
-                            setRegisterationStarts(e.target.value)
-                          }
+                          onChange={(e) => setRegisterationStarts(e.target.value)}
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
-                      <FormControl>
+                      <FormControl className="w-full mt-2 sm:mt-0">
                         <Input
                           type="time"
                           value={registerationStartTime}
-                          onChange={(e) =>
-                            setRegisterationStartTime(e.target.value)
-                          }
+                          onChange={(e) => setRegisterationStartTime(e.target.value)}
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
-                      <Text>to</Text>
-                      <FormControl>
+                      <Text className="hidden sm:block">to</Text>
+                      <FormControl className="w-full mt-2 sm:mt-0">
                         <Input
                           type="date"
                           value={registerationEnds}
@@ -270,25 +284,33 @@ export const EditEventModal = ({
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
-                      <FormControl>
+                      <FormControl className="w-full mt-2 sm:mt-0">
                         <Input
                           type="time"
                           value={registerationEndTime}
-                          onChange={(e) =>
-                            setRegisterationEndTime(e.target.value)
-                          }
+                          onChange={(e) => setRegisterationEndTime(e.target.value)}
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
                     </Flex>
                   </VStack>
 
-                  <VStack spacing={4} align="stretch">
-                    <Text fontWeight="medium" className="text-gray-700">
+                  <VStack 
+                    spacing={4} 
+                    align="stretch" 
+                    className="w-full"
+                  >
+                    <Text 
+                      fontWeight="medium" 
+                      className="text-gray-700 text-sm"
+                    >
                       Event Schedule
                     </Text>
-                    <Flex gap={4} align="center">
-                      <FormControl>
+                    <Flex 
+                      gap={2} 
+                      className="flex-col sm:flex-row items-center w-full"
+                    >
+                      <FormControl className="w-full">
                         <Input
                           type="date"
                           value={eventStarts}
@@ -296,7 +318,7 @@ export const EditEventModal = ({
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
-                      <FormControl>
+                      <FormControl className="w-full mt-2 sm:mt-0">
                         <Input
                           type="time"
                           value={eventStartTime}
@@ -304,8 +326,8 @@ export const EditEventModal = ({
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
-                      <Text>to</Text>
-                      <FormControl>
+                      <Text className="hidden sm:block">to</Text>
+                      <FormControl className="w-full mt-2 sm:mt-0">
                         <Input
                           type="date"
                           value={eventEnds}
@@ -313,7 +335,7 @@ export const EditEventModal = ({
                           className="focus:ring-2 focus:ring-blue-500"
                         />
                       </FormControl>
-                      <FormControl>
+                      <FormControl className="w-full mt-2 sm:mt-0">
                         <Input
                           type="time"
                           value={eventEndTime}
@@ -326,19 +348,18 @@ export const EditEventModal = ({
                 </VStack>
               </ModalBody>
 
-              <ModalFooter className="border-t border-gray-100 pt-4 px-6">
+              <ModalFooter className="border-t border-gray-100 pt-4 px-4 sm:px-6 flex-col sm:flex-row">
                 <Button
                   variant="ghost"
-                  mr={3}
+                  className="w-full sm:w-auto mb-2 sm:mb-0 sm:mr-3 text-gray-600 hover:bg-gray-50"
                   onClick={onClose}
-                  className="text-gray-600 hover:bg-gray-50"
                 >
                   Cancel
                 </Button>
                 <Button
                   colorScheme="blue"
                   onClick={updateEvent}
-                  className="px-6 shadow-md hover:shadow-lg transition-shadow"
+                  className="w-full sm:w-auto px-6 shadow-md hover:shadow-lg transition-shadow"
                 >
                   Update Event
                 </Button>

@@ -15,7 +15,7 @@ export const EventHeader = ({ event }: EventHeaderProps) => {
       transition={{ duration: 0.5 }}
       className="mb-8"
     >
-      <div className="relative w-full h-[400px] rounded-2xl overflow-hidden">
+      <div className="relative w-full h-[300px] md:h-[400px] rounded-2xl overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src={event?.image}

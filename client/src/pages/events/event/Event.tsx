@@ -326,7 +326,7 @@ const Event = () => {
     >
       <EventHeader event={event} loading={loading} />
 
-      <Flex gap={8} className="mb-8">
+      <Flex gap={8} className="mb-8 flex-col md:flex-row">
         <Box flex={1}>
           <EventDetails event={event} date={date} dateOptions={dateOptions} />
         </Box>

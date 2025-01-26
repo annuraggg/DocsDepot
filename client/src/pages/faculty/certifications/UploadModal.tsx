@@ -9,7 +9,6 @@ import {
   ModalCloseButton,
   Button,
   VStack,
-  HStack,
   FormControl,
   FormLabel,
   Input,
@@ -21,6 +20,8 @@ import {
   Alert,
   AlertIcon,
   useToast,
+  useBreakpointValue,
+  Stack,
 } from "@chakra-ui/react";
 import { Upload, Check } from "lucide-react";
 import { months, getYearRange } from "../../../utils/dateUtils";
@@ -38,6 +39,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 }) => {
   const toast = useToast();
   const [btnLoading, setBtnLoading] = useState(false);
+  const isMobile = useBreakpointValue({ base: true, lg: false });
 
   // Form states
   const [certificateName, setCertificateName] = useState("");
@@ -142,13 +144,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     }
 
     const formData = new FormData();
-
-    // Add basic certificate information
     const issue = {
       month: issueMonth,
       year: parseInt(issueYear),
     };
-
     const expiry = {
       month: expiryMonth,
       year: parseInt(expiryYear),
@@ -157,7 +156,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     formData.append("name", certificateName);
     formData.append("issuingOrganization", issuingOrg);
     formData.append("issueDate", JSON.stringify(issue));
-    // Handle expiration data
     formData.append("expires", expiry ? "true" : "false");
     if (expiry) {
       formData.append("expirationDate", JSON.stringify(expiry));
@@ -165,12 +163,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({
       formData.append("expirationDate", JSON.stringify({}));
     }
 
-    // Add other certificate details
     formData.append("type", certificateType);
     formData.append("level", certificateLevel);
     formData.append("uploadType", certificateUrl ? "url" : "file");
 
-    // Add optional fields
     if (certificateUrl) formData.append("url", certificateUrl);
     if (file) formData.append("certificate", file);
 
@@ -208,87 +204,105 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      size="6xl"
+      size={{ base: "full", lg: "6xl" }}
       motionPreset="slideInBottom"
     >
       <ModalOverlay backdropFilter="blur(8px)" />
-      <ModalContent>
-        <ModalHeader>
-          <HStack>
-            <Icon as={Upload} />
-            <Text>Upload Certificate</Text>
-          </HStack>
+      <ModalContent mx={{ base: 0, lg: 4 }} my={{ base: 0, lg: 16 }}>
+        <ModalHeader px={{ base: 4, lg: 6 }} pt={4}>
+          <Stack direction="row" align="center">
+            <Icon as={Upload} boxSize={6} />
+            <Text fontSize={{ base: "xl", lg: "2xl" }}>Upload Certificate</Text>
+          </Stack>
         </ModalHeader>
-        <ModalCloseButton />
+        <ModalCloseButton size="lg" />
 
-        <ModalBody>
-          <VStack spacing={6}>
+        <ModalBody px={{ base: 4, lg: 6 }} pb={4}>
+          <VStack spacing={{ base: 4, lg: 6 }}>
             <Alert status="info" variant="left-accent" borderRadius="md">
-              <AlertIcon />
-              <Text>
+              <AlertIcon boxSize={5} />
+              <Text fontSize={{ base: "sm", lg: "md" }}>
                 Your certificate will be verified and approved by the house
                 coordinator.
               </Text>
             </Alert>
 
-            <HStack width="full" spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Certificate Name</FormLabel>
+            <Stack
+              w="full"
+              direction={{ base: "column", lg: "row" }}
+              spacing={{ base: 4, lg: 6 }}
+            >
+              <FormControl isRequired flex={1}>
+                <FormLabel fontSize={{ base: "sm", lg: "md" }}>
+                  Certificate Name
+                </FormLabel>
                 <Input
                   placeholder="Enter certificate name"
                   value={certificateName}
                   onChange={(e) => setCertificateName(e.target.value)}
-                  size="lg"
+                  size={{ base: "md", lg: "lg" }}
                 />
               </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Issuing Organization</FormLabel>
+              <FormControl isRequired flex={1}>
+                <FormLabel fontSize={{ base: "sm", lg: "md" }}>
+                  Issuing Organization
+                </FormLabel>
                 <Input
                   placeholder="Enter organization name"
                   value={issuingOrg}
                   onChange={(e) => setIssuingOrg(e.target.value)}
-                  size="lg"
+                  size={{ base: "md", lg: "lg" }}
                 />
               </FormControl>
-            </HStack>
+            </Stack>
 
-            <HStack width="full" spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Issue Date</FormLabel>
-                <HStack spacing={4}>
-                  <Select
-                    value={issueMonth}
-                    onChange={(e) => setIssueMonth(e.target.value)}
-                    placeholder="Select Month"
-                  >
-                    {months.map((month) => (
-                      <option
-                        key={month.toLowerCase().slice(0, 3)}
-                        value={month.toLowerCase().slice(0, 3)}
-                      >
-                        {month}
-                      </option>
-                    ))}
-                  </Select>
+            <FormControl isRequired w="full">
+              <FormLabel fontSize={{ base: "sm", lg: "md" }}>
+                Issue Date
+              </FormLabel>
+              <Stack
+                direction={{ base: "column", lg: "row" }}
+                spacing={{ base: 2, lg: 4 }}
+                w="full"
+              >
+                <Select
+                  value={issueMonth}
+                  onChange={(e) => setIssueMonth(e.target.value)}
+                  placeholder="Select Month"
+                  size={{ base: "md", lg: "lg" }}
+                >
+                  {months.map((month) => (
+                    <option
+                      key={month.toLowerCase().slice(0, 3)}
+                      value={month.toLowerCase().slice(0, 3)}
+                    >
+                      {month}
+                    </option>
+                  ))}
+                </Select>
 
-                  <Select
-                    value={issueYear}
-                    onChange={(e) => setIssueYear(e.target.value)}
-                    placeholder="Select Year"
-                  >
-                    {getYearRange(-3, 0).map((year) => (
-                      <option key={year} value={year.toString()}>
-                        {year}
-                      </option>
-                    ))}
-                  </Select>
-                </HStack>
-              </FormControl>
-            </HStack>
+                <Select
+                  value={issueYear}
+                  onChange={(e) => setIssueYear(e.target.value)}
+                  placeholder="Select Year"
+                  size={{ base: "md", lg: "lg" }}
+                >
+                  {getYearRange(-3, 0).map((year) => (
+                    <option key={year} value={year.toString()}>
+                      {year}
+                    </option>
+                  ))}
+                </Select>
+              </Stack>
+            </FormControl>
 
-            <FormControl>
-              <HStack spacing={4} align="flex-start">
+            <FormControl w="full">
+              <Stack
+                direction={{ base: "column", lg: "row" }}
+                align={{ base: "start", lg: "center" }}
+                spacing={{ base: 2, lg: 4 }}
+              >
                 <Checkbox
                   isChecked={expiry}
                   onChange={(e) => {
@@ -299,16 +313,22 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     }
                   }}
                   colorScheme="green"
+                  fontSize={{ base: "sm", lg: "md" }}
                 >
                   Certificate Expires?
                 </Checkbox>
 
                 {expiry && (
-                  <HStack spacing={4} flex={1}>
+                  <Stack
+                    direction={{ base: "column", lg: "row" }}
+                    spacing={{ base: 2, lg: 4 }}
+                    w={{ base: "full", lg: "auto" }}
+                  >
                     <Select
                       value={expiryMonth}
                       onChange={(e) => setExpiryMonth(e.target.value)}
                       placeholder="Expiry Month"
+                      size={{ base: "md", lg: "lg" }}
                     >
                       {months.map((month) => (
                         <option
@@ -324,6 +344,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                       value={expiryYear}
                       onChange={(e) => setExpiryYear(e.target.value)}
                       placeholder="Expiry Year"
+                      size={{ base: "md", lg: "lg" }}
                     >
                       {getYearRange(0, 10).map((year) => (
                         <option key={year} value={year.toString()}>
@@ -331,41 +352,53 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                         </option>
                       ))}
                     </Select>
-                  </HStack>
+                  </Stack>
                 )}
-              </HStack>
+              </Stack>
             </FormControl>
 
-            <HStack width="full" spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Certificate Type</FormLabel>
+            <Stack
+              w="full"
+              direction={{ base: "column", lg: "row" }}
+              spacing={{ base: 4, lg: 6 }}
+            >
+              <FormControl isRequired flex={1}>
+                <FormLabel fontSize={{ base: "sm", lg: "md" }}>
+                  Certificate Type
+                </FormLabel>
                 <Select
                   value={certificateType}
                   onChange={(e) => setCertificateType(e.target.value)}
                   placeholder="Select Type"
+                  size={{ base: "md", lg: "lg" }}
                 >
                   <option value="internal">Internal Certification</option>
                   <option value="external">External Certification</option>
                 </Select>
               </FormControl>
 
-              <FormControl isRequired>
-                <FormLabel>Certificate Level</FormLabel>
+              <FormControl isRequired flex={1}>
+                <FormLabel fontSize={{ base: "sm", lg: "md" }}>
+                  Certificate Level
+                </FormLabel>
                 <Select
                   value={certificateLevel}
                   onChange={(e) => setCertificateLevel(e.target.value)}
                   placeholder="Select Level"
+                  size={{ base: "md", lg: "lg" }}
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                 </Select>
               </FormControl>
-            </HStack>
+            </Stack>
 
-            <VStack width="full" spacing={4}>
-              <FormControl>
-                <FormLabel>Certificate URL</FormLabel>
+            <VStack width="full" spacing={{ base: 4, lg: 6 }}>
+              <FormControl w="full">
+                <FormLabel fontSize={{ base: "sm", lg: "md" }}>
+                  Certificate URL
+                </FormLabel>
                 <Input
                   placeholder="Enter certificate URL"
                   value={certificateUrl}
@@ -374,20 +407,23 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     setFile(null);
                     setFileName("No File Selected");
                   }}
+                  size={{ base: "md", lg: "lg" }}
                 />
               </FormControl>
 
-              <Text fontWeight="medium" alignSelf="center">
+              <Text fontSize={{ base: "sm", lg: "md" }} fontWeight="medium">
                 OR
               </Text>
 
-              <FormControl>
-                <FormLabel>Upload Certificate</FormLabel>
+              <FormControl w="full">
+                <FormLabel fontSize={{ base: "sm", lg: "md" }}>
+                  Upload Certificate
+                </FormLabel>
                 <Box
                   border="2px dashed"
                   borderColor="gray.200"
                   borderRadius="md"
-                  p={6}
+                  p={{ base: 4, lg: 6 }}
                   textAlign="center"
                   _hover={{ borderColor: "blue.500" }}
                   transition="all 0.2s"
@@ -408,8 +444,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                     style={{ cursor: "pointer" }}
                   >
                     <VStack spacing={2}>
-                      <Icon as={Upload} boxSize={8} color="gray.400" />
-                      <Text fontWeight="medium">
+                      <Icon as={Upload} boxSize={6} color="gray.400" />
+                      <Text
+                        fontWeight="medium"
+                        fontSize={{ base: "sm", lg: "md" }}
+                      >
                         {fileName === "No File Selected" ? (
                           <>
                             Drop your file here or{" "}
@@ -419,7 +458,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                           fileName
                         )}
                       </Text>
-                      <Text fontSize="sm" color="gray.500">
+                      <Text fontSize={{ base: "xs", lg: "sm" }} color="gray.500">
                         Supports: PDF, JPG, PNG, WEBP
                       </Text>
                     </VStack>
@@ -430,18 +469,36 @@ export const UploadModal: React.FC<UploadModalProps> = ({
           </VStack>
         </ModalBody>
 
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button
-            colorScheme="green"
-            onClick={handleUpload}
-            isLoading={btnLoading}
-            leftIcon={<Check />}
+        <ModalFooter
+          px={{ base: 4, lg: 6 }}
+          pb={{ base: 4, lg: 6 }}
+          pt={{ base: 2, lg: 4 }}
+        >
+          <Stack
+            w="full"
+            direction={{ base: "column-reverse", lg: "row" }}
+            spacing={{ base: 2, lg: 4 }}
+            justifyContent="flex-end"
           >
-            Submit for Approval
-          </Button>
+            <Button
+              variant="ghost"
+              onClick={handleClose}
+              w={{ base: "full", lg: "auto" }}
+              size={{ base: "md", lg: "lg" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              colorScheme="green"
+              onClick={handleUpload}
+              isLoading={btnLoading}
+              leftIcon={<Check />}
+              w={{ base: "full", lg: "auto" }}
+              size={{ base: "md", lg: "lg" }}
+            >
+              Submit for Approval
+            </Button>
+          </Stack>
         </ModalFooter>
       </ModalContent>
     </Modal>
