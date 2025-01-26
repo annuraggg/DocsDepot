@@ -8,7 +8,6 @@ import {
   MenuButton,
   MenuList,
   MenuDivider,
-  Alert,
   Drawer,
   DrawerOverlay,
   DrawerContent,
@@ -27,6 +26,7 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  VStack,
 } from "@chakra-ui/react";
 import {
   Home,
@@ -40,6 +40,8 @@ import {
   MessageSquare,
   ChevronDown,
   User,
+  Menu as MenuIcon,
+  Bell,
 } from "lucide-react";
 import { Notification } from "@shared-types/Notification";
 import useUser from "@/config/user";
@@ -53,14 +55,16 @@ interface NavLinkProps {
   text: string;
   to?: string;
   onClick?: () => void;
+  onClose?: () => void;
 }
 
-const NavLink = ({ icon, text, to, onClick }: NavLinkProps) => {
+const NavLink = ({ icon, text, to, onClick, onClose }: NavLinkProps) => {
   const navigate = useNavigate();
   return (
     <a
       className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
       onClick={() => {
+        onClose?.();
         to ? navigate(to) : onClick?.();
       }}
     >
@@ -83,13 +87,18 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
   const toast = useToast();
   const axios = useAxios();
 
-  const { isOpen: isNotificationOpen, onClose: onNotificationClose } =
-    useDisclosure();
+  useDisclosure();
 
   const {
     isOpen: isResetOpen,
     onOpen: onResetOpen,
     onClose: onResetClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isMobileMenuOpen,
+    onOpen: onMobileMenuOpen,
+    onClose: onMobileMenuClose,
   } = useDisclosure();
 
   const logout = () => {
@@ -134,8 +143,19 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
     <div className="bg-white border-b border-gray-200">
       <div className="w-full px-5 mx-auto">
         <div className="flex justify-between items-center h-16">
+          {/* Mobile Menu Hamburger */}
+          <div className="md:hidden flex items-center">
+            <MenuIcon
+              className="w-6 h-6 mr-3 cursor-pointer"
+              onClick={onMobileMenuOpen}
+            />
+            <div className="cursor-pointer" onClick={() => navigate("/admin")}>
+              <img src={Logo} className="w-24" alt="Logo" />
+            </div>
+          </div>
+
           {/* Left section with logo and nav links */}
-          <div className="flex items-center">
+          <div className="hidden md:flex items-center w-full">
             <div className="cursor-pointer" onClick={() => navigate("/admin")}>
               <img src={Logo} className="w-24" alt="Logo" />
             </div>
@@ -224,8 +244,7 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
                 {/* <Bell
                   size={20}
                   className="cursor-pointer"
-                  onClick={onNotificationOpen}
-                /> */}
+                />*/}
                 <Box className="flex items-center justify-end bg-gray-100 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
                     {user?.fname} {user?.lname}
@@ -235,9 +254,8 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
                       size="sm"
                       src={
                         user?.profilePicture
-                          ? `${import.meta.env.VITE_API_URL}/static/profile/${
-                              user._id
-                            }.${user.profilePicture}`
+                          ? `${import.meta.env.VITE_API_URL}/static/profile/${user._id
+                          }.${user.profilePicture}`
                           : undefined
                       }
                       className="border border-gray-300"
@@ -275,31 +293,118 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
         </div>
       </div>
 
-      {/* Notifications Drawer */}
-      <Drawer isOpen={isNotificationOpen} onClose={onNotificationClose}>
+      {/* Mobile Menu Drawer */}
+      <Drawer isOpen={isMobileMenuOpen} onClose={onMobileMenuClose} placement="left">
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />
-          <DrawerHeader>Notifications</DrawerHeader>
+          <DrawerHeader>
+            <img
+              src={Logo}
+              className="w-24 mb-4"
+              alt="Logo"
+              onClick={() => {
+                navigate("/admin");
+                onMobileMenuClose();
+              }}
+            />
+          </DrawerHeader>
           <DrawerBody>
-            {notifications.length === 0 ? (
-              <Alert>No Notifications</Alert>
-            ) : (
-              notifications.map((notification) => (
-                <Alert
-                  status={notification.scope ? "info" : "warning"}
-                  key={notification._id}
-                  className="mb-2"
-                >
-                  {notification.body}
-                </Alert>
-              ))
-            )}
+            <VStack spacing={4} align="stretch">
+              <NavLink
+                icon={<Home className="w-4 h-4" />}
+                text="Dashboard"
+                to="/admin"
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<Users className="w-4 h-4" />}
+                text="Houses"
+                to="/houses"
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<Calendar className="w-4 h-4" />}
+                text="Events"
+                to="/events"
+                onClose={onMobileMenuClose}
+              />
+
+              <Box>
+                <div className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900">
+                  <User className="w-4 h-4 mr-2" />
+                  <span>Members</span>
+                </div>
+                <VStack spacing={2} align="stretch" ml={6} mt={2}>
+                  <a
+                    className="text-sm text-gray-600 cursor-pointer"
+                    onClick={() => {
+                      navigate("/admin/students");
+                      onMobileMenuClose();
+                    }}
+                  >
+                    Students
+                  </a>
+                  <a
+                    className="text-sm text-gray-600 cursor-pointer"
+                    onClick={() => {
+                      navigate("/admin/faculty");
+                      onMobileMenuClose();
+                    }}
+                  >
+                    Faculty
+                  </a>
+                </VStack>
+              </Box>
+
+              <Box>
+                <div className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900">
+                  <Award className="w-4 h-4 mr-2" />
+                  <span>Certificates</span>
+                </div>
+                <VStack spacing={2} align="stretch" ml={6} mt={2}>
+                  <a
+                    className="text-sm text-gray-600 cursor-pointer"
+                    onClick={() => {
+                      navigate("/admin/certificates");
+                      onMobileMenuClose();
+                    }}
+                  >
+                    Student Certificates
+                  </a>
+                  <a
+                    className="text-sm text-gray-600 cursor-pointer"
+                    onClick={() => {
+                      navigate("/admin/faculty/certificates");
+                      onMobileMenuClose();
+                    }}
+                  >
+                    Faculty Certificates
+                  </a>
+                </VStack>
+              </Box>
+
+              <NavLink
+                icon={<Lock className="w-4 h-4" />}
+                text="Reset Password"
+                onClick={() => {
+                  onResetOpen();
+                  onMobileMenuClose();
+                }}
+              />
+
+              <NavLink
+                icon={<Building className="w-4 h-4" />}
+                text="Platform Feedback"
+                to="/admin/feedback"
+                onClose={onMobileMenuClose}
+              />
+            </VStack>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
 
-      {/* Reset Password Modal */}
+      {/* Existing Reset Password Modal and other modals remain the same */}
       <Modal isOpen={isResetOpen} onClose={onResetClose}>
         <ModalOverlay />
         <ModalContent>
