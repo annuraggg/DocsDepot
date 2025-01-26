@@ -21,6 +21,8 @@ import {
   RadioGroup,
   Radio,
   Progress,
+  Stack,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import {
   Moon,
@@ -48,6 +50,7 @@ const Settings = () => {
   const [certificateTheme, setCertificateTheme] = React.useState("classic");
   const toast = useToast();
   const navigate = useNavigate();
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   const [show1, setShow1] = React.useState(false);
   const [show2, setShow2] = React.useState(false);
@@ -158,7 +161,6 @@ const Settings = () => {
             case "completed":
               eventSource.close();
               if (data.fileData && data.fileName) {
-                // Convert base64 to blob
                 const binaryData = atob(data.fileData);
                 const bytes = new Uint8Array(binaryData.length);
                 for (let i = 0; i < binaryData.length; i++) {
@@ -166,7 +168,6 @@ const Settings = () => {
                 }
                 const blob = new Blob([bytes], { type: "application/zip" });
 
-                // Create download link
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
@@ -320,12 +321,8 @@ const Settings = () => {
   };
 
   useEffect(() => {
-    // Reset error state
     setErr("");
-
-    // Check if any field is non-empty
     if (oldPass !== "" || newPass !== "" || confirmPass !== "") {
-      // Validate passwords
       if (newPass !== "" && newPass === oldPass) {
         setErr("New Password cannot be same as Old Password");
         setToastDispatched(false);
@@ -338,14 +335,12 @@ const Settings = () => {
         return;
       }
 
-      // Enable save button if all validations pass
       if (oldPass !== "" && newPass !== "" && confirmPass !== "") {
         setToastDispatched(true);
       } else {
         setToastDispatched(false);
       }
     } else {
-      // Disable save button if all fields are empty
       setToastDispatched(false);
     }
   }, [oldPass, newPass, confirmPass]);
@@ -353,23 +348,26 @@ const Settings = () => {
   if (loading) return <Loader />;
 
   return (
-    <Container maxW="container.lg" py={8}>
+    <Container 
+      maxW={{ base: "95%", md: "container.md", lg: "container.lg" }} 
+      py={{ base: 4, md: 8 }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <Card className="w-full shadow-xl rounded-xl">
-          <CardBody className="p-8">
-            <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center gap-3">
+          <CardBody className={`${isMobile ? "p-4" : "p-8"}`}>
+            <Stack direction={{ base: "column", md: "row" }} justifyContent="space-between" mb={6}>
+              <div className="flex items-center gap-3 mb-4 md:mb-0">
                 <Settings2 className="w-6 h-6 text-blue-500" />
-                <h1 className="text-3xl font-bold">Settings</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
               </div>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                className="self-start p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
                 onClick={setDark}
               >
                 {colorMode === "dark" ? (
@@ -378,17 +376,17 @@ const Settings = () => {
                   <Moon className="w-6 h-6 text-gray-600" />
                 )}
               </motion.button>
-            </div>
+            </Stack>
 
-            <Tabs variant="enclosed" className="mt-6">
-              <TabList className="mb-4">
-                <Tab className="flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Admin Settings
+            <Tabs variant="enclosed" isFitted={isMobile}>
+              <TabList mb={4} className="flex-wrap">
+                <Tab fontSize={{ base: "sm", md: "md" }}>
+                  <Shield className="w-4 h-4 mr-2" />
+                  {!isMobile && "Admin Settings"}
                 </Tab>
-                <Tab className="flex items-center gap-2">
-                  <Server className="w-4 h-4" />
-                  Server Settings
+                <Tab fontSize={{ base: "sm", md: "md" }}>
+                  <Server className="w-4 h-4 mr-2" />
+                  {!isMobile && "Server Settings"}
                 </Tab>
               </TabList>
 
@@ -403,72 +401,38 @@ const Settings = () => {
                         Change Password
                       </h2>
 
-                      <div className="space-y-4">
-                        <div className="relative">
-                          <input
-                            type={show1 ? "text" : "password"}
-                            placeholder="Enter Old Password"
-                            value={oldPass}
-                            onChange={(e) => {
-                              setOldPass(e.target.value);
-                            }}
-                            className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          />
-                          <button
-                            onClick={() => setShow1(!show1)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2"
-                          >
-                            {show1 ? (
-                              <EyeOff className="w-5 h-5 text-gray-500" />
-                            ) : (
-                              <Eye className="w-5 h-5 text-gray-500" />
-                            )}
-                          </button>
-                        </div>
-
-                        <div className="relative">
-                          <input
-                            type={show2 ? "text" : "password"}
-                            placeholder="Enter New Password"
-                            value={newPass}
-                            onChange={(e) => {
-                              setNewPass(e.target.value);
-                            }}
-                            className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          />
-                          <button
-                            onClick={() => setShow2(!show2)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2"
-                          >
-                            {show2 ? (
-                              <EyeOff className="w-5 h-5 text-gray-500" />
-                            ) : (
-                              <Eye className="w-5 h-5 text-gray-500" />
-                            )}
-                          </button>
-                        </div>
-
-                        <div className="relative">
-                          <input
-                            type={show3 ? "text" : "password"}
-                            placeholder="Confirm New Password"
-                            value={confirmPass}
-                            onChange={(e) => {
-                              setConfirmPass(e.target.value);
-                            }}
-                            className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                          />
-                          <button
-                            onClick={() => setShow3(!show3)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2"
-                          >
-                            {show3 ? (
-                              <EyeOff className="w-5 h-5 text-gray-500" />
-                            ) : (
-                              <Eye className="w-5 h-5 text-gray-500" />
-                            )}
-                          </button>
-                        </div>
+                      <Stack spacing={4}>
+                        {[show1, show2, show3].map((showState, index) => {
+                          const labels = [
+                            "Old Password",
+                            "New Password",
+                            "Confirm Password",
+                          ];
+                          const setters = [setOldPass, setNewPass, setConfirmPass];
+                          const showSetters = [setShow1, setShow2, setShow3];
+                          
+                          return (
+                            <div key={index} className="relative">
+                              <input
+                                type={showState ? "text" : "password"}
+                                placeholder={`Enter ${labels[index]}`}
+                                value={[oldPass, newPass, confirmPass][index]}
+                                onChange={(e) => setters[index](e.target.value)}
+                                className="w-full px-4 py-2 md:py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm md:text-base"
+                              />
+                              <button
+                                onClick={() => showSetters[index](!showState)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2"
+                              >
+                                {showState ? (
+                                  <EyeOff className="w-5 h-5 text-gray-500" />
+                                ) : (
+                                  <Eye className="w-5 h-5 text-gray-500" />
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })}
 
                         {err && (
                           <motion.p
@@ -479,20 +443,20 @@ const Settings = () => {
                             {err}
                           </motion.p>
                         )}
-                      </div>
+                      </Stack>
 
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         disabled={!toastDispatched || isButtonLoading}
                         onClick={sendNewPass}
-                        className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-500 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                        className="flex items-center justify-center gap-2 w-full py-2 md:py-3 px-4 bg-blue-500 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors text-sm md:text-base"
                       >
                         {isButtonLoading ? (
                           <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         ) : (
                           <>
-                            <Save className="w-5 h-5" />
+                            <Save className="w-4 h-4 md:w-5 md:h-5" />
                             Save Changes
                           </>
                         )}
@@ -502,60 +466,53 @@ const Settings = () => {
                     <div className="py-3 mt-5">
                       <div className="flex items-center gap-3 mb-6">
                         <PaintRoller className="w-5 h-5 text-blue-500" />
-                        <h2
-                          className="text-xl font-semibold"
-                          style={{
-                            color: colorMode === "dark" ? "#ffffff" : "#1a202c",
-                          }}
-                        >
+                        <h2 className="text-xl font-semibold">
                           Certificate Theme
                         </h2>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <RadioGroup
-                          className="flex gap-4"
-                          onChange={updateCertificateTheme}
-                          value={certificateTheme}
-                        >
-                          <div className="flex flex-col items-center">
-                            <img
-                              src={ClassicCert}
-                              alt="Classic Theme"
-                              className="mb-2"
-                            />
-                            <Radio value="classic">Classic Theme</Radio>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <img
-                              src={GreenCert}
-                              alt="Green Theme"
-                              className="mb-2"
-                            />
-                            <Radio value="green">Green Theme</Radio>
-                          </div>
-                        </RadioGroup>
-                      </div>
+                      <RadioGroup
+                        className="flex flex-col md:flex-row gap-6 md:gap-8"
+                        onChange={updateCertificateTheme}
+                        value={certificateTheme}
+                      >
+                        <div className="flex flex-col items-center">
+                          <img
+                            src={ClassicCert}
+                            alt="Classic Theme"
+                            className="mb-2 w-48 h-auto md:w-64"
+                          />
+                          <Radio value="classic">Classic Theme</Radio>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <img
+                            src={GreenCert}
+                            alt="Green Theme"
+                            className="mb-2 w-48 h-auto md:w-64"
+                          />
+                          <Radio value="green">Green Theme</Radio>
+                        </div>
+                      </RadioGroup>
                     </div>
                   </div>
                 </TabPanel>
 
                 <TabPanel>
-                  <div className="space-y-6">
+                  <Stack spacing={6}>
                     <Button
-                      leftIcon={<Server className="w-5 h-5" />}
+                      leftIcon={<Server className="w-4 h-4 md:w-5 md:h-5" />}
                       colorScheme="blue"
                       onClick={() => navigate("/admin/logs")}
-                      className="w-full"
+                      size={{ base: "sm", md: "md" }}
                     >
                       Check Server Logs
                     </Button>
 
                     <Button
-                      leftIcon={<Database className="w-5 h-5" />}
+                      leftIcon={<Database className="w-4 h-4 md:w-5 md:h-5" />}
                       colorScheme="green"
                       onClick={generateBackup}
                       isLoading={isLoading}
-                      className="w-full"
+                      size={{ base: "sm", md: "md" }}
                     >
                       Generate Backup
                     </Button>
@@ -576,20 +533,18 @@ const Settings = () => {
 
                     <Divider />
 
-                    <FormControl display="flex" alignItems="center">
-                      <FormLabel htmlFor="maintenance-mode" mb="0">
+                    <FormControl display="flex" alignItems="center" flexDirection={{ base: "column", md: "row" }}>
+                      <FormLabel htmlFor="maintenance-mode" mb={{ base: 2, md: 0 }}>
                         Maintenance Mode
                       </FormLabel>
                       <Switch
                         id="maintenance-mode"
                         isChecked={maintenanceMode}
-                        onChange={(e) =>
-                          toggleMaintenanceMode(e.target.checked)
-                        }
+                        onChange={(e) => toggleMaintenanceMode(e.target.checked)}
                       />
                     </FormControl>
 
-                    <Alert status="error" className="mt-4">
+                    <Alert status="error" className="mt-4" variant="left-accent">
                       <AlertIcon />
                       <div className="flex flex-col">
                         <span className="font-medium">Warning!</span>
@@ -600,7 +555,7 @@ const Settings = () => {
                         </span>
                       </div>
                     </Alert>
-                  </div>
+                  </Stack>
                 </TabPanel>
               </TabPanels>
             </Tabs>

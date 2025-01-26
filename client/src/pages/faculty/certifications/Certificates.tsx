@@ -18,6 +18,8 @@ import {
   PopoverBody,
   PopoverFooter,
   ButtonGroup,
+  Box,
+  Text,
 } from "@chakra-ui/react";
 import { FileBadge as CertIcon, Upload, Filter, Search } from "lucide-react";
 import { CertificateFilters } from "./CertificateFilters";
@@ -88,10 +90,20 @@ const Certificates: React.FC = () => {
         <VStack spacing={8} align="stretch">
           <motion.div variants={itemVariants}>
             <VStack spacing={6} align="stretch">
-              <Flex justify="space-between" align="center">
-                <HStack spacing={4}>
-                  <Heading size="lg">Your Certificates</Heading>
-                </HStack>
+              <Flex
+                justify="space-between"
+                align="center"
+                direction={{ base: "column", md: "row" }}
+                gap={4}
+              >
+                <Box textAlign={{ base: "center", md: "left" }}>
+                  <Heading size="lg" mb={2}>
+                    Your Certificates
+                  </Heading>
+                  <Text color="gray.500" fontSize="sm">
+                    Manage and track all your certifications
+                  </Text>
+                </Box>
                 <HStack spacing={3}>
                   <Popover
                     isOpen={isFilterOpen}
@@ -110,10 +122,8 @@ const Certificates: React.FC = () => {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent
-                      width="400px"
+                      width={{ base: "90vw", md: "400px" }}
                       shadow="xl"
-                      borderRadius="xl"
-                      borderWidth="1px"
                     >
                       <PopoverBody p={4}>
                         <CertificateFilters
@@ -121,11 +131,7 @@ const Certificates: React.FC = () => {
                           setFilters={setFilters}
                         />
                       </PopoverBody>
-                      <PopoverFooter
-                        p={4}
-                        borderTop="1px"
-                        borderColor="gray.200"
-                      >
+                      <PopoverFooter borderTop="1px" borderColor="gray.200">
                         <ButtonGroup size="sm" width="full" spacing={3}>
                           <Button
                             variant="outline"
@@ -153,9 +159,9 @@ const Certificates: React.FC = () => {
                     leftIcon={<Upload />}
                     colorScheme="green"
                     onClick={onUploadOpen}
-                    className="shadow-lg hover:shadow-xl transition-all duration-300"
+                    size={{ base: "md", md: "lg" }}
                   >
-                    Upload Certificate
+                    Upload
                   </Button>
                 </HStack>
               </Flex>

@@ -174,69 +174,68 @@ const FacultyDashboard: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="bg-gray-100 min-h-screen p-4 md:p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="lg:col-span-2 space-y-6"
+          className="lg:col-span-2 space-y-4 md:space-y-6"
         >
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-xl font-semibold flex items-center">
-                  <TrophyIcon className="mr-2" /> Points Distribution - House Wise
-                </h2>
-              </div>
-              <div>
-                <Select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-30"
-                >
-                  <option value="all">All Months</option>
-                  {['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
-                      <option key={month} value={month.toLowerCase()}>{month}</option>
-                    ))}
-                </Select>
-              </div>
+          <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+              <h2 className="text-lg md:text-xl font-semibold flex items-center">
+                <TrophyIcon className="mr-2 w-5 h-5" /> Points Distribution - House Wise
+              </h2>
+              <Select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full sm:w-40"
+                size="sm"
+              >
+                <option value="all">All Months</option>
+                {['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                    <option key={month} value={month.toLowerCase()}>{month}</option>
+                  ))}
+              </Select>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={houseData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="points" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-64 sm:h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={houseData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" fontSize={12} />
+                  <YAxis fontSize={12} />
+                  <Tooltip />
+                  <Bar dataKey="points" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <Tabs>
-              <TabList>
-                <Tab>Internal</Tab>
-                <Tab>Events</Tab>
-                <Tab>External</Tab>
+          <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+            <Tabs variant="enclosed">
+              <TabList className="flex flex-wrap">
+                <Tab className="text-sm px-3 py-2">Internal</Tab>
+                <Tab className="text-sm px-3 py-2">Events</Tab>
+                <Tab className="text-sm px-3 py-2">External</Tab>
               </TabList>
 
               <TabPanels>
                 {(['internal', 'events', 'external'] as const).map((type) => (
-                  <TabPanel key={type}>
+                  <TabPanel key={type} className="p-0 pt-4">
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse">
                         <thead>
                           <tr className="bg-gray-50 border-b">
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sr No.</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificate</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organization</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue Date</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Certificate</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organization</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="p-2 md:p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -251,23 +250,23 @@ const FacultyDashboard: React.FC = () => {
                               }}
                               className="hover:bg-gray-50 transition-colors border-b"
                             >
-                              <td className="p-4 text-sm text-gray-900">{index + 1}</td>
-                              <td className="p-4">
+                              <td className="p-2 md:p-4 text-xs md:text-sm text-gray-900">{index + 1}</td>
+                              <td className="p-2 md:p-4">
                                 <div className="flex items-center space-x-2">
-                                  <Award className="text-green-500 w-5 h-5" />
-                                  <span className="text-sm font-medium text-gray-900">{cert.name}</span>
+                                  <Award className="text-green-500 w-4 h-4 md:w-5 md:h-5" />
+                                  <span className="text-xs md:text-sm font-medium text-gray-900">{cert.name}</span>
                                 </div>
                               </td>
-                              <td className="p-4">
+                              <td className="p-2 md:p-4">
                                 <div className="flex items-center space-x-2">
-                                  <Building2 className="text-gray-400 w-5 h-5" />
-                                  <span className="text-sm text-gray-600">{cert.org}</span>
+                                  <Building2 className="text-gray-400 w-4 h-4 md:w-5 md:h-5" />
+                                  <span className="text-xs md:text-sm text-gray-600">{cert.org}</span>
                                 </div>
                               </td>
-                              <td className="p-4">
+                              <td className="p-2 md:p-4">
                                 <div className="flex items-center space-x-2">
-                                  <Calendar className="text-blue-400 w-5 h-5" />
-                                  <span className="text-sm text-gray-600">
+                                  <Calendar className="text-blue-400 w-4 h-4 md:w-5 md:h-5" />
+                                  <span className="text-xs md:text-sm text-gray-600">
                                     {new Date(cert.date).toLocaleDateString('en-US', { 
                                       month: 'short', 
                                       year: 'numeric' 
@@ -275,35 +274,35 @@ const FacultyDashboard: React.FC = () => {
                                   </span>
                                 </div>
                               </td>
-                              <td className="p-4">
+                              <td className="p-2 md:p-4">
                                 <span 
-                                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeProps(cert.type).className}`}
+                                  className={`px-2 py-1 rounded-full text-xs ${getTypeProps(cert.type).className}`}
                                 >
                                   {cert.type.charAt(0).toUpperCase() + cert.type.slice(1)}
                                 </span>
                               </td>
-                              <td className="p-4">
+                              <td className="p-2 md:p-4">
                                 <span 
-                                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getLevelProps(cert.level).className}`}
+                                  className={`px-2 py-1 rounded-full text-xs ${getLevelProps(cert.level).className}`}
                                 >
                                   {cert.level.charAt(0).toUpperCase() + cert.level.slice(1)}
                                 </span>
                               </td>
-                              <td className="p-4">
+                              <td className="p-2 md:p-4">
                                 <span 
-                                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusProps(cert.status).className}`}
+                                  className={`px-2 py-1 rounded-full text-xs ${getStatusProps(cert.status).className}`}
                                 >
                                   {cert.status.charAt(0).toUpperCase() + cert.status.slice(1)}
                                 </span>
                               </td>
-                              <td className="p-4">
+                              <td className="p-2 md:p-4">
                                 <motion.button
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
-                                  className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center"
+                                  className="text-xs md:text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center"
                                 >
                                   View
-                                  <ChevronRight className="ml-1 w-4 h-4" />
+                                  <ChevronRight className="ml-1 w-3 h-3 md:w-4 md:h-4" />
                                 </motion.button>
                               </td>
                             </motion.tr>
@@ -317,30 +316,39 @@ const FacultyDashboard: React.FC = () => {
             </Tabs>
           </div>
         </motion.div>
+
         <motion.div
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="space-y-6"
+          className="space-y-4 md:space-y-6"
         >
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <BookUser className="mr-2" /> House Performance
+          <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center">
+              <BookUser className="mr-2 w-5 h-5" /> House Performance
             </h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={monthlyHouseData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="points" stroke="#8884d8" />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="h-52 md:h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyHouseData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" fontSize={12} />
+                  <YAxis fontSize={12} />
+                  <Tooltip />
+                  <Line 
+                    type="monotone" 
+                    dataKey="points" 
+                    stroke="#8884d8" 
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <CheckCircle2 className="mr-2" /> Your Permissions
+          <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
+            <h2 className="text-lg md:text-xl font-semibold mb-4 flex items-center">
+              <CheckCircle2 className="mr-2 w-5 h-5" /> Your Permissions
             </h2>
             <div className="space-y-2">
               {permissionsList.map((permission, index) => (
@@ -349,9 +357,9 @@ const FacultyDashboard: React.FC = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="flex items-center text-sm text-gray-700"
+                  className="flex items-center text-xs md:text-sm text-gray-700"
                 >
-                  <Award className="mr-2 text-blue-500" size={16} />
+                  <Award className="mr-2 text-blue-500 w-4 h-4" />
                   {permission}
                 </motion.div>
               ))}

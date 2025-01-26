@@ -30,6 +30,7 @@ import {
   ModalCloseButton,
   Textarea,
   FormLabel,
+  VStack,
 } from "@chakra-ui/react";
 import {
   Users,
@@ -41,6 +42,7 @@ import {
   MessageSquare,
   FileText,
   UserCheck,
+  Menu as MenuIcon,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
@@ -50,16 +52,16 @@ import { Notification } from "@shared-types/Notification";
 import { Token } from "@shared-types/Token";
 import Logo from "@/assets/img/logo.png";
 
-// Helper component for navigation links
 interface NavLinkProps {
   icon: React.ReactNode;
   text: string;
   to?: string;
   onClick?: () => void;
   show?: boolean;
+  onClose?: () => void;
 }
 
-const NavLink = ({ icon, text, to, onClick, show = true }: NavLinkProps) => {
+const NavLink = ({ icon, text, to, onClick, show = true, onClose }: NavLinkProps) => {
   const navigate = useNavigate();
   if (!show) return null;
 
@@ -67,6 +69,7 @@ const NavLink = ({ icon, text, to, onClick, show = true }: NavLinkProps) => {
     <a
       className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer"
       onClick={() => {
+        onClose?.();
         to ? navigate(to) : onClick?.();
       }}
     >
@@ -87,6 +90,12 @@ const FacultyNavbar = () => {
   const toast = useToast();
   const axios = useAxios();
   const user = useUser();
+
+  const {
+    isOpen: isMobileMenuOpen,
+    onOpen: onMobileMenuOpen,
+    onClose: onMobileMenuClose,
+  } = useDisclosure();
 
   const { isOpen: isNotificationOpen, onClose: onNotificationClose } =
     useDisclosure();
@@ -110,7 +119,7 @@ const FacultyNavbar = () => {
   }
 
   const decoded = jwtDecode(token) as Token;
-  const hasHouseCoordinatorPerms =( decoded?.house && decoded?.role === "F") || false;
+  const hasHouseCoordinatorPerms = (decoded?.house && decoded?.role === "F") || false;
 
   const logout = () => {
     [
@@ -153,20 +162,27 @@ const FacultyNavbar = () => {
     <div className="bg-white border-b border-gray-200">
       <div className="w-full px-5 mx-auto">
         <div className="flex justify-between items-center h-16">
-          {/* Left section with logo and nav links */}
-          <div className="flex items-center">
+          <div className="md:hidden flex items-center">
+            <MenuIcon
+              className="w-6 h-6 mr-3 cursor-pointer"
+              onClick={onMobileMenuOpen}
+            />
             <div
               className="cursor-pointer"
               onClick={() => navigate("/faculty")}
             >
-              <img
-                src={Logo}
-                className="w-24"
-                alt="Logo"
-              />
+              <img src={Logo} className="w-24" alt="Logo" />
+            </div>
+          </div>
+
+          <div className="hidden md:flex items-center">
+            <div
+              className="cursor-pointer"
+              onClick={() => navigate("/faculty")}
+            >
+              <img src={Logo} className="w-24" alt="Logo" />
             </div>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex ml-10 space-x-8">
               <NavLink
                 icon={<FileText className="w-4 h-4" />}
@@ -210,7 +226,6 @@ const FacultyNavbar = () => {
             </div>
           </div>
 
-          {/* Right section with notifications and profile */}
           <div className="flex items-center space-x-4">
             <Menu>
               <Box className="flex items-center gap-5">
@@ -254,8 +269,80 @@ const FacultyNavbar = () => {
           </div>
         </div>
       </div>
-
-      {/* Notifications Drawer */}
+      <Drawer
+        isOpen={isMobileMenuOpen}
+        onClose={onMobileMenuClose}
+        placement="left"
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>
+            <img
+              src={Logo}
+              className="w-24 mb-4"
+              alt="Logo"
+              onClick={() => {
+                navigate("/faculty");
+                onMobileMenuClose();
+              }}
+            />
+          </DrawerHeader>
+          <DrawerBody>
+            <VStack spacing={4} align="stretch">
+              <NavLink
+                icon={<FileText className="w-4 h-4" />}
+                text="My Certifications"
+                to="/faculty/certifications"
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<Users className="w-4 h-4" />}
+                text="Houses"
+                to="/houses"
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<Calendar className="w-4 h-4" />}
+                text="Events"
+                to="/events"
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<Award className="w-4 h-4" />}
+                text="Manage Certificates"
+                to="/faculty/certificates"
+                show={hasHouseCoordinatorPerms}
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<UserCheck className="w-4 h-4" />}
+                text="Enrollment Requests"
+                to="/faculty/enrollments"
+                show={hasHouseCoordinatorPerms}
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<Lock className="w-4 h-4" />}
+                text="Reset Student Password"
+                onClick={() => {
+                  onResetOpen();
+                  onMobileMenuClose();
+                }}
+                show={decoded?.perms?.includes("RSP")}
+                onClose={onMobileMenuClose}
+              />
+              <NavLink
+                icon={<Users className="w-4 h-4" />}
+                text="Manage Students"
+                to="/faculty/students"
+                show={decoded?.perms?.includes("AES")}
+                onClose={onMobileMenuClose}
+              />
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
       <Drawer isOpen={isNotificationOpen} onClose={onNotificationClose}>
         <DrawerOverlay />
         <DrawerContent>
@@ -282,7 +369,6 @@ const FacultyNavbar = () => {
         </DrawerContent>
       </Drawer>
 
-      {/* Add Notification Modal */}
       <Modal isOpen={isAddNotificationOpen} onClose={onAddNotificationClose}>
         <ModalOverlay />
         <ModalContent>
@@ -315,7 +401,6 @@ const FacultyNavbar = () => {
         </ModalContent>
       </Modal>
 
-      {/* Reset Password Modal */}
       <Modal isOpen={isResetOpen} onClose={onResetClose}>
         <ModalOverlay />
         <ModalContent>

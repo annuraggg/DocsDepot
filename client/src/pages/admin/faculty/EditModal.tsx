@@ -17,6 +17,7 @@ import {
   Grid,
   VStack,
   HStack,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { EditModalProps } from '../../../types/faculty';
 
@@ -30,12 +31,13 @@ const EditModal: React.FC<EditModalProps> = ({
 }) => {
   const MotionVStack = motion(VStack);
   const MotionFormControl = motion(FormControl);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   return (
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      size="xl"
+      size={isMobile ? "full" : "xl"}
       isCentered
     >
       <ModalOverlay backdropFilter="blur(10px)" />
@@ -57,7 +59,7 @@ const EditModal: React.FC<EditModalProps> = ({
               visible: { transition: { staggerChildren: 0.1 } }
             }}
           >
-            <Grid templateColumns="repeat(2, 1fr)" gap={4} width="100%">
+            <Grid templateColumns={isMobile ? "1fr" : "repeat(2, 1fr)"} gap={4} width="100%">
               <MotionFormControl
                 variants={{
                   hidden: { opacity: 0, y: 20 },

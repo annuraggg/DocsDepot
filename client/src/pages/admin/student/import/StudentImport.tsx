@@ -18,6 +18,8 @@ import {
   Text,
   HStack,
   AlertDescription,
+  useBreakpointValue,
+  Stack,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { Upload, UserPlus, FileSpreadsheet } from "lucide-react";
@@ -29,6 +31,7 @@ import StudentAdd from "./StudentAdd";
 const MotionBox = motion(Box);
 
 const StudentImport = () => {
+  const isMobile = useBreakpointValue({ base: true, md: false });
   const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
@@ -40,7 +43,6 @@ const StudentImport = () => {
   const navigate = useNavigate();
   const axios = useAxios();
 
-  // Ref for the file input
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,31 +62,28 @@ const StudentImport = () => {
       if (row.length !== 5) {
         toast({
           title: "Error",
-          description:
-            "Invalid CSV File with length at row " +
-            (tableData.indexOf(row) + 1),
+          description: `Invalid CSV format at row ${tableData.indexOf(row) + 1}`,
           status: "error",
           duration: 3000,
           isClosable: true,
         });
         setAdding(false);
-        setTableData([]); // Clear the table data
-        fileInputRef.current!.value = ""; // Reset the file input
+        setTableData([]);
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
 
       if (row[0].length !== 8) {
         toast({
           title: "Error",
-          description:
-            "Invalid Student ID at row " + (tableData.indexOf(row) + 1),
+          description: `Invalid Student ID at row ${tableData.indexOf(row) + 1}`,
           status: "error",
           duration: 3000,
           isClosable: true,
         });
         setAdding(false);
-        setTableData([]); // Clear the table data
-        fileInputRef.current!.value = ""; // Reset the file input
+        setTableData([]);
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
     });
@@ -94,15 +93,12 @@ const StudentImport = () => {
       .then(() => {
         toast({
           title: "Students Imported",
-          description: "Students have been successfully imported",
+          description: "Students imported successfully",
           status: "success",
           duration: 3000,
           isClosable: true,
         });
-
-        setTimeout(() => {
-          navigate("/admin/students"); // Redirect after the success message
-        }, 3000); // Delay matches toast duration
+        setTimeout(() => navigate("/admin/students"), 3000);
       })
       .catch((err) => {
         if (err.response.status === 409) {
@@ -114,31 +110,26 @@ const StudentImport = () => {
             isClosable: true,
           });
         }
-
-        console.error(err);
         toast({
           title: "Error",
-          description: err.response.data.message || "Failed to import students",
+          description: err.response.data.message || "Import failed",
           status: "error",
           duration: 3000,
           isClosable: true,
         });
       })
       .finally(() => {
-        setTableData([]); // Clear the table data after import
+        setTableData([]);
         setAdding(false);
-        fileInputRef.current!.value = ""; // Reset the file input
+        if (fileInputRef.current) fileInputRef.current.value = "";
       });
   };
 
   useEffect(() => {
     axios
       .get("/houses")
-      .then((res) => {
-        setHouses(res.data.data);
-      })
+      .then((res) => setHouses(res.data.data))
       .catch((err) => {
-        console.error(err);
         toast({
           title: "Error",
           description: err.response.data.message || "Failed to fetch houses",
@@ -170,44 +161,49 @@ const StudentImport = () => {
             </Text>
           </Box>
 
-          <HStack spacing={4} justify="flex-start">
+          <Stack
+            direction={{ base: "column", md: "row" }}
+            spacing={4}
+            justify="flex-start"
+          >
             <Button
-              leftIcon={<UserPlus />}
+              leftIcon={<UserPlus size={18} />}
               colorScheme="blue"
               onClick={() => setAddIndividual(true)}
               size="md"
-              shadow="md"
-              _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-              transition="all 0.2s"
+              width={{ base: "full", md: "auto" }}
             >
               Add Individual
             </Button>
             <Button
               as="label"
               htmlFor="file-upload"
-              leftIcon={<FileSpreadsheet />}
+              leftIcon={<FileSpreadsheet size={18} />}
               colorScheme="purple"
               size="md"
-              shadow="md"
-              _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-              transition="all 0.2s"
-              cursor="pointer"
+              width={{ base: "full", md: "auto" }}
             >
               Upload CSV
             </Button>
-          </HStack>
+          </Stack>
 
           <Alert
             status="warning"
             variant="left-accent"
             borderRadius="md"
-            shadow="sm"
+            fontSize={{ base: "sm", md: "md" }}
           >
             <AlertIcon />
             <AlertDescription>
-              Please upload a CSV file with columns in order: Student ID, First
-              Name, Last Name, Gender, Email. First row should not contain
-              column names. No blank rows allowed.
+              {isMobile ? (
+                "CSV format: ID (8 digits), First, Last, Gender, Email"
+              ) : (
+                <>
+                  Please upload a CSV file with columns in order: Student ID, First Name,
+                  Last Name, Gender, Email. First row should not contain column names.
+                  No blank rows allowed.
+                </>
+              )}
             </AlertDescription>
           </Alert>
 
@@ -220,52 +216,55 @@ const StudentImport = () => {
             style={{ display: "none" }}
           />
 
-          <MotionBox
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            bg={bgColor}
-            borderRadius="lg"
-            shadow="xl"
-            overflow="hidden"
-            border="1px"
-            borderColor={borderColor}
-          >
-            <Box overflowX="auto">
-              <Table variant="simple">
-                <Thead>
-                  <Tr bg={useColorModeValue("gray.50", "gray.900")}>
-                    <Th>Student ID</Th>
-                    <Th>First Name</Th>
-                    <Th>Last Name</Th>
-                    <Th>Gender</Th>
-                    <Th>Email</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {tableData.map((row, index) => (
-                    <Tr key={index}>
-                      {row.map((cell, cellIndex) => (
-                        <Td key={cellIndex}>{cell}</Td>
-                      ))}
+          {tableData.length > 0 && (
+            <MotionBox
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              bg={bgColor}
+              borderRadius="lg"
+              shadow="xl"
+              overflowX="auto"
+              border="1px"
+              borderColor={borderColor}
+            >
+              <Box overflowX="auto">
+                <Table variant="simple" size={{ base: "sm", md: "md" }}>
+                  <Thead bg={useColorModeValue("gray.50", "gray.900")}>
+                    <Tr>
+                      <Th>Student ID</Th>
+                      <Th>First Name</Th>
+                      <Th>Last Name</Th>
+                      <Th>Gender</Th>
+                      <Th>Email</Th>
                     </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </Box>
-          </MotionBox>
+                  </Thead>
+                  <Tbody>
+                    {tableData.map((row, index) => (
+                      <Tr key={index}>
+                        {row.map((cell, cellIndex) => (
+                          <Td key={cellIndex}>{cell}</Td>
+                        ))}
+                      </Tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </MotionBox>
+          )}
 
           {tableData.length > 0 && (
-            <Box display="flex" justifyContent="flex-end">
+            <Box
+              display="flex"
+              justifyContent={{ base: "center", md: "flex-end" }}
+              width="full"
+            >
               <Button
-                leftIcon={<Upload />}
+                leftIcon={<Upload size={18} />}
                 colorScheme="green"
                 onClick={startImport}
                 isLoading={adding}
-                size="lg"
-                shadow="md"
-                _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-                transition="all 0.2s"
+                size="md"
+                width={{ base: "full", md: "auto" }}
               >
                 Import Students
               </Button>

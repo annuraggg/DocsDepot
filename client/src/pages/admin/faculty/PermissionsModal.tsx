@@ -21,6 +21,7 @@ import {
   List,
   ListItem,
   ListIcon,
+  useBreakpointValue,
 } from "@chakra-ui/react";
 import { CheckCircleIcon, FileWarningIcon } from "lucide-react";
 import { House } from "@shared-types/House";
@@ -44,13 +45,15 @@ const PermissionsModal: React.FC<PermissionsModalProps> = ({
   perms,
   setPerms,
 }) => {
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
   useEffect(() => {
     console.log(userid);
     console.log(houses.find((house) => house.facultyCordinator === userid)?.id);
   }, [userid]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="3xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={onClose} size={isMobile ? "full" : "3xl"} scrollBehavior="inside">
       <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)" />
       <ModalContent>
         <ModalHeader>Faculty Permissions</ModalHeader>

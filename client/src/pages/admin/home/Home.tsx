@@ -29,6 +29,8 @@ import {
   Button,
   Badge,
   Icon,
+  Grid,
+  useBreakpointValue,
 } from '@chakra-ui/react';
 import { Award, Building2, Calendar, ChevronRight } from 'lucide-react';
 
@@ -113,6 +115,7 @@ const yearData = [
 
 const Home: React.FC = () => {
   const [selectedHouse, setSelectedHouse] = useState<string>(mockHouses[0].id);
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   const getLevelProps = (level: string) => {
     switch (level?.toLowerCase()) {
@@ -147,187 +150,201 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="col-span-2">
-          <CardHeader>
+    <Box minH="100vh" bg="gray.50" p={{ base: 4, md: 6 }}>
+      <Grid
+        templateColumns={{
+          base: '1fr',
+          md: 'repeat(2, 1fr)',
+          lg: 'repeat(3, 1fr)'
+        }}
+        gap={6}
+      >
+        {/* Points Distribution Card */}
+        <Card gridColumn={{ md: '1 / 3' }} variant="elevated">
+          <CardHeader pb={2}>
             <Heading size="md">Points Distribution - House Wise</Heading>
           </CardHeader>
-          <CardBody>
-            <div className="h-80">
+          <CardBody pt={0}>
+            <Box h={{ base: '300px', md: '400px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={mockHouses}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="points" fill="#8884d8" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: isMobile ? 12 : 14 }}
+                  />
+                  <YAxis tick={{ fontSize: isMobile ? 12 : 14 }} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                    contentStyle={{
+                      borderRadius: '12px',
+                      boxShadow: 'md'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="points" 
+                    fill="#4ECDC4"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </Box>
           </CardBody>
         </Card>
 
-        <Card>
-          <CardHeader>
+        {/* Certifications Submissions Card */}
+        <Card variant="elevated">
+          <CardHeader pb={2}>
             <Heading size="md">Certification Submissions</Heading>
           </CardHeader>
-          <CardBody>
-            <div className="h-80">
+          <CardBody pt={0}>
+            <Box h={{ base: '300px', md: '400px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={yearData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="year" type="category" />
-                  <Tooltip />
-                  <Bar dataKey="submissions" fill="#82ca9d" />
+                  <XAxis 
+                    type="number" 
+                    tick={{ fontSize: isMobile ? 12 : 14 }}
+                  />
+                  <YAxis 
+                    dataKey="year" 
+                    type="category" 
+                    tick={{ fontSize: isMobile ? 12 : 14 }}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                    contentStyle={{
+                      borderRadius: '12px',
+                      boxShadow: 'md'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="submissions" 
+                    fill="#82ca9d"
+                    radius={[0, 4, 4, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </Box>
           </CardBody>
         </Card>
 
-        <Box className="col-span-2 flex-wrap" bg="white" borderRadius="lg" boxShadow="sm" border="1px" borderColor="gray.200" overflow="hidden">
-          <Box overflowX="auto">
-            <Table variant="simple">
+        {/* Certifications Table Card */}
+        <Card 
+          gridColumn={{ base: '1', md: '1 / 3' }}
+          variant="elevated"
+          overflowX="auto"
+        >
+          <CardHeader>
+            <Heading size="md">Certifications Overview</Heading>
+          </CardHeader>
+          <CardBody pt={0}>
+            <Table variant="striped" colorScheme="gray">
               <Thead>
-                <Tr bg="gray.50" borderBottom="1px" borderColor="gray.200">
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Sr No.
-                  </Th>
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Certificate
-                  </Th>
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Organization
-                  </Th>
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Issue Date
-                  </Th>
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Type
-                  </Th>
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Level
-                  </Th>
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Status
-                  </Th>
-                  <Th py={4} px={4} fontSize="sm" fontWeight="semibold" color="gray.900" textTransform="initial">
-                    Action
-                  </Th>
+                <Tr>
+                  <Th>Sr No.</Th>
+                  <Th>Certificate</Th>
+                  <Th>Organization</Th>
+                  {!isMobile && (
+                    <>
+                      <Th>Issue Date</Th>
+                      <Th>Type</Th>
+                      <Th>Level</Th>
+                    </>
+                  )}
+                  <Th>Status</Th>
+                  <Th>Action</Th>
                 </Tr>
               </Thead>
               <Tbody>
                 {mockCertifications.map((cert, index) => (
-                  <Tr
-                    key={cert._id}
-                    _hover={{ bg: "gray.50" }}
-                    transition="background 0.15s"
-                    borderBottom="1px"
-                    borderColor="gray.200"
-                  >
-                    <Td py={4} px={4} fontSize="sm" color="gray.900">
-                      {index + 1}
-                    </Td>
-                    <Td py={4} px={4}>
-                      <HStack spacing={2}>
+                  <Tr key={cert._id}>
+                    <Td fontWeight="medium">{index + 1}</Td>
+                    <Td>
+                      <HStack spacing={3}>
                         <Icon as={Award} color="green.500" boxSize={5} />
-                        <Text fontSize="sm" fontWeight="medium" color="gray.900">
-                          {cert.name}
-                        </Text>
+                        <Text fontWeight="medium">{cert.name}</Text>
                       </HStack>
                     </Td>
-                    <Td py={4} px={4}>
-                      <HStack spacing={2}>
-                        <Icon as={Building2} color="gray.400" boxSize={5} />
-                        <Text fontSize="sm" color="gray.600">
-                          {cert.issuingOrganization}
-                        </Text>
+                    <Td>
+                      <HStack spacing={3}>
+                        <Icon as={Building2} color="gray.500" boxSize={5} />
+                        <Text>{cert.issuingOrganization}</Text>
                       </HStack>
                     </Td>
-                    <Td py={4} px={4}>
-                      <HStack spacing={2}>
-                        <Icon as={Calendar} color="blue.400" boxSize={5} />
-                        <Text fontSize="sm" color="gray.600">
-                          {cert.issueDate.month.charAt(0).toUpperCase() + 
-                           cert.issueDate.month.slice(1)} {cert.issueDate.year}
-                        </Text>
-                      </HStack>
-                    </Td>
-                    <Td py={4} px={4}>
+                    {!isMobile && (
+                      <>
+                        <Td>
+                          <HStack spacing={3}>
+                            <Icon as={Calendar} color="blue.500" boxSize={5} />
+                            <Text>
+                              {cert.issueDate.month.charAt(0).toUpperCase() +
+                              cert.issueDate.month.slice(1)} {cert.issueDate.year}
+                            </Text>
+                          </HStack>
+                        </Td>
+                        <Td>
+                          <Badge
+                            px={3}
+                            py={1}
+                            borderRadius="md"
+                            {...getTypeProps(cert.type)}
+                          >
+                            {cert.type}
+                          </Badge>
+                        </Td>
+                        <Td>
+                          <Badge
+                            px={3}
+                            py={1}
+                            borderRadius="md"
+                            {...getLevelProps(cert.level)}
+                          >
+                            {cert.level}
+                          </Badge>
+                        </Td>
+                      </>
+                    )}
+                    <Td>
                       <Badge
-                        px={2.5}
-                        py={0.5}
-                        borderRadius="full"
-                        fontSize="xs"
-                        textTransform="initial"
-                        fontWeight="medium"
-                        {...getTypeProps(cert.type)}
-                      >
-                        {cert.type.charAt(0).toUpperCase() + cert.type.slice(1)}
-                      </Badge>
-                    </Td>
-                    <Td py={4} px={4}>
-                      <Badge
-                        px={2.5}
-                        py={0.5}
-                        borderRadius="full"
-                        fontSize="xs"
-                        textTransform="initial"
-                        fontWeight="medium"
-                        {...getLevelProps(cert.level)}
-                      >
-                        {cert.level.charAt(0).toUpperCase() + cert.level.slice(1)}
-                      </Badge>
-                    </Td>
-                    <Td py={4} px={4}>
-                      <Badge
-                        px={2.5}
-                        py={0.5}
-                        borderRadius="full"
-                        fontSize="xs"
-                        fontWeight="medium"
-                        textTransform="initial"
+                        px={3}
+                        py={1}
+                        borderRadius="md"
                         {...getStatusProps(cert.status)}
                       >
-                        {cert.status.charAt(0).toUpperCase() + cert.status.slice(1)}
+                        {cert.status}
                       </Badge>
                     </Td>
-                    <Td py={4} px={4}>
+                    <Td>
                       <Button
-                        as="a"
-                        href={`/certificates/${cert._id}`}
                         size="sm"
-                        variant="ghost"
-                        colorScheme="lightblue"
+                        variant="outline"
+                        colorScheme="blue"
                         rightIcon={<ChevronRight size={16} />}
-                        fontSize="sm"
-                        fontWeight="medium"
-                        _hover={{
-                          bg: "blue.50",
-                          transform: "translateX(4px)",
-                        }}
-                        transition="all 0.2s"
+                        _hover={{ transform: 'translateX(4px)' }}
+                        transition="transform 0.2s"
                       >
-                        View
+                        {isMobile ? 'View' : 'Details'}
                       </Button>
                     </Td>
                   </Tr>
                 ))}
               </Tbody>
             </Table>
-          </Box>
-        </Box>
+          </CardBody>
+        </Card>
 
-        <Card>
-          <CardHeader>
+        {/* House Assessment Card */}
+        <Card variant="elevated">
+          <CardHeader pb={2}>
             <Flex justify="space-between" align="center">
-              <Heading size="md">House Assessment</Heading>
+              <Heading size="md">House Progress</Heading>
               <Select
                 value={selectedHouse}
                 onChange={(e) => setSelectedHouse(e.target.value)}
-                w="150px"
+                w="fit-content"
+                size="sm"
+                variant="filled"
               >
                 {mockHouses.map((house) => (
                   <option key={house.id} value={house.id}>
@@ -337,28 +354,38 @@ const Home: React.FC = () => {
               </Select>
             </Flex>
           </CardHeader>
-          <CardBody>
-            <div className="h-80">
+          <CardBody pt={0}>
+            <Box h={{ base: '300px', md: '400px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
+                  <XAxis 
+                    dataKey="month" 
+                    tick={{ fontSize: isMobile ? 12 : 14 }}
+                  />
+                  <YAxis tick={{ fontSize: isMobile ? 12 : 14 }} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                    contentStyle={{
+                      borderRadius: '12px',
+                      boxShadow: 'md'
+                    }}
+                  />
                   <Line 
                     type="monotone" 
                     dataKey="points" 
                     stroke="#8884d8" 
                     strokeWidth={2}
                     dot={{ r: 4 }}
+                    activeDot={{ r: 8 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
+            </Box>
           </CardBody>
         </Card>
-      </div>
-    </div>
+      </Grid>
+    </Box>
   );
 };
 

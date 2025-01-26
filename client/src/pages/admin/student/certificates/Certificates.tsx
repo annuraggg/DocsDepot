@@ -29,14 +29,32 @@ import {
   CheckboxGroup,
   FormLabel,
   FormControl,
+  SimpleGrid,
+  useBreakpointValue,
+  InputGroup,
+  InputLeftElement,
+  VStack,
+  IconButton,
+  ModalFooter,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router";
-import { Award, Building2, Calendar, ChevronRight, Filter } from "lucide-react";
+import {
+  Award,
+  Building2,
+  Calendar,
+  ChevronRight,
+  Filter,
+  Search,
+} from "lucide-react";
 import { Certificate } from "@shared-types/Certificate";
 import Loader from "@/components/Loader";
 import useAxios from "@/config/axios";
+import { motion, AnimatePresence } from "framer-motion";
+
+const MotionBox = motion(Box);
 
 const StudentCertificates = () => {
+  const isMobile = useBreakpointValue({ base: true, md: false });
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [filteredCertificates, setFilteredCertificates] = useState<
     Certificate[]
@@ -85,7 +103,6 @@ const StudentCertificates = () => {
 
   useEffect(() => {
     let result = [...certificates];
-
     if (searchQuery) {
       result = result.filter((cert) =>
         cert.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -111,12 +128,6 @@ const StudentCertificates = () => {
     }
 
     if (filters.issueYears.length > 0) {
-      result = result.filter((cert) =>
-        filters.issueYears.includes(cert.issueDate.year.toString())
-      );
-    }
-
-    if (filters.expiryYears.length > 0) {
       result = result.filter(() => false);
     }
 
@@ -159,284 +170,292 @@ const StudentCertificates = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <Flex justify="space-between" align="center" mb={6}>
-        <Box>
-          <Heading size="lg">Student Certificates</Heading>
-          <Text color="gray.600" mt={2}>
-            Total Certificates: {filteredCertificates.length}
-          </Text>
-        </Box>
-        <HStack spacing={4}>
-          <Input
-            placeholder="Search certificates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            w="300px"
-          />
-          <Button
-            leftIcon={<Icon as={Filter} />}
-            onClick={onOpen}
-            colorScheme="blue"
-            variant="ghost"
-          >
-            Filters
-          </Button>
-        </HStack>
-      </Flex>
-
-      <Box
-        bg="white"
-        borderRadius="lg"
-        boxShadow="sm"
-        border="1px"
-        borderColor="gray.200"
-        overflow="hidden"
+      <MotionBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
       >
-        <Box overflowX="auto">
-          <Table variant="simple">
-            <Thead>
-              <Tr bg="gray.50" borderBottom="1px" borderColor="gray.200">
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Sr No.
-                </Th>
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Certificate
-                </Th>
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Organization
-                </Th>
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Issue Date
-                </Th>
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Type
-                </Th>
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Level
-                </Th>
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Status
-                </Th>
-                <Th
-                  py={4}
-                  px={6}
-                  fontSize="sm"
-                  fontWeight="semibold"
-                  color="gray.900"
-                  textTransform="initial"
-                >
-                  Action
-                </Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {filteredCertificates.map((cert, index) => (
-                <Tr
+        <Flex
+          justify="space-between"
+          align="center"
+          mb={6}
+          direction={{ base: "column", md: "row" }}
+          gap={4}
+        >
+          <Box textAlign={{ base: "center", md: "left" }}>
+            <Heading size="lg" mb={2}>
+              Student Certificates
+            </Heading>
+            <Text color="gray.600">
+              Total Certificates: {filteredCertificates.length}
+            </Text>
+          </Box>
+          <HStack spacing={4}>
+            <InputGroup>
+              <InputLeftElement pointerEvents="none">
+                <Search size={18} />
+              </InputLeftElement>
+              <Input
+                placeholder="Search certificates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                w={{ base: "full", md: "300px" }}
+                borderRadius="full"
+              />
+            </InputGroup>
+            <Button
+              leftIcon={<Filter size={18} />}
+              onClick={onOpen}
+              variant="outline"
+              size="sm"
+            >
+              Filters
+            </Button>
+          </HStack>
+        </Flex>
+        <AnimatePresence>
+          {isMobile ? (
+            <SimpleGrid columns={1} spacing={4}>
+              {filteredCertificates.map((cert) => (
+                <MotionBox
                   key={cert._id}
-                  _hover={{ bg: "gray.50" }}
-                  transition="background 0.15s"
-                  borderBottom="1px"
-                  borderColor="gray.200"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                  bg="white"
+                  borderRadius="lg"
+                  p={4}
+                  boxShadow="sm"
+                  border="1px"
+                  borderColor="gray.100"
                 >
-                  <Td py={4} px={6} fontSize="sm" color="gray.900">
-                    {index + 1}
-                  </Td>
-                  <Td py={4} px={6}>
-                    <HStack spacing={2}>
-                      <Icon as={Award} color="green.500" boxSize={5} />
-                      <Text fontSize="sm" fontWeight="medium" color="gray.900">
-                        {cert.name}
-                      </Text>
-                    </HStack>
-                  </Td>
-                  <Td py={4} px={6}>
-                    <HStack spacing={2}>
-                      <Icon as={Building2} color="gray.400" boxSize={5} />
-                      <Text fontSize="sm" color="gray.600">
-                        {cert.issuingOrganization}
-                      </Text>
-                    </HStack>
-                  </Td>
-                  <Td py={4} px={6}>
-                    <HStack spacing={2}>
-                      <Icon as={Calendar} color="blue.400" boxSize={5} />
-                      <Text fontSize="sm" color="gray.600">
-                        {cert?.issueDate?.month?.charAt(0)?.toUpperCase() +
-                          cert?.issueDate?.month?.slice(1)}{" "}
-                        {cert?.issueDate?.year}
-                      </Text>
-                    </HStack>
-                  </Td>
-                  <Td py={4} px={6}>
-                    <Badge
-                      px={2.5}
-                      py={0.5}
-                      borderRadius="full"
-                      fontSize="xs"
-                      textTransform="initial"
-                      fontWeight="medium"
-                      {...getTypeProps(cert.type)}
-                    >
-                      {cert.type?.charAt(0).toUpperCase() + cert.type?.slice(1)}
-                    </Badge>
-                  </Td>
-                  <Td py={4} px={6}>
-                    <Badge
-                      px={2.5}
-                      py={0.5}
-                      borderRadius="full"
-                      fontSize="xs"
-                      textTransform="initial"
-                      fontWeight="medium"
-                      {...getLevelProps(cert.level)}
-                    >
-                      {cert.level?.charAt(0).toUpperCase() +
-                        cert.level?.slice(1)}
-                    </Badge>
-                  </Td>
-                  <Td py={4} px={6}>
-                    <Badge
-                      px={2.5}
-                      py={0.5}
-                      borderRadius="full"
-                      fontSize="xs"
-                      fontWeight="medium"
-                      textTransform="initial"
-                      {...getStatusProps(cert.status)}
-                    >
-                      {(cert.status ?? "Pending")?.charAt(0).toUpperCase() +
-                        (cert.status ?? "pending")?.slice(1)}
-                    </Badge>
-                  </Td>
-                  <Td py={4} px={6}>
-                    <Button
+                  <Flex justify="space-between" align="start">
+                    <Box flex={1}>
+                      <Flex align="center" mb={2}>
+                        <Icon as={Award} color="green.500" boxSize={5} mr={2} />
+                        <Text fontWeight="600" fontSize="sm">
+                          {cert.name}
+                        </Text>
+                      </Flex>
+
+                      <Flex wrap="wrap" gap={2} mb={2}>
+                        <Badge
+                          px={2.5}
+                          py={0.5}
+                          borderRadius="full"
+                          fontSize="xs"
+                          {...getTypeProps(cert.type)}
+                        >
+                          {cert.type?.charAt(0).toUpperCase() +
+                            cert.type?.slice(1)}
+                        </Badge>
+
+                        <Badge
+                          px={2.5}
+                          py={0.5}
+                          borderRadius="full"
+                          fontSize="xs"
+                          {...getLevelProps(cert.level)}
+                        >
+                          {cert.level?.charAt(0).toUpperCase() +
+                            cert.level?.slice(1)}
+                        </Badge>
+
+                        <Badge
+                          px={2.5}
+                          py={0.5}
+                          borderRadius="full"
+                          fontSize="xs"
+                          {...getStatusProps(cert.status)}
+                        >
+                          {(cert.status ?? "Pending")?.charAt(0).toUpperCase() +
+                            (cert.status ?? "pending")?.slice(1)}
+                        </Badge>
+                      </Flex>
+
+                      <VStack spacing={1} align="start">
+                        <HStack>
+                          <Icon as={Building2} color="gray.400" boxSize={4} />
+                          <Text fontSize="sm" color="gray.600">
+                            {cert.issuingOrganization}
+                          </Text>
+                        </HStack>
+
+                        <HStack>
+                          <Icon as={Calendar} color="blue.400" boxSize={4} />
+                          <Text fontSize="sm" color="gray.600">
+                            {cert?.issueDate?.month?.charAt(0)?.toUpperCase() +
+                              cert?.issueDate?.month?.slice(1)}{" "}
+                            {cert?.issueDate?.year}
+                          </Text>
+                        </HStack>
+                      </VStack>
+                    </Box>
+
+                    <IconButton
+                      aria-label="View certificate"
+                      icon={<ChevronRight size={16} />}
                       size="sm"
                       variant="ghost"
                       colorScheme="blue"
-                      rightIcon={<ChevronRight size={16} />}
                       onClick={() => navigate(`/certificates/${cert._id}`)}
-                      _hover={{
-                        bg: "blue.50",
-                        transform: "translateX(4px)",
-                      }}
-                      transition="all 0.2s"
-                    >
-                      View
-                    </Button>
-                  </Td>
-                </Tr>
+                    />
+                  </Flex>
+                </MotionBox>
               ))}
-            </Tbody>
-          </Table>
-        </Box>
-      </Box>
+            </SimpleGrid>
+          ) : (
+            <Box
+              bg="white"
+              borderRadius="lg"
+              boxShadow="sm"
+              border="1px"
+              borderColor="gray.200"
+              overflowX="auto"
+            >
+              <Table variant="simple">
+                <Thead bg="gray.50">
+                  <Tr>
+                    <Th>Sr No.</Th>
+                    <Th>Certificate</Th>
+                    <Th>Organization</Th>
+                    <Th>Issue Date</Th>
+                    <Th>Type</Th>
+                    <Th>Level</Th>
+                    <Th>Status</Th>
+                    <Th>Action</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {filteredCertificates.map((cert, index) => (
+                    <Tr key={cert._id}>
+                      <Td>{index + 1}</Td>
+                      <Td>
+                        <HStack>
+                          <Icon as={Award} color="green.500" />
+                          <Text>{cert.name}</Text>
+                        </HStack>
+                      </Td>
+                      <Td>{cert.issuingOrganization}</Td>
+                      <Td>
+                        {cert?.issueDate?.month?.charAt(0)?.toUpperCase() +
+                          cert?.issueDate?.month?.slice(1)}{" "}
+                        {cert?.issueDate?.year}
+                      </Td>
+                      <Td>
+                        <Badge {...getTypeProps(cert.type)}>
+                          {cert.type?.charAt(0).toUpperCase() +
+                            cert.type?.slice(1)}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <Badge {...getLevelProps(cert.level)}>
+                          {cert.level?.charAt(0).toUpperCase() +
+                            cert.level?.slice(1)}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <Badge {...getStatusProps(cert.status)}>
+                          {(cert.status ?? "Pending")?.toUpperCase()}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          colorScheme="blue"
+                          rightIcon={<ChevronRight size={16} />}
+                          onClick={() => navigate(`/certificates/${cert._id}`)}
+                        >
+                          View
+                        </Button>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+          )}
+        </AnimatePresence>
+        <Modal isOpen={isOpen} onClose={onClose} size="md">
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Filter Certificates</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody pb={6}>
+              <Stack spacing={4}>
+                <FormControl>
+                  <FormLabel>Certificate Type</FormLabel>
+                  <CheckboxGroup
+                    value={filters.types}
+                    onChange={(values) =>
+                      setFilters({ ...filters, types: values as string[] })
+                    }
+                  >
+                    <Stack>
+                      <Checkbox value="internal">Internal</Checkbox>
+                      <Checkbox value="external">External</Checkbox>
+                    </Stack>
+                  </CheckboxGroup>
+                </FormControl>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="md">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Filter Certificates</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <Stack spacing={4}>
-              <FormControl>
-                <FormLabel>Certificate Type</FormLabel>
-                <CheckboxGroup
-                  value={filters.types}
-                  onChange={(values) =>
-                    setFilters({ ...filters, types: values as string[] })
-                  }
-                >
-                  <Stack>
-                    <Checkbox value="internal">Internal</Checkbox>
-                    <Checkbox value="external">External</Checkbox>
-                  </Stack>
-                </CheckboxGroup>
-              </FormControl>
+                <FormControl>
+                  <FormLabel>Level</FormLabel>
+                  <CheckboxGroup
+                    value={filters.levels}
+                    onChange={(values) =>
+                      setFilters({ ...filters, levels: values as string[] })
+                    }
+                  >
+                    <Stack>
+                      <Checkbox value="beginner">Beginner</Checkbox>
+                      <Checkbox value="intermediate">Intermediate</Checkbox>
+                      <Checkbox value="advanced">Advanced</Checkbox>
+                    </Stack>
+                  </CheckboxGroup>
+                </FormControl>
 
-              <FormControl>
-                <FormLabel>Level</FormLabel>
-                <CheckboxGroup
-                  value={filters.levels}
-                  onChange={(values) =>
-                    setFilters({ ...filters, levels: values as string[] })
-                  }
-                >
-                  <Stack>
-                    <Checkbox value="beginner">Beginner</Checkbox>
-                    <Checkbox value="intermediate">Intermediate</Checkbox>
-                    <Checkbox value="advanced">Advanced</Checkbox>
-                  </Stack>
-                </CheckboxGroup>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Status</FormLabel>
-                <CheckboxGroup
-                  value={filters.status}
-                  onChange={(values) =>
-                    setFilters({ ...filters, status: values as string[] })
-                  }
-                >
-                  <Stack>
-                    <Checkbox value="active">Active</Checkbox>
-                    <Checkbox value="expired">Expired</Checkbox>
-                    <Checkbox value="pending">Pending</Checkbox>
-                  </Stack>
-                </CheckboxGroup>
-              </FormControl>
-            </Stack>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+                <FormControl>
+                  <FormLabel>Status</FormLabel>
+                  <CheckboxGroup
+                    value={filters.status}
+                    onChange={(values) =>
+                      setFilters({ ...filters, status: values as string[] })
+                    }
+                  >
+                    <Stack>
+                      <Checkbox value="active">Active</Checkbox>
+                      <Checkbox value="expired">Expired</Checkbox>
+                      <Checkbox value="pending">Pending</Checkbox>
+                    </Stack>
+                  </CheckboxGroup>
+                </FormControl>
+              </Stack>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                variant="ghost"
+                mr={3}
+                onClick={() =>
+                  setFilters({
+                    types: [],
+                    levels: [],
+                    status: [],
+                    issueYears: [],
+                    expiryYears: [],
+                  })
+                }
+              >
+                Clear All
+              </Button>
+              <Button colorScheme="blue" onClick={onClose}>
+                Apply
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </MotionBox>
     </Container>
   );
 };

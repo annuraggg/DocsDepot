@@ -34,7 +34,7 @@ export const EventActions = ({
       className="sticky bottom-6 mt-8"
     >
       {editPrivilege && (
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-4 max-w-3xl mx-auto">
+        <div className="bg-white/80  rounded-2xl shadow-lg p-4 max-w-3xl mx-auto">
           <ButtonGroup
             spacing={4}
             className="flex flex-wrap gap-4 justify-center"
