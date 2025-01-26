@@ -10,11 +10,24 @@ export const createEnrollment = async (c: Context) => {
   const { _id } = (await c.get("user")) as Token;
   try {
     const user = await User.findOne({ _id: _id });
+    console.log(_id);
+    console.log(user);
     if (user) {
-      await User.updateOne(
-        { user: _id },
-        { $set: { "onboarding.firsttime": false } }
-      );
+      const user = await User.findOne({ _id: _id });
+      if (!user) return sendError(c, 400, "User not found");
+
+      if (!user.onboarding) {
+        user.onboarding = {
+          approved: false,
+          firstTime: false,
+          defaultPW: false,
+        };
+      }
+
+      user.onboarding.approved = false;
+      user.onboarding.firstTime = false;
+      await user.save();
+
       await Enrollment.create({
         user: _id,
         about,
@@ -56,6 +69,7 @@ const acceptEnrollment = async (c: Context) => {
     if (!user) return sendError(c, 400, "User not found");
 
     user.house = facultyHouse._id;
+    user.onboarding!.approved = true;
     await user.save();
 
     await House.updateOne(

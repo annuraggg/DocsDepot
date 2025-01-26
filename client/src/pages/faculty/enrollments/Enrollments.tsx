@@ -151,13 +151,13 @@ const Enrollments: React.FC = () => {
             <XCircle size={24} />
           </button>
 
+          <h1 className="font-bold mb-4 flex items-center">
+            <FileText className="mr-2 text-blue-600" />
+            Enrollment Details
+          </h1>
+
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <h1 className="font-bold mb-4 flex items-center">
-                <FileText className="mr-2 text-blue-600" />
-                Enrollment Details
-              </h1>
-
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold mb-2 flex items-center">

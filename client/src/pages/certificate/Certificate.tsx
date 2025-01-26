@@ -21,6 +21,9 @@ import useUser from "@/config/user";
 import generatePDF, { usePDF } from "react-to-pdf";
 import ClassicTheme from "./ClassicTheme";
 import { User } from "@shared-types/User";
+import DeleteCertificateModal from "./DeleteCertificateModal";
+import EditCertificateModal from "./EditCertificateModal";
+import { useNavigate } from "react-router";
 
 interface ExtendedComment extends Omit<Comment, "user"> {
   user: User | string;
@@ -33,8 +36,11 @@ const Certificate = () => {
   const [certificate, setCertificate] = useState<ICertificate | null>(null);
   const [loading, setLoading] = useState(true);
   const [editPrivilege, setEditPrivilege] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { targetRef } = usePDF({ filename: "page.pdf" });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const id = window.location.pathname.split("/")[2];
@@ -42,7 +48,9 @@ const Certificate = () => {
       .get(`/certificates/${id}`)
       .then((res) => {
         setCertificate(res.data.data);
-        setEditPrivilege(user?._id ? user._id === res.data.data.user : false);
+        setEditPrivilege(
+          user?._id ? user._id === res.data.data.user?._id : false
+        );
       })
       .catch((err) => {
         console.error(err);
@@ -109,6 +117,54 @@ const Certificate = () => {
       });
   };
 
+  const approveCertificate = async () => {
+    axios
+      .put(`/certificates/${certificate!._id}/accept`)
+      .then(() => {
+        toast({
+          title: "Certificate Approved",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+        setCertificate({ ...certificate!, status: "approved" });
+      })
+      .catch((e) => {
+        console.error(e);
+        toast({
+          title: "Error approving certificate",
+          description: "Please try again later",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      });
+  };
+
+  const rejectCertificate = async () => {
+    axios
+      .put(`/certificates/${certificate!._id}/reject`)
+      .then(() => {
+        toast({
+          title: "Certificate Rejected",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+        setCertificate({ ...certificate!, status: "rejected", earnedXp: 10 });
+      })
+      .catch((e) => {
+        console.error(e);
+        toast({
+          title: "Error rejecting certificate",
+          description: "Please try again later",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      });
+  };
+
   return (
     <div className="p-8 h-[100vh] flex gap-10 w-full">
       <div
@@ -165,6 +221,57 @@ const Certificate = () => {
           </Button>
         ) : null}
 
+        {user?.role === "A" &&
+          certificate?.user?.role === "F" &&
+          certificate?.status === "pending" && (
+            <div className="mt-3 border p-3">
+              <p className="text-red-500 mb-3 font-bold">* Admin Controls</p>
+              <div className="flex gap-3">
+                <Button
+                  colorScheme="green"
+                  className="w-full"
+                  onClick={approveCertificate}
+                >
+                  Approve Certificate
+                </Button>
+                <Button
+                  colorScheme="red"
+                  className="w-full"
+                  onClick={rejectCertificate}
+                >
+                  Reject Certificate
+                </Button>
+              </div>
+            </div>
+          )}
+
+        {user?.role === "F" &&
+          certificate?.user?.role === "S" &&
+          certificate?.status === "pending" &&
+          user?.house === certificate?.user?.house && (
+            <div className="mt-3 border p-3">
+              <p className="text-red-500 mb-3 font-bold">
+                * House Cordinator Controls
+              </p>
+              <div className="flex gap-3">
+                <Button
+                  colorScheme="green"
+                  className="w-full"
+                  onClick={approveCertificate}
+                >
+                  Approve Certificate
+                </Button>
+                <Button
+                  colorScheme="red"
+                  className="w-full"
+                  onClick={rejectCertificate}
+                >
+                  Reject Certificate
+                </Button>
+              </div>
+            </div>
+          )}
+
         <div className="my-5">
           {certificate?.status === "pending" && (
             <p className="text-yellow-500 text-sm">
@@ -178,25 +285,52 @@ const Certificate = () => {
             </p>
           )}
 
-          {/* {certificate?.status === "approved" && (
+          {certificate?.status === "approved" && (
             <p className="text-green-500 text-sm">
-              House Earned {certificate.xp} XP from this certificate
+              {certificate?.user?.role === "S"
+                ? `House Earned ${certificate.earnedXp} XP from this certificate`
+                : "This certificate has been approved"}
             </p>
-          )} */}
+          )}
         </div>
 
         {editPrivilege && (
           <div className="flex gap-3 mb-5">
             <Button
-              colorScheme="red"
+              colorScheme="blue"
               className="w-full"
               disabled={certificate?.status === "approved"}
+              onClick={() => setIsEditModalOpen(true)}
             >
               Edit this Certificate
             </Button>
-            <Button colorScheme="green" className="w-full">
+            <Button
+              colorScheme="red"
+              className="w-full"
+              onClick={() => setIsDeleteModalOpen(true)}
+              disabled={certificate?.status === "approved"}
+            >
               Delete This Certificate
             </Button>
+
+            <DeleteCertificateModal
+              isOpen={isDeleteModalOpen}
+              onClose={() => setIsDeleteModalOpen(false)}
+              certificate={certificate!}
+              onDelete={() => {
+                navigate("/certificates");
+              }}
+            />
+
+            <EditCertificateModal
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              certificate={certificate!}
+              onUpdate={(updatedCertificate) => {
+                // Update local state or parent component state
+                setCertificate(updatedCertificate);
+              }}
+            />
           </div>
         )}
 

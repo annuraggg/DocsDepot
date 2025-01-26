@@ -71,8 +71,6 @@ const updateUser = async (c: Context) => {
   const body = await c.req.json();
   const token = c.get("user") as Token;
 
-  console.log(body);
-
   try {
     const user = await User.findById(id).lean();
     if (!user) return sendError(c, 404, "User not found");
@@ -109,6 +107,10 @@ const updateUser = async (c: Context) => {
     const gate = new UserKeeper(token, user);
     await gate.update();
 
+    if (user?.role === "F" && !body.permissions.includes("UFC")) {
+      body.permissions.push("UFC");
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       id,
       {
@@ -117,6 +119,7 @@ const updateUser = async (c: Context) => {
         "social.email": body.email,
         house: body?.house || null,
         permissions: body.permissions || [],
+        gender: body.gender,
       },
       { new: true }
     );
@@ -190,7 +193,8 @@ const bulkCreateStudents = async (c: Context) => {
         mid: student[0],
         fname: student[1],
         lname: student[2],
-        gender: student[3] === "Male" ? "M" : student[3] === "Female" ? "F" : "O",
+        gender:
+          student[3] === "Male" ? "M" : student[3] === "Female" ? "F" : "O",
         social: { email: student[4], github: "", linkedin: "" },
         password: bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10),
         academicDetails: {
@@ -215,20 +219,69 @@ const bulkCreateStudents = async (c: Context) => {
   }
 };
 
+const createUser = async (userData: any, token: Token) => {
+  // Hashing the password
+  const password = bcrypt.hashSync(process.env.DEFAULT_FACULTY_PASSWORD!, 10);
+  userData.password = password;
+
+  console.log(userData)
+
+  // Create the User
+  const user = new User({
+    ...userData,
+    role: "F",
+    onboarding: { firstTime: false, approved: false, defaultPW: true },
+    social: { email: userData.email, github: "", linkedin: "" },
+    academicDetails: { branch: "IT" },
+  });
+
+  // Check for house coordination and update accordingly
+  if (userData?.perms?.some((perm: string) => perm.startsWith("H"))) {
+    const house = userData.perms.find((perm: string) => perm.startsWith("H"));
+    const fetchedHouse = await House.findOne({ id: house });
+
+    if (!fetchedHouse) {
+      throw new Error("House not found");
+    }
+
+    fetchedHouse.facultyCordinator = user._id;
+    await fetchedHouse.save();
+  }
+
+  // Remove house-related permissions
+  userData.permissions = userData?.perms?.filter(
+    (perm: string) => !perm.startsWith("H")
+  );
+
+  user.permissions = userData.permissions || [];
+
+  if (user?.role === "F" && !user?.permissions?.includes("UFC")) {
+    user?.permissions?.push("UFC");
+  }
+
+  console.log(userData);
+  console.log(user);
+
+  // Create User and save it
+  const gate = new UserKeeper(token, user);
+  await gate.create();
+  await user.save();
+
+  return user;
+};
+
 const createFaculty = async (c: Context) => {
   const body = await c.req.json();
   const token = c.get("user") as Token;
+
   try {
-    const user = new User(body);
-    const password = bcrypt.hashSync(process.env.DEFAULT_FACULTY_PASSWORD!, 10);
-    user.password = password;
-
-    const gate = new UserKeeper(token, user);
-    await gate.create();
-
-    await user.save();
+    const user = await createUser(body, token);
     return sendSuccess(c, 200, "User created", user);
   } catch (err) {
+    if (err.code === 11000) {
+      return sendError(c, 409, "User already exists");
+    }
+    console.error(err);
     return sendError(c, 500, "Internal Server Error");
   }
 };
@@ -238,23 +291,26 @@ const bulkCreateFaculty = async (c: Context) => {
   const token = c.get("user") as Token;
 
   try {
-    const faculty: IUser[] = [];
-    for (const f of tableData) {
-      const user = new User(f);
-      const password = bcrypt.hashSync(
-        process.env.DEFAULT_FACULTY_PASSWORD!,
-        10
-      );
-      user.password = password;
+    // Process all users in parallel using Promise.all
+    const facultyPromises = tableData.map(async (f: any) => {
+      const data = {
+        mid: f[0],
+        fname: f[1],
+        lname: f[2],
+        gender: f[3] === "Male" ? "M" : f[3] === "Female" ? "F" : "O",
+        email: f[4],
+      };
+      return await createUser(data, token); // Reuse the createUser logic
+    });
 
-      const gate = new UserKeeper(token, user);
-      await gate.create();
+    const faculty = await Promise.all(facultyPromises);
 
-      await user.save();
-      faculty.push(user as unknown as IUser);
-    }
     return sendSuccess(c, 200, "Faculty created", faculty);
   } catch (err) {
+    if (err.code === 11000) {
+      return sendError(c, 409, "User already exists");
+    }
+
     console.log(err);
     return sendError(c, 500, "Internal Server Error");
   }

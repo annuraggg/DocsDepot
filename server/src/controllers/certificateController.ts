@@ -9,6 +9,8 @@ import { Token } from "docsdepot-types/Token.js";
 import { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
 import { User } from "docsdepot-types/User.js";
 import House from "../models/House.js";
+import UserModel from "../models/User.js";
+import { Point } from "docsdepot-types/House.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,10 +27,11 @@ if (!fs.existsSync(certificatesPath)) {
 }
 
 interface ExtendedCertificate
-  extends Omit<ICertificate, "issueDate" | "expirationDate"> {
+  extends Omit<ICertificate, "issueDate" | "expirationDate" | "expires"> {
   certificate: File;
   issueDate: string;
   expirationDate: string;
+  expires: "true" | "false";
 }
 
 // File type validation
@@ -143,7 +146,7 @@ const createCertificate = async (c: Context) => {
         month: issueDate.month || "",
         year: Number(issueDate.year) || new Date().getFullYear(),
       },
-      expires: formData.expires === true,
+      expires: formData.expires === "true",
       expirationDate: {
         month: expirationDate?.month || "",
         year: Number(expirationDate?.year) || new Date().getFullYear(),
@@ -208,6 +211,7 @@ const updateCertificate = async (c: Context) => {
     const formData =
       (await c.req.parseBody()) as unknown as ExtendedCertificate;
     const certificateFile = formData.certificate;
+    let url: string | undefined = formData.url ?? undefined;
 
     // Validate certificate type
     if (!isCertificateType(formData.type)) {
@@ -220,11 +224,11 @@ const updateCertificate = async (c: Context) => {
     }
 
     // Validate upload type
-    if (!isUploadType(certificate.uploadType)) {
+    if (!isUploadType(formData.uploadType)) {
       return sendError(c, 400, "Invalid upload type", null);
     }
 
-    // If there's an existing file and we're uploading a new one, delete the old file
+    // Handle file deletion if changing from file to URL or new file
     if (certificate.uploadType === "file" && certificate.url) {
       const oldFilePath = path.join(__dirname, "..", certificate.url);
       if (fs.existsSync(oldFilePath)) {
@@ -236,29 +240,24 @@ const updateCertificate = async (c: Context) => {
     const expirationDate = JSON.parse(formData.expirationDate as string);
 
     // Update certificate fields
-    certificate.name = formData.name;
+    certificate.name = formData.name || certificate.name;
     certificate.issuingOrganization =
       formData.issuingOrganization || certificate.issuingOrganization;
-    if (!certificate.issueDate) {
-      certificate.issueDate = { month: "", year: new Date().getFullYear() };
-    }
-    certificate.issueDate.month = issueDate.month || "";
-    certificate.issueDate.year = Number(issueDate.year) || issueDate.year;
-    certificate.expires = formData.expires === true;
-    if (!certificate.expirationDate) {
-      certificate.expirationDate = {
-        month: "",
-        year: new Date().getFullYear(),
-      };
-    }
-    certificate.expirationDate.year =
-      Number(expirationDate.year) || certificate.expirationDate.year;
-    certificate.expirationDate.month =
-      expirationDate.year || certificate.expirationDate.month;
+    certificate.issueDate = {
+      month: issueDate.month || "",
+      year: Number(issueDate.year) || new Date().getFullYear(),
+    };
+    certificate.expires = formData.expires === "true";
+    certificate.expirationDate = {
+      month: expirationDate?.month || "",
+      year: Number(expirationDate?.year) || new Date().getFullYear(),
+    };
     certificate.type = formData.type as CertificateType;
     certificate.level = formData.level as CertificateLevel;
+    certificate.uploadType = formData.uploadType as UploadType;
 
-    if (certificate.uploadType === "file" && certificateFile) {
+    // Handle file upload for file type
+    if (formData.uploadType === "file" && certificateFile) {
       // Validate file type
       if (!ALLOWED_TYPES.includes(certificateFile.type)) {
         return sendError(
@@ -282,10 +281,13 @@ const updateCertificate = async (c: Context) => {
       const arrayBuffer = await certificateFile.arrayBuffer();
       fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
 
-      // Update certificate URLi
-      certificate.url = `/certificates/${newFileName}`;
+      // Update certificate URL
+      url = `/certificates/${newFileName}`;
+      certificate.extension = fileExt;
     }
 
+    certificate.url = url || "";
+    certificate.status = "pending";
     await certificate.save();
 
     return sendSuccess(c, 200, "Certificate updated successfully", certificate);
@@ -566,7 +568,72 @@ const getHouseRejectedCertificates = async (c: Context) => {
   } catch (error) {
     return sendError(c, 500, "Error fetching certificates", error);
   }
-};  
+};
+
+const acceptCertificate = async (c: Context) => {
+  try {
+    const { id } = c.req.param();
+    const certificate = await Certificate.findById(id);
+    if (!certificate) {
+      return sendError(c, 404, "Certificate not found", null);
+    }
+
+    const user = await UserModel.findById(certificate.user);
+    if (!user) {
+      return sendError(c, 404, "User not found", null);
+    }
+
+    certificate.status = "approved";
+
+    if (user?.role === "S") {
+      certificate.earnedXp = 10;
+
+      const newPoints = {
+        certificateId: certificate._id,
+        userId: user._id,
+        points: 10,
+      };
+
+      await House.updateOne(
+        { members: user._id },
+        { $push: { points: newPoints } }
+      );
+    }
+
+    await certificate.save();
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificate accepted successfully",
+      certificate
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error accepting certificate", error);
+  }
+};
+
+const rejectCertificate = async (c: Context) => {
+  try {
+    const { id } = c.req.param();
+    const certificate = await Certificate.findById(id);
+    if (!certificate) {
+      return sendError(c, 404, "Certificate not found", null);
+    }
+
+    certificate.status = "rejected";
+    await certificate.save();
+
+    return sendSuccess(
+      c,
+      200,
+      "Certificate rejected successfully",
+      certificate
+    );
+  } catch (error) {
+    return sendError(c, 500, "Error rejecting certificate", error);
+  }
+};
 
 // Type guard functions
 function isCertificateType(value: string): value is CertificateType {
@@ -596,4 +663,6 @@ export default {
   getHouseAcceptedCertificates,
   getHousePendingCertificates,
   getHouseRejectedCertificates,
+  acceptCertificate,
+  rejectCertificate,
 };

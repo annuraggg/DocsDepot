@@ -13,11 +13,20 @@ const Feedback = () => {
   const toaster = useToast();
 
   const sendFeedback = async () => {
+    if (rating === 0) {
+      toaster({
+        title: "Error",
+        description: "Please select a rating",
+        status: "error",
+      });
+      return;
+    }
+
     try {
       const axios = useAxios();
       const response = await axios.post("feedback", {
         rating,
-        review: feedback,
+        review: feedback || "No feedback provided",
       });
 
       if (response.status === 200) {
@@ -26,6 +35,8 @@ const Feedback = () => {
           description: "Your feedback has been submitted successfully",
           status: "success",
         });
+        setFeedback("");
+        setRating(0);
       } else {
         throw new Error("Unexpected response status");
       }

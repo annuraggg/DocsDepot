@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 import {
   Modal,
   ModalOverlay,
@@ -18,7 +18,7 @@ import {
   VStack,
   HStack,
 } from "@chakra-ui/react";
-import { EditModalProps } from '../../../types/faculty';
+import { EditModalProps } from "../../../types/faculty";
 
 const EditModal: React.FC<EditModalProps> = ({
   isOpen,
@@ -28,18 +28,13 @@ const EditModal: React.FC<EditModalProps> = ({
   setFacultyData,
   updateFaculty,
 }) => {
-  const MotionVStack = motion(VStack);
+  const MotionVStack = VStack;
   const MotionFormControl = motion(FormControl);
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      size="xl"
-      isCentered
-    >
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
       <ModalOverlay backdropFilter="blur(10px)" />
-      <ModalContent 
+      <ModalContent
         as={motion.div}
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -47,27 +42,22 @@ const EditModal: React.FC<EditModalProps> = ({
       >
         <ModalHeader>Edit Faculty Member</ModalHeader>
         <ModalCloseButton />
-        
+
         <ModalBody>
-          <MotionVStack
-            spacing={6}
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: { transition: { staggerChildren: 0.1 } }
-            }}
-          >
+          <MotionVStack spacing={6}>
             <Grid templateColumns="repeat(2, 1fr)" gap={4} width="100%">
               <MotionFormControl
                 variants={{
                   hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
               >
                 <FormLabel>First Name</FormLabel>
                 <Input
                   value={facultyData.fname}
-                  onChange={(e) => setFacultyData({ ...facultyData, fname: e.target.value })}
+                  onChange={(e) =>
+                    setFacultyData({ ...facultyData, fname: e.target.value })
+                  }
                   shadow="sm"
                   _focus={{ shadow: "md" }}
                 />
@@ -76,13 +66,15 @@ const EditModal: React.FC<EditModalProps> = ({
               <MotionFormControl
                 variants={{
                   hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
               >
                 <FormLabel>Last Name</FormLabel>
                 <Input
                   value={facultyData.lname}
-                  onChange={(e) => setFacultyData({ ...facultyData, lname: e.target.value })}
+                  onChange={(e) =>
+                    setFacultyData({ ...facultyData, lname: e.target.value })
+                  }
                   shadow="sm"
                   _focus={{ shadow: "md" }}
                 />
@@ -92,14 +84,16 @@ const EditModal: React.FC<EditModalProps> = ({
             <MotionFormControl
               variants={{
                 hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 }
+                visible: { opacity: 1, y: 0 },
               }}
             >
               <FormLabel>Email</FormLabel>
               <Input
                 type="email"
                 value={facultyData.email}
-                onChange={(e) => setFacultyData({ ...facultyData, email: e.target.value })}
+                onChange={(e) =>
+                  setFacultyData({ ...facultyData, email: e.target.value })
+                }
                 shadow="sm"
                 _focus={{ shadow: "md" }}
               />
@@ -108,18 +102,20 @@ const EditModal: React.FC<EditModalProps> = ({
             <MotionFormControl
               variants={{
                 hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 }
+                visible: { opacity: 1, y: 0 },
               }}
             >
               <FormLabel>Gender</FormLabel>
               <RadioGroup
                 value={facultyData.gender}
-                onChange={(value) => setFacultyData({ ...facultyData, gender: value })}
+                onChange={(value) =>
+                  setFacultyData({ ...facultyData, gender: value })
+                }
               >
                 <HStack spacing={6}>
-                  <Radio value="Male">Male</Radio>
-                  <Radio value="Female">Female</Radio>
-                  <Radio value="Others">Others</Radio>
+                  <Radio value="M">Male</Radio>
+                  <Radio value="F">Female</Radio>
+                  <Radio value="O">Others</Radio>
                 </HStack>
               </RadioGroup>
             </MotionFormControl>

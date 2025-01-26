@@ -7,7 +7,6 @@ import {
   Td,
   Th,
   Alert,
-  AlertIcon,
   AlertDescription,
   Thead,
   Tr,
@@ -71,34 +70,77 @@ const FacultyImport = () => {
   const startImport = () => {
     setAdding(true);
 
-    axios.post("/user/faculty/bulk", { tableData }).then((res) => {
-      setAdding(false);
-      if (res.status === 200) {
+    // You can implement a similar validation like in `StudentImport`
+    tableData.forEach((row) => {
+      if (row.length !== 5) {
+        toast({
+          title: "Error",
+          description:
+            "Invalid CSV File with length at row " +
+            (tableData.indexOf(row) + 1),
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setAdding(false);
+        setTableData([]);
+        return;
+      }
+
+      if (row[0].length !== 3) {
+        toast({
+          title: "Error",
+          description:
+            "Invalid Moodle ID at row " + (tableData.indexOf(row) + 1),
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setAdding(false);
+        setTableData([]);
+        return;
+      }
+    });
+
+    axios
+      .post("/user/faculty/bulk", { tableData })
+      .then(() => {
         toast({
           title: "Faculty Imported",
-          description: "Staff has been successfully imported",
+          description: "Faculty members have been successfully imported",
           status: "success",
           duration: 3000,
           isClosable: true,
         });
-      } else if (res.status === 409) {
-        toast({
-          title: "Error",
-          description: "Moodle ID already exists",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Error in importing faculty",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    });
+
+        setTableData([]);
+        setTimeout(() => {
+          window.location.href = "/admin/faculty";
+        }, 3000);
+      })
+      .catch((err) => {
+        if (err?.response?.status === 409) {
+          toast({
+            title: "Error",
+            description: "Moodle ID already exists",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          toast({
+            title: "Error",
+            description:
+              err.response.data?.message || "Error in importing faculty",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      })
+      .finally(() => {
+        setAdding(false);
+      });
   };
 
   return (
@@ -110,8 +152,12 @@ const FacultyImport = () => {
       >
         <VStack spacing={8} align="stretch">
           <Box>
-            <Heading size="lg" mb={2}>Faculty Management</Heading>
-            <Text color="gray.600">Import faculty members or add them individually to the system</Text>
+            <Heading size="lg" mb={2}>
+              Faculty Management
+            </Heading>
+            <Text color="gray.600">
+              Import faculty members or add them individually to the system
+            </Text>
           </Box>
 
           <HStack spacing={4} justify="flex-start">
@@ -147,10 +193,11 @@ const FacultyImport = () => {
             borderRadius="md"
             shadow="sm"
           >
-            <AlertIcon as={AlertTriangle} />
+            <AlertTriangle className="mr-3 text-orange-500" />
             <AlertDescription>
-              Please upload a CSV file with columns in order: Moodle ID, First Name, Last Name,
-              Gender, Email. First row should not contain column names. No blank rows allowed.
+              Please upload a CSV file with columns in order: Moodle ID, First
+              Name, Last Name, Gender, Email. First row should not contain
+              column names. No blank rows allowed.
             </AlertDescription>
           </Alert>
 

@@ -37,7 +37,6 @@ import {
   Award,
   Lock,
   Settings,
-  UserCircle,
   MessageSquare,
   FileText,
   UserCheck,
@@ -110,7 +109,8 @@ const FacultyNavbar = () => {
   }
 
   const decoded = jwtDecode(token) as Token;
-  const hasHouseCoordinatorPerms =( decoded?.house && decoded?.role === "F") || false;
+  const hasHouseCoordinatorPerms =
+    (decoded?.house && decoded?.role === "F") || false;
 
   const logout = () => {
     [
@@ -159,11 +159,7 @@ const FacultyNavbar = () => {
               className="cursor-pointer"
               onClick={() => navigate("/faculty")}
             >
-              <img
-                src={Logo}
-                className="w-24"
-                alt="Logo"
-              />
+              <img src={Logo} className="w-24" alt="Logo" />
             </div>
 
             {/* Desktop Navigation */}
@@ -238,10 +234,6 @@ const FacultyNavbar = () => {
                 <MenuItem onClick={() => navigate("/faculty/settings")}>
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
-                </MenuItem>
-                <MenuItem onClick={() => navigate("/profile")}>
-                  <UserCircle className="w-4 h-4 mr-2" />
-                  Profile
                 </MenuItem>
                 <MenuItem onClick={() => navigate("/feedback")}>
                   <MessageSquare className="w-4 h-4 mr-2" />

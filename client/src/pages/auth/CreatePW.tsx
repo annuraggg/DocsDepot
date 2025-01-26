@@ -12,6 +12,7 @@ import {
   ModalBody,
   InputRightAddon,
   ModalFooter,
+  ModalOverlay,
 } from "@chakra-ui/react";
 import useAxios from "@/config/axios";
 
@@ -106,6 +107,7 @@ const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay backdropFilter="blur(10px)" />
         <ModalContent>
           <ModalHeader
             fontSize="lg"

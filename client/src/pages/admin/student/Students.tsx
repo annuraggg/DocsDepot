@@ -147,11 +147,13 @@ const Students = () => {
 
       const matchesGender =
         filters.gender.length === 0 || filters.gender.includes(student.gender);
+      const academicYear = getAcademicYear(
+        student.academicDetails.admissionYear,
+        student.academicDetails.isDSE,
+        student.academicDetails.yearBacklog
+      ).toString();
       const matchesYear =
-        filters.years.length === 0 ||
-        filters.years.includes(
-          student.academicDetails.admissionYear?.toString() || ""
-        );
+        filters.years.length === 0 || filters.years.includes(academicYear);
       const matchesHouse =
         filters.houses.length === 0 ||
         filters.houses.includes(student.house?._id);

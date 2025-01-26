@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
       yearBacklog: { type: Number, default: 0 },
     },
     social: {
-      email: { type: String, default: "", unique: true },
+      email: { type: String, default: "", unique: true, required: true },
       github: { type: String, default: "" },
       linkedin: { type: String, default: "" },
     },
@@ -44,12 +44,10 @@ const userSchema = new mongoose.Schema(
       firstTime: {
         type: Boolean,
         default: false,
-        immutable: (doc) => doc.onboarding.firstTime,
       },
       approved: {
         type: Boolean,
         default: false,
-        immutable: (doc) => doc.onboarding.approved,
       },
       defaultPW: {
         type: Boolean,

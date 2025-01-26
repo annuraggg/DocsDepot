@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -25,9 +25,15 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  AlertDialog,
+  AlertDialogOverlay,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogBody,
+  AlertDialogFooter,
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import { Filter, Plus, Search } from "lucide-react";
+import { Filter, Plus, Search, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import useAxios from "@/config/axios";
 import Loader from "../../../components/Loader";
@@ -75,10 +81,79 @@ const Faculty = () => {
     houses: [],
   });
 
+  const ITEMS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginatedFaculty = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredFaculty.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredFaculty, currentPage]);
+
+  const totalPages = Math.ceil(filteredFaculty.length / ITEMS_PER_PAGE);
+
+  const nextPage = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
+  const prevPage = () => setCurrentPage((p) => Math.max(p - 1, 1));
+
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
+  const [selectedFaculty, setSelectedFaculty] = useState<string[]>([]);
+
+  const toggleBulkDelete = () => {
+    setIsBulkDelete(!isBulkDelete);
+    setSelectedFaculty([]);
+  };
+
+  const handleFacultySelect = (facultyId: string) => {
+    setSelectedFaculty((prev) =>
+      prev.includes(facultyId)
+        ? prev.filter((id) => id !== facultyId)
+        : [...prev, facultyId]
+    );
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      await axios.delete("/user/bulk", { data: { ids: selectedFaculty } });
+
+      toast({
+        title: "Success",
+        description: "Faculty deleted successfully",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+
+      // Remove deleted faculty from the list
+      setFaculty(faculty.filter((f) => !selectedFaculty.includes(f._id)));
+      setFilteredFaculty(
+        filteredFaculty.filter((f) => !selectedFaculty.includes(f._id))
+      );
+
+      setIsBulkDelete(false);
+      setSelectedFaculty([]);
+      onDeleteAlertClose();
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Error deleting faculty";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+  };
+
   const {
     isOpen: isEditOpen,
     onOpen: onEditOpen,
     onClose: onEditClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isDeleteAlertOpen,
+    onOpen: onDeleteAlertOpen,
+    onClose: onDeleteAlertClose,
   } = useDisclosure();
 
   const {
@@ -184,6 +259,8 @@ const Faculty = () => {
           isClosable: true,
         });
         setFaculty(faculty.filter((faculty) => faculty._id !== state.delItem));
+
+        onDeleteAlertClose();
       } else {
         onDeleteClose();
         toast({
@@ -338,6 +415,19 @@ const Faculty = () => {
           </Box>
           <HStack spacing={4}>
             <Button
+              leftIcon={<Trash2 />}
+              variant="outline"
+              colorScheme={isBulkDelete ? "red" : "gray"}
+              onClick={toggleBulkDelete}
+            >
+              {isBulkDelete ? "Cancel" : "Bulk Delete"}
+            </Button>
+            {isBulkDelete && selectedFaculty.length > 0 && (
+              <Button colorScheme="red" onClick={onDeleteAlertOpen}>
+                Delete Selected ({selectedFaculty.length})
+              </Button>
+            )}
+            <Button
               leftIcon={<Filter />}
               variant="outline"
               onClick={onFilterOpen}
@@ -355,6 +445,17 @@ const Faculty = () => {
             </Button>
           </HStack>
         </Flex>
+        <Flex justify="center" align="center" mt={4} mb={4}>
+          <Button onClick={prevPage} isDisabled={currentPage === 1} mr={2}>
+            Previous
+          </Button>
+          <Text mx={4}>
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button onClick={nextPage} isDisabled={currentPage === totalPages}>
+            Next
+          </Button>
+        </Flex>
 
         <InputGroup size="lg" mb={4}>
           <InputLeftElement pointerEvents="none">
@@ -368,9 +469,12 @@ const Faculty = () => {
         </InputGroup>
 
         <FacultyTable
-          filteredFaculty={filteredFaculty}
+          filteredFaculty={paginatedFaculty}
           openEdit={openEdit}
           deleteCustomer={deleteCustomer}
+          isBulkDelete={isBulkDelete}
+          selectedFaculty={selectedFaculty}
+          onFacultySelect={handleFacultySelect}
         />
 
         <Modal isOpen={isFilterOpen} onClose={onFilterClose} size="xl">
@@ -488,6 +592,39 @@ const Faculty = () => {
           onConfirm={alertDelete}
           cancelRef={cancelRef}
         />
+
+        <AlertDialog
+          isOpen={isDeleteAlertOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onDeleteAlertClose}
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent>
+              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                Delete Confirmation
+              </AlertDialogHeader>
+
+              <AlertDialogBody>
+                {state.delItem
+                  ? "Are you sure you want to delete this faculty? This action cannot be undone."
+                  : `Are you sure you want to delete ${selectedFaculty.length} faculty members? This action cannot be undone.`}
+              </AlertDialogBody>
+
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={onDeleteClose}>
+                  Cancel
+                </Button>
+                <Button
+                  colorScheme="red"
+                  onClick={state.delItem ? confirmDelete : confirmBulkDelete}
+                  ml={3}
+                >
+                  Delete
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
       </MotionBox>
     </Container>
   );

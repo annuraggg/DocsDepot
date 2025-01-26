@@ -36,12 +36,9 @@ import {
   Award,
   Lock,
   Settings,
-  UserCircle,
-  MessageSquare,
   ChevronDown,
   User,
   Menu as MenuIcon,
-  Bell,
 } from "lucide-react";
 import { Notification } from "@shared-types/Notification";
 import useUser from "@/config/user";
@@ -74,11 +71,7 @@ const NavLink = ({ icon, text, to, onClick, onClose }: NavLinkProps) => {
   );
 };
 
-interface AdminNavbarProps {
-  notifications?: Notification[];
-}
-
-const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
+const AdminNavbar = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMoodleId, setResetMoodleId] = useState("");
 
@@ -254,8 +247,9 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
                       size="sm"
                       src={
                         user?.profilePicture
-                          ? `${import.meta.env.VITE_API_URL}/static/profile/${user._id
-                          }.${user.profilePicture}`
+                          ? `${import.meta.env.VITE_API_URL}/static/profile/${
+                              user._id
+                            }.${user.profilePicture}`
                           : undefined
                       }
                       className="border border-gray-300"
@@ -271,18 +265,6 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
                     Settings
                   </MenuItem>
                 </Link>
-                <Link to="/profile">
-                  <MenuItem value="profile">
-                    <UserCircle className="w-4 h-4 mr-2" />
-                    Profile
-                  </MenuItem>
-                </Link>
-                <Link to="/feedback">
-                  <MenuItem value="feedback">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Feedback
-                  </MenuItem>
-                </Link>
                 <MenuDivider />
                 <MenuItem value="logout" onClick={logout}>
                   Logout
@@ -294,7 +276,11 @@ const AdminNavbar = ({ notifications = [] }: AdminNavbarProps) => {
       </div>
 
       {/* Mobile Menu Drawer */}
-      <Drawer isOpen={isMobileMenuOpen} onClose={onMobileMenuClose} placement="left">
+      <Drawer
+        isOpen={isMobileMenuOpen}
+        onClose={onMobileMenuClose}
+        placement="left"
+      >
         <DrawerOverlay />
         <DrawerContent>
           <DrawerCloseButton />

@@ -98,7 +98,7 @@ export const CertificateTable: React.FC<CertificateTableProps> = ({
                   <HStack spacing={2}>
                     <Icon as={Calendar} color="blue.400" boxSize={5} />
                     <Text fontSize="sm" color="gray.600">
-                      {cert.issueDate.toString()}
+                      {cert.issueDate.month} {cert.issueDate.year}
                     </Text>
                   </HStack>
                 </Td>

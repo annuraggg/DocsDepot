@@ -15,7 +15,8 @@ app.get("/house/:id/rejected", certificationController.getHouseRejectedCertifica
 
 
 app.get("/:id", certificationController.getCertificateById);
-
+app.put("/:id/accept", certificationController.acceptCertificate);
+app.put("/:id/reject", certificationController.rejectCertificate);
 
 app.get("/:id/download", certificationController.downloadCertificate);
 

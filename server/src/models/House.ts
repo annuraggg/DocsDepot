@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 const pointSchema = new mongoose.Schema(
   {
     certificateId: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Certificate",
     },
-    userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "User" },
     points: { type: Number, required: true },
   },
   { timestamps: true }
@@ -23,16 +23,16 @@ const houseSchema = new mongoose.Schema(
     banner: { type: String, required: true },
     color: { type: String, required: true },
     facultyCordinator: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: false,
       ref: "User",
     },
     studentCordinator: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: false,
       ref: "User",
     },
-    members: { type: [mongoose.Types.ObjectId], ref: "User" },
+    members: { type: [mongoose.Schema.Types.ObjectId], ref: "User" },
     social: {
       instagram: { type: String, required: false },
       linkedin: { type: String, required: false },

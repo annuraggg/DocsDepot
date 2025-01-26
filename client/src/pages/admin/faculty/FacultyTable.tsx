@@ -1,20 +1,16 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Edit2, Trash2 } from 'lucide-react';
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Edit2, Trash2 } from "lucide-react";
 import { User } from "@shared-types/User";
-import {
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-} from '@chakra-ui/react';
+import { Table, Thead, Tbody, Tr, Th, Td, Checkbox } from "@chakra-ui/react";
 
 interface FacultyTableProps {
   filteredFaculty: User[];
   openEdit: (id: string) => void;
   deleteCustomer: (id: string) => void;
+  isBulkDelete?: boolean;
+  selectedFaculty?: string[];
+  onFacultySelect?: (id: string) => void;
 }
 
 const MotionBox = motion.div;
@@ -23,6 +19,9 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
   filteredFaculty,
   openEdit,
   deleteCustomer,
+  isBulkDelete = false,
+  selectedFaculty = [],
+  onFacultySelect = () => {},
 }) => {
   return (
     <AnimatePresence>
@@ -36,19 +35,44 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
           <Table className="w-full">
             <Thead>
               <Tr className="bg-gray-50 border-b border-gray-200">
-                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">MOODLE ID</Th>
-                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">NAME</Th>
-                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">EMAIL</Th>
-                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">DEPARTMENT</Th>
-                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">ACTIONS</Th>
+                {isBulkDelete && (
+                  <Th width="5%" className="py-4 px-6">
+                    {/* Bulk delete checkbox column */}
+                  </Th>
+                )}
+                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">
+                  MOODLE ID
+                </Th>
+                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">
+                  NAME
+                </Th>
+                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">
+                  EMAIL
+                </Th>
+                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">
+                  DEPARTMENT
+                </Th>
+                <Th className="py-4 px-6 text-sm font-semibold text-gray-900 text-left">
+                  ACTIONS
+                </Th>
               </Tr>
             </Thead>
             <Tbody>
               {filteredFaculty.map((faculty) => (
                 <Tr
                   key={faculty.mid}
-                  className="hover:bg-gray-50 transition-colors duration-150 border-b border-gray-200"
+                  className={`hover:bg-gray-50 transition-colors duration-150 border-b border-gray-200 ${
+                    isBulkDelete ? "opacity-70" : ""
+                  }`}
                 >
+                  {isBulkDelete && (
+                    <Td className="py-4 px-6">
+                      <Checkbox
+                        isChecked={selectedFaculty.includes(faculty._id)}
+                        onChange={() => onFacultySelect(faculty._id)}
+                      />
+                    </Td>
+                  )}
                   <Td className="py-4 px-6">
                     <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                       {faculty.mid}
@@ -82,13 +106,15 @@ const FacultyTable: React.FC<FacultyTableProps> = ({
                       >
                         <Edit2 className="h-4 w-4 text-blue-600" />
                       </button>
-                      <button
-                        onClick={() => deleteCustomer(faculty._id)}
-                        className="p-1 hover:bg-red-50 rounded-full transition-colors duration-200"
-                        title="Delete faculty"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </button>
+                      {!isBulkDelete && (
+                        <button
+                          onClick={() => deleteCustomer(faculty._id)}
+                          className="p-1 hover:bg-red-50 rounded-full transition-colors duration-200"
+                          title="Delete faculty"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </button>
+                      )}
                     </div>
                   </Td>
                 </Tr>

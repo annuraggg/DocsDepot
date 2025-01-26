@@ -34,6 +34,12 @@ const GreenTheme = (
               <span className="text-green-600 font-bold text-sm">VERIFIED</span>
             </div>
           )}
+
+          {certificate?.status === "rejected" && (
+            <div className="w-24 h-24 border-8 border-red-600 rounded-full flex items-center justify-center rotate-[-15deg]">
+              <span className="text-red-600 font-bold text-sm">REJECTED</span>
+            </div>
+          )}
         </div>
 
         <div className="mb-12">
@@ -47,19 +53,24 @@ const GreenTheme = (
           <p className="text-lg text-gray-600 font-serif">
             This certificate is issued to
           </p>
-          <p className="text-7xl  text-green-500 font-rouge">{certificate?.user?.fname} {certificate?.user?.lname}</p>
+          <p className="text-7xl  text-green-500 font-rouge">
+            {certificate?.user?.fname} {certificate?.user?.lname}
+          </p>
 
           <p className="text-xl text-gray-600 font-serif mt-5">for</p>
 
           <h3>{certificate?.name}</h3>
-          <p className=" text-gray-700">Issued by {certificate?.issuingOrganization}</p>
+          <p className=" text-gray-700">
+            Issued by {certificate?.issuingOrganization}
+          </p>
         </div>
 
         <div className="flex justify-center gap-24 text-gray-600 font-serif">
           <div>
             <p className="text-sm">Issue Date</p>
             <p className="text-lg">
-              {titleCase(certificate?.issueDate?.month)} {certificate?.issueDate?.year}
+              {titleCase(certificate?.issueDate?.month)}{" "}
+              {certificate?.issueDate?.year}
             </p>
           </div>
           {certificate?.expires && (

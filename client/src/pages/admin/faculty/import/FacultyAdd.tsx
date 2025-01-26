@@ -33,9 +33,17 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Hash, Shield, CheckCircle, AlertTriangle } from "lucide-react";
+import {
+  User,
+  Mail,
+  Hash,
+  Shield,
+  FileWarningIcon,
+  CheckCircleIcon,
+} from "lucide-react";
 import { House } from "@shared-types/House";
 import useAxios from "@/config/axios";
+import useUser from "@/config/user";
 
 const MotionModalContent = motion(ModalContent);
 
@@ -60,6 +68,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const [houses, setHouses] = React.useState<House[]>([]);
 
   const toast = useToast();
+  const user = useUser();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
@@ -110,9 +119,10 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
       return;
     }
 
-    axios.post("/user/faculty", data).then((res) => {
-      if (res.status === 200) {
-        setClose();
+    axios
+      .post("/user/faculty", data)
+      .then(() => {
+    
         toast({
           title: "Faculty Added",
           description: "Faculty has been added successfully",
@@ -120,24 +130,26 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
           duration: 3000,
           isClosable: true,
         });
-      } else if (res.status === 409) {
-        toast({
-          title: "Error",
-          description: "Moodle ID already exists",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Something went wrong",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    });
+      })
+      .catch((err) => {
+        if (err.response.status === 409) {
+          toast({
+            title: "Error",
+            description: "Moodle ID or email already exists",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: err?.response?.data?.message || "Failed to add faculty",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      });
   };
 
   const closePerms = () => {
@@ -266,87 +278,159 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
         size="3xl"
         scrollBehavior="inside"
       >
-        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-        <MotionModalContent
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.3 }}
-        >
-          <ModalHeader fontSize="2xl">Faculty Permissions</ModalHeader>
+        <ModalOverlay backdropFilter="blur(10px) hue-rotate(90deg)" />
+        <ModalContent>
+          <ModalHeader>Faculty Permissions</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Box
-              bg={bgColor}
-              borderRadius="lg"
-              shadow="xl"
-              border="1px"
-              borderColor={borderColor}
-              p={4}
-            >
-              <CheckboxGroup>
-                <Table variant="simple">
-                  <Tbody>
-                    <CheckboxGroup
-                      value={perms}
-                      onChange={(e) => setPerms(e as string[])}
-                    >
-                      <Tr>
-                        <Td>
-                          <Checkbox value="UFC" isDisabled defaultChecked>
-                            Upload Faculty Certificates
-                          </Checkbox>
-                        </Td>
-                        <Td>
-                          <List spacing={2}>
-                            <ListItem>
-                              <ListIcon as={AlertTriangle} color="yellow.500" />
-                              Default permission - Cannot be changed
-                            </ListItem>
-                            <ListItem>
-                              <ListIcon as={CheckCircle} color="green.500" />
-                              Add their own certifications to the system
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
-                      <Tr>
-                        <Td>
-                          <Checkbox value="MHI">Manage Events</Checkbox>
-                        </Td>
-                        <Td>
-                          <List spacing={2}>
-                            <ListItem>
-                              <ListIcon as={CheckCircle} color="green.500" />
-                              Create and Update Events
-                            </ListItem>
-                          </List>
-                        </Td>
-                      </Tr>
+            <Box>
+              <Table>
+                <Tbody>
+                  <CheckboxGroup
+                    value={perms}
+                    onChange={(e) => setPerms(e as string[])}
+                  >
+                    <Tr>
+                      <Td>
+                        <Checkbox value="UFC" readOnly>
+                          Upload Faculty Certificates
+                        </Checkbox>
+                      </Td>
+                      <Td>
+                        <List>
+                          <ListItem mb={2}>
+                            <ListIcon as={FileWarningIcon} color="yellow.500" />
+                            Default permission - Cannot be changed
+                          </ListItem>
+                          <ListItem mb={2}>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Add their own certifications to the system
+                          </ListItem>
+                        </List>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Checkbox value="MHI">Manage Events</Checkbox>
+                      </Td>
+                      <Td>
+                        <List>
+                          <ListItem mb={2}>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Create Events
+                          </ListItem>
+                          <ListItem mb={2}>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Update Events
+                          </ListItem>
+                          <ListItem>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Manage / Edit Events
+                          </ListItem>
+                        </List>
+                      </Td>
+                    </Tr>
+                  </CheckboxGroup>
+
+                  <Tr>
+                    <Td>
                       <RadioGroup
-                        value={perms.find((perm) => perm.startsWith("HCO")) || ""}
+                        value={
+                          houses.find(
+                            (house) => house.facultyCordinator === user?._id
+                          )?.id
+                        }
                         onChange={(value) => {
-                          setPerms((prev) =>
-                            [
-                              ...prev.filter((perm) => !perm.startsWith("HCO")),
-                              value,
-                            ].filter(Boolean)
-                          );
+                          const updatedPerms = [
+                            ...perms.filter((perm) => !perm.startsWith("H")),
+                            value,
+                          ].filter(Boolean);
+                          setPerms(updatedPerms);
                         }}
                       >
                         <Flex direction="column" gap={3}>
                           {houses.map((house, index) => (
-                            <Radio key={index} value={`HCO${index}`} colorScheme="blue">
+                            <Radio key={index} value={`H${index + 1}`}>
                               House Coordinator - {house.name}
                             </Radio>
                           ))}
-                          <Radio value="" colorScheme="blue">None</Radio>
+                          <Radio value="">None</Radio>
                         </Flex>
                       </RadioGroup>
-                    </CheckboxGroup>
-                  </Tbody>
-                </Table>
-              </CheckboxGroup>
+                    </Td>
+                    <Td>
+                      <List>
+                        <ListItem>
+                          <ListIcon as={CheckCircleIcon} color="green.500" />
+                          Manage House Profile
+                        </ListItem>
+                        <ListItem>
+                          <ListIcon as={CheckCircleIcon} color="green.500" />
+                          Manage House Members
+                        </ListItem>
+                      </List>
+                    </Td>
+                  </Tr>
+
+                  <CheckboxGroup
+                    value={perms.filter((perm) => !perm.startsWith("H"))}
+                    onChange={(values) => {
+                      const nonHValues = values.filter(
+                        (value) => !(value as string).startsWith("H")
+                      );
+                      setPerms([...nonHValues].map(String));
+                    }}
+                  >
+                    <Tr>
+                      <Td>
+                        <Checkbox value="SND">Send Notifications</Checkbox>
+                      </Td>
+                      <Td>
+                        <List>
+                          <ListItem>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Send Global Notifications to Users
+                          </ListItem>
+                        </List>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Checkbox value="RSP">Reset Student Password</Checkbox>
+                      </Td>
+                      <Td>
+                        <List>
+                          <ListItem>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Assist in resetting student passwords when necessary
+                          </ListItem>
+                        </List>
+                      </Td>
+                    </Tr>
+                    <Tr>
+                      <Td>
+                        <Checkbox value="AES">Add/Edit Student</Checkbox>
+                      </Td>
+                      <Td>
+                        <List>
+                          <ListItem mb={2}>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Add Students to the system
+                          </ListItem>
+                          <ListItem mb={2}>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Delete Students from the system
+                          </ListItem>
+                          <ListItem>
+                            <ListIcon as={CheckCircleIcon} color="green.500" />
+                            Edit Student Profiles
+                          </ListItem>
+                        </List>
+                      </Td>
+                    </Tr>
+                  </CheckboxGroup>
+                </Tbody>
+              </Table>
             </Box>
           </ModalBody>
 
@@ -354,15 +438,13 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
             <Button
               colorScheme="green"
               onClick={() => {
-                setPermClose();
-                onOpen();
+                closePerms();
               }}
-              leftIcon={<CheckCircle size={18} />}
             >
-              Set Permissions
+              Set
             </Button>
           </ModalFooter>
-        </MotionModalContent>
+        </ModalContent>
       </Modal>
     </AnimatePresence>
   );

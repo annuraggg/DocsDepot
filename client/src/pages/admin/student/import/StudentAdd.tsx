@@ -46,7 +46,7 @@ const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
   const toast = useToast();
   const axios = useAxios();
 
-  useEffect(() => {
+  useEffect(() => {``
     onOpen();
     axios
       .get("/houses")
