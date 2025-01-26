@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Container,
@@ -49,7 +49,9 @@ import { User, Gender } from "@shared-types/User";
 import useAxios from "@/config/axios";
 import { House } from "@shared-types/House";
 import { useNavigate } from "react-router";
+import getAcademicYear from "@/utils/getAcademicYear";
 
+const ITEMS_PER_PAGE = 5;
 const MotionBox = motion(Box);
 
 interface ExtendedUser extends Omit<User, "house"> {
@@ -67,7 +69,6 @@ const Students = () => {
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<ExtendedUser[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredStudents, setFilteredStudents] = useState<ExtendedUser[]>([]);
   const [filters, setFilters] = useState<FilterState>({
     gender: [],
     status: [],
@@ -108,6 +109,7 @@ const Students = () => {
   const [gender, setGender] = useState<Gender>("M");
   const [update, setUpdate] = useState(false);
   const [studentId, setStudentId] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const toast = useToast();
   const axios = useAxios();
@@ -120,7 +122,8 @@ const Students = () => {
         setStudents(res.data.data);
       })
       .catch((err) => {
-        const errorMessage = err.response?.data?.message || "Error fetching students";
+        const errorMessage =
+          err.response?.data?.message || "Error fetching students";
         toast({
           title: "Error",
           description: errorMessage,
@@ -132,20 +135,42 @@ const Students = () => {
       .finally(() => setLoading(false));
   }, [update]);
 
-  useEffect(() => {
-    const filtered = students.filter((student) => {
-      const matchesSearch = [student.fname, student.lname, student.social.email]
-        .some((value) => value.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+      const matchesSearch = [
+        student.fname,
+        student.lname,
+        student.social.email,
+      ].some((value) =>
+        value.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
-      const matchesGender = filters.gender.length === 0 || filters.gender.includes(student.gender);
-      const matchesYear = filters.years.length === 0 || filters.years.includes(student.academicDetails.academicYear?.toString() || "");
-      const matchesHouse = filters.houses.length === 0 || filters.houses.includes(student.house?._id);
+      const matchesGender =
+        filters.gender.length === 0 || filters.gender.includes(student.gender);
+      const matchesYear =
+        filters.years.length === 0 ||
+        filters.years.includes(
+          student.academicDetails.admissionYear?.toString() || ""
+        );
+      const matchesHouse =
+        filters.houses.length === 0 ||
+        filters.houses.includes(student.house?._id);
 
       return matchesSearch && matchesGender && matchesYear && matchesHouse;
     });
-
-    setFilteredStudents(filtered);
   }, [searchQuery, students, filters]);
+
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredStudents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredStudents, currentPage]);
+
+  // Total pages calculation
+  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+
+  // Page change handlers
+  const nextPage = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
+  const prevPage = () => setCurrentPage((p) => Math.max(p - 1, 1));
 
   const toggleBulkDelete = () => {
     setIsBulkDelete(!isBulkDelete);
@@ -153,9 +178,9 @@ const Students = () => {
   };
 
   const handleStudentSelect = (studentId: string) => {
-    setSelectedStudents(prev =>
+    setSelectedStudents((prev) =>
       prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
+        ? prev.filter((id) => id !== studentId)
         : [...prev, studentId]
     );
   };
@@ -168,9 +193,31 @@ const Students = () => {
   const confirmDelete = async () => {
     try {
       if (studentToDelete) {
-        await axios.delete(`/user/${studentToDelete}`);
+        await axios.delete(`/user/${studentToDelete}`).catch((err) => {
+          const errorMessage =
+            err.response?.data?.message || "Error deleting student";
+          toast({
+            title: "Error",
+            description: errorMessage,
+            status: "error",
+            duration: 2000,
+            isClosable: true,
+          });
+        });
       } else {
-        await axios.delete('/user/bulk', { data: { ids: selectedStudents } });
+        await axios
+          .delete("/user/bulk", { data: { ids: selectedStudents } })
+          .catch((err) => {
+            const errorMessage =
+              err.response?.data?.message || "Error deleting student";
+            toast({
+              title: "Error",
+              description: errorMessage,
+              status: "error",
+              duration: 2000,
+              isClosable: true,
+            });
+          });
       }
 
       toast({
@@ -186,7 +233,8 @@ const Students = () => {
       setSelectedStudents([]);
       setStudentToDelete("");
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "Something went wrong";
+      const errorMessage =
+        err.response?.data?.message || "Something went wrong";
       toast({
         title: "Error",
         description: errorMessage,
@@ -233,10 +281,10 @@ const Students = () => {
         });
         setUpdate(!update);
       })
-      .catch(() => {
+      .catch((err) => {
         toast({
           title: "Error",
-          description: "Error updating student",
+          description: err.response?.data?.message || "Error updating student",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -276,10 +324,7 @@ const Students = () => {
               {isBulkDelete ? "Cancel" : "Bulk Delete"}
             </Button>
             {isBulkDelete && selectedStudents.length > 0 && (
-              <Button
-                colorScheme="red"
-                onClick={onDeleteAlertOpen}
-              >
+              <Button colorScheme="red" onClick={onDeleteAlertOpen}>
                 Delete Selected ({selectedStudents.length})
               </Button>
             )}
@@ -312,6 +357,18 @@ const Students = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </InputGroup>
+
+        <Flex justify="center" align="center" mt={4} mb={4}>
+          <Button onClick={prevPage} isDisabled={currentPage === 1} mr={2}>
+            Previous
+          </Button>
+          <Text mx={4}>
+            Page {currentPage} of {totalPages}
+          </Text>
+          <Button onClick={nextPage} isDisabled={currentPage === totalPages}>
+            Next
+          </Button>
+        </Flex>
 
         <AnimatePresence>
           <Box
@@ -406,7 +463,7 @@ const Students = () => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {filteredStudents.map((student) => (
+                  {paginatedStudents.map((student) => (
                     <Tr
                       key={student.mid}
                       _hover={{ bg: "gray.50" }}
@@ -439,7 +496,11 @@ const Students = () => {
                       </Td>
                       <Td py={4} px={6}>
                         <HStack spacing={2}>
-                          <Text fontSize="sm" fontWeight="medium" color="gray.900">
+                          <Text
+                            fontSize="sm"
+                            fontWeight="medium"
+                            color="gray.900"
+                          >
                             {`${student.fname} ${student.lname}`}
                           </Text>
                         </HStack>
@@ -453,7 +514,11 @@ const Students = () => {
                           fontWeight="medium"
                           colorScheme="green"
                         >
-                          Year {student.academicDetails.academicYear}
+                          {getAcademicYear(
+                            student.academicDetails.admissionYear,
+                            student.academicDetails.isDSE,
+                            student.academicDetails.yearBacklog
+                          )}
                         </Badge>
                       </Td>
                       <Td py={4} px={6}>
@@ -601,7 +666,9 @@ const Students = () => {
                 <FormLabel fontWeight="medium">Gender</FormLabel>
                 <CheckboxGroup
                   value={filters.gender}
-                  onChange={(values) => setFilters({ ...filters, gender: values as string[] })}
+                  onChange={(values) =>
+                    setFilters({ ...filters, gender: values as string[] })
+                  }
                 >
                   <Stack direction="row" spacing={4}>
                     <Checkbox value="M">Male</Checkbox>
@@ -614,7 +681,9 @@ const Students = () => {
                 <FormLabel fontWeight="medium">Academic Year</FormLabel>
                 <CheckboxGroup
                   value={filters.years}
-                  onChange={(values) => setFilters({ ...filters, years: values as string[] })}
+                  onChange={(values) =>
+                    setFilters({ ...filters, years: values as string[] })
+                  }
                 >
                   <Stack direction="row" spacing={4}>
                     <Checkbox value="1">First Year</Checkbox>
@@ -629,15 +698,18 @@ const Students = () => {
                 <FormLabel fontWeight="medium">Houses</FormLabel>
                 <CheckboxGroup
                   value={filters.houses}
-                  onChange={(values) => setFilters({ ...filters, houses: values as string[] })}
+                  onChange={(values) =>
+                    setFilters({ ...filters, houses: values as string[] })
+                  }
                 >
                   <Stack direction="row" spacing={4} wrap="wrap">
-                    {uniqueHouses.map((house) =>
-                      house && (
-                        <Checkbox key={house._id} value={house._id}>
-                          {house.name}
-                        </Checkbox>
-                      )
+                    {uniqueHouses.map(
+                      (house) =>
+                        house && (
+                          <Checkbox key={house._id} value={house._id}>
+                            {house.name}
+                          </Checkbox>
+                        )
                     )}
                   </Stack>
                 </CheckboxGroup>
@@ -648,12 +720,14 @@ const Students = () => {
             <Button
               variant="ghost"
               mr={3}
-              onClick={() => setFilters({
-                gender: [],
-                status: [],
-                houses: [],
-                years: [],
-              })}
+              onClick={() =>
+                setFilters({
+                  gender: [],
+                  status: [],
+                  houses: [],
+                  years: [],
+                })
+              }
             >
               Clear All
             </Button>

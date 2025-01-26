@@ -148,25 +148,69 @@ const createStudent = async (c: Context) => {
   const body = await c.req.json();
   const token = c.get("user") as Token;
   try {
-    const user = new User(body);
-    const password = bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10);
-    user.password = password;
+    const house = body.house || null;
+    const firstTime = !body.house;
 
-    const admissionYear = body.mid.slice(0, 2);
-    const isDSE = body.mid.slice(2, 3) === "2" ? true : false;
-    const branch = "IT";
-    const yearBacklog = 0;
-    const social = { email: body.email, github: "", linkedin: "" };
+    const user = new User({
+      ...body,
+      role: "S",
+      house,
+      onboarding: { firstTime, approved: firstTime, defaultPW: true },
+      password: bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10),
+      academicDetails: {
+        admissionYear: body.mid.slice(0, 2),
+        isDSE: body.mid.slice(2, 3) === "2",
+        branch: "IT",
+        yearBacklog: 0,
+      },
+      social: { email: body.email, github: "", linkedin: "" },
+    });
 
     const gate = new UserKeeper(token, user);
     await gate.create();
-    user.academicDetails = { admissionYear, isDSE, branch, yearBacklog };
-    user.social = social;
-
     await user.save();
+
     return sendSuccess(c, 200, "User created", user);
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
+const bulkCreateStudents = async (c: Context) => {
+  const { tableData } = await c.req.json();
+  const token = c.get("user") as Token;
+
+  try {
+    const students: IUser[] = [];
+
+    for (const student of tableData) {
+      const user = new User({
+        role: "S",
+        mid: student[0],
+        fname: student[1],
+        lname: student[2],
+        gender: student[3] === "Male" ? "M" : student[3] === "Female" ? "F" : "O",
+        social: { email: student[4], github: "", linkedin: "" },
+        password: bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10),
+        academicDetails: {
+          admissionYear: student[0].slice(0, 2),
+          isDSE: student[0].slice(2, 3) === "2",
+          branch: "IT",
+          yearBacklog: 0,
+        },
+      });
+
+      const gate = new UserKeeper(token, user);
+      await gate.create();
+      await user.save();
+
+      students.push(user as unknown as IUser);
+    }
+
+    return sendSuccess(c, 200, "Students created", students);
+  } catch (err) {
+    console.error(err);
     return sendError(c, 500, "Internal Server Error");
   }
 };
@@ -184,39 +228,6 @@ const createFaculty = async (c: Context) => {
 
     await user.save();
     return sendSuccess(c, 200, "User created", user);
-  } catch (err) {
-    return sendError(c, 500, "Internal Server Error");
-  }
-};
-
-const bulkCreateStudents = async (c: Context) => {
-  const { tableData } = await c.req.json();
-  const token = c.get("user") as Token;
-
-  try {
-    const students: IUser[] = [];
-    for (const student of tableData) {
-      const user = new User();
-      const password = bcrypt.hashSync(
-        process.env.DEFAULT_STUDENT_PASSWORD!,
-        10
-      );
-      user.password = password;
-      user.mid = student[0];
-      user.fname = student[1];
-      user.lname = student[2];
-      user.gender =
-        student[3] === "Male" ? "M" : student[3] === "Female" ? "F" : "O";
-      user.social = { email: student[4], github: "", linkedin: "" };
-      user.role = "S";
-
-      const gate = new UserKeeper(token, user);
-      await gate.create();
-
-      await user.save();
-      students.push(user as unknown as IUser);
-    }
-    return sendSuccess(c, 200, "Students created", students);
   } catch (err) {
     return sendError(c, 500, "Internal Server Error");
   }

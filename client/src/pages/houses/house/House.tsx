@@ -301,8 +301,8 @@ export const House: React.FC = () => {
 
             <div className="pt-5 px-8 pb-8">
               <SocialLinks house={house} />
-              <h2 className="text-xl font-semibold mb-3">{house?.abstract}</h2>
-              <p className="text-gray-600 leading-relaxed">{house?.desc}</p>
+              <h2 className="text-xl font-semibold mb-3">{house?.abstract || "No Abstract Provided."}</h2>
+              <p className="text-gray-600 leading-relaxed">{house?.desc || "No Description Provided. "}</p>
             </div>
           </CardBody>
         </Card>

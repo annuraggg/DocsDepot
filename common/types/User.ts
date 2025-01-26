@@ -22,7 +22,7 @@ interface Onboarding {
 }
 
 interface AcademicDetails {
-  academicYear?: number;
+  yearBacklog?: number;
   isDSE?: boolean;
   branch: string;
   admissionYear: number;

@@ -64,17 +64,6 @@ const Settings = () => {
 
   const { colorMode, toggleColorMode } = useColorMode();
 
-  const validatePassMatch = (pass: string) => {
-    setConfirmPass(pass);
-    if (pass === newPass) {
-      setErr("");
-      setToastDispatched(true);
-    } else {
-      setErr("Passwords do not match");
-      setToastDispatched(false);
-    }
-  };
-
   const sendNewPass = () => {
     if (oldPass === "" || newPass === "" || confirmPass === "") {
       setErr("Please fill all the fields");
@@ -330,6 +319,37 @@ const Settings = () => {
       });
   };
 
+  useEffect(() => {
+    // Reset error state
+    setErr("");
+
+    // Check if any field is non-empty
+    if (oldPass !== "" || newPass !== "" || confirmPass !== "") {
+      // Validate passwords
+      if (newPass !== "" && newPass === oldPass) {
+        setErr("New Password cannot be same as Old Password");
+        setToastDispatched(false);
+        return;
+      }
+
+      if (confirmPass !== "" && newPass !== confirmPass) {
+        setErr("Passwords do not match");
+        setToastDispatched(false);
+        return;
+      }
+
+      // Enable save button if all validations pass
+      if (oldPass !== "" && newPass !== "" && confirmPass !== "") {
+        setToastDispatched(true);
+      } else {
+        setToastDispatched(false);
+      }
+    } else {
+      // Disable save button if all fields are empty
+      setToastDispatched(false);
+    }
+  }, [oldPass, newPass, confirmPass]);
+
   if (loading) return <Loader />;
 
   return (
@@ -389,7 +409,9 @@ const Settings = () => {
                             type={show1 ? "text" : "password"}
                             placeholder="Enter Old Password"
                             value={oldPass}
-                            onChange={(e) => setOldPass(e.target.value)}
+                            onChange={(e) => {
+                              setOldPass(e.target.value);
+                            }}
                             className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           />
                           <button
@@ -409,7 +431,9 @@ const Settings = () => {
                             type={show2 ? "text" : "password"}
                             placeholder="Enter New Password"
                             value={newPass}
-                            onChange={(e) => setNewPass(e.target.value)}
+                            onChange={(e) => {
+                              setNewPass(e.target.value);
+                            }}
                             className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           />
                           <button
@@ -429,7 +453,9 @@ const Settings = () => {
                             type={show3 ? "text" : "password"}
                             placeholder="Confirm New Password"
                             value={confirmPass}
-                            onChange={(e) => validatePassMatch(e.target.value)}
+                            onChange={(e) => {
+                              setConfirmPass(e.target.value);
+                            }}
                             className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                           />
                           <button

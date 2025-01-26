@@ -29,8 +29,8 @@ const userSchema = new mongoose.Schema(
     },
     social: {
       email: { type: String, default: "", unique: true },
-      github: { type: String, default: "", unique: true },
-      linkedin: { type: String, default: "", unique: true },
+      github: { type: String, default: "" },
+      linkedin: { type: String, default: "" },
     },
     settings: {
       colorMode: { type: String, enum: ["light", "dark"], default: "light" },

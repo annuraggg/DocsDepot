@@ -55,6 +55,13 @@ const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
       })
       .catch((err) => {
         console.error(err);
+        toast({
+          title: "Error",
+          description: err.response.data.message || "Failed to fetch houses",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       });
   }, []);
 
@@ -71,7 +78,7 @@ const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
       email: email,
       house: house,
       gender: gender,
-      role: "S"
+      role: "S",
     };
 
     if (moodleid.length !== 8) {
@@ -87,17 +94,18 @@ const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
 
     axios
       .post("/user/student", data)
-      .then((res) => {
-        if (res.status === 200) {
-          setClose();
-          toast({
-            title: "Student Added",
-            description: "Student has been added successfully",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-        } else if (res.status === 409) {
+      .then(() => {
+        setClose();
+        toast({
+          title: "Student Added",
+          description: "Student has been added successfully",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      })
+      .catch((err) => {
+        if (err.response.status === 409) {
           toast({
             title: "Error",
             description: "Moodle ID already exists",
@@ -105,21 +113,13 @@ const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
             duration: 3000,
             isClosable: true,
           });
-        } else {
-          toast({
-            title: "Error",
-            description: "Something went wrong",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
+          return;
         }
-      })
-      .catch((err) => {
+
         console.error(err);
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: err.response.data.message || "Failed to add student",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -131,10 +131,7 @@ const StudentAdd = ({ setModal, houses: initialHouses }: StudentAddProps) => {
     <AnimatePresence>
       {isOpen && (
         <Modal isOpen={isOpen} onClose={setClose}>
-          <ModalOverlay
-            bg="blackAlpha.300"
-            backdropFilter="blur(10px)"
-          />
+          <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
           <MotionModalContent
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

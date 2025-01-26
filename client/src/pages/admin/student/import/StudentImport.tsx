@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -40,6 +40,9 @@ const StudentImport = () => {
   const navigate = useNavigate();
   const axios = useAxios();
 
+  // Ref for the file input
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
@@ -58,14 +61,15 @@ const StudentImport = () => {
         toast({
           title: "Error",
           description:
-            "Invalid CSV File with length " +
-            " at row " +
+            "Invalid CSV File with length at row " +
             (tableData.indexOf(row) + 1),
           status: "error",
           duration: 3000,
           isClosable: true,
         });
         setAdding(false);
+        setTableData([]); // Clear the table data
+        fileInputRef.current!.value = ""; // Reset the file input
         return;
       }
 
@@ -79,24 +83,29 @@ const StudentImport = () => {
           isClosable: true,
         });
         setAdding(false);
+        setTableData([]); // Clear the table data
+        fileInputRef.current!.value = ""; // Reset the file input
         return;
       }
     });
 
     axios
       .post("/user/student/bulk", { tableData })
-      .then((res) => {
-        if (res.status === 200) {
-          toast({
-            title: "Students Imported",
-            description: "Students have been successfully imported",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
+      .then(() => {
+        toast({
+          title: "Students Imported",
+          description: "Students have been successfully imported",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
 
-          navigate("/admin/student");
-        } else if (res.status === 409) {
+        setTimeout(() => {
+          navigate("/admin/students"); // Redirect after the success message
+        }, 3000); // Delay matches toast duration
+      })
+      .catch((err) => {
+        if (err.response.status === 409) {
           toast({
             title: "Error",
             description: "Moodle ID already exists",
@@ -104,19 +113,21 @@ const StudentImport = () => {
             duration: 3000,
             isClosable: true,
           });
-        } else {
-          toast({
-            title: "Error",
-            description: "Error in importing students",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
         }
+
+        console.error(err);
+        toast({
+          title: "Error",
+          description: err.response.data.message || "Failed to import students",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       })
       .finally(() => {
-        setTableData([]);
+        setTableData([]); // Clear the table data after import
         setAdding(false);
+        fileInputRef.current!.value = ""; // Reset the file input
       });
   };
 
@@ -130,7 +141,7 @@ const StudentImport = () => {
         console.error(err);
         toast({
           title: "Error",
-          description: err.response.data.message || "Something went wrong",   
+          description: err.response.data.message || "Failed to fetch houses",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -151,8 +162,12 @@ const StudentImport = () => {
       >
         <VStack spacing={8} align="stretch">
           <Box>
-            <Heading size="lg" mb={2}>Student Management</Heading>
-            <Text color="gray.600">Import or add individual students to the system</Text>
+            <Heading size="lg" mb={2}>
+              Student Management
+            </Heading>
+            <Text color="gray.600">
+              Import or add individual students to the system
+            </Text>
           </Box>
 
           <HStack spacing={4} justify="flex-start">
@@ -190,13 +205,15 @@ const StudentImport = () => {
           >
             <AlertIcon />
             <AlertDescription>
-              Please upload a CSV file with columns in order: Student ID, First Name, Last Name,
-              Gender, Email. First row should not contain column names. No blank rows allowed.
+              Please upload a CSV file with columns in order: Student ID, First
+              Name, Last Name, Gender, Email. First row should not contain
+              column names. No blank rows allowed.
             </AlertDescription>
           </Alert>
 
           <input
             id="file-upload"
+            ref={fileInputRef}
             type="file"
             accept=".csv"
             onChange={handleFileUpload}

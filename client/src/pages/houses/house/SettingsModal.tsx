@@ -113,6 +113,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <Box
                       w="24px"
                       h="24px"
+                      border="1px"
                       borderRadius="full"
                       bg={house.color}
                       cursor="pointer"
