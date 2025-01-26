@@ -151,7 +151,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
           start: new Date(`${formData.eventStartDate}T${formData.eventStartTime}`).toISOString(),
           end: new Date(`${formData.eventEndDate}T${formData.eventEndTime}`).toISOString(),
         },
-        registeration: {
+        registrationTimeline: {
           start: new Date(`${formData.registrationStartDate}T${formData.registrationStartTime}`),
           end: new Date(`${formData.registrationEndDate}T${formData.registrationEndTime}`),
         },
@@ -379,7 +379,7 @@ export const CreateEventModal = ({ isOpen, onClose, onSubmit }: CreateEventModal
                 <FormControl isRequired>
                   <FormLabel className="flex items-center gap-2">
                     <Radio className="w-4 h-4" />
-                    Points
+                    Points (to be assigned to registered participants)
                   </FormLabel>
                   <Input
                     name="points"

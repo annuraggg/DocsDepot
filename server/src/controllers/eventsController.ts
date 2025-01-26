@@ -4,6 +4,11 @@ import logger from "../utils/logger.js";
 import Event from "../models/Event.js";
 import User from "../models/User.js";
 import type { Context } from "hono";
+import type { Token } from "docsdepot-types/Token.js";
+import House from "../models/House.js";
+import { House as IHouse } from "docsdepot-types/House.js";
+import type { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
+import Certificate from "../models/Certificate.js";
 
 const getAllEvents = async (c: Context) => {
   try {
@@ -18,7 +23,7 @@ const getEventById = async (c: Context) => {
   const { id } = c.req.param();
 
   try {
-    const event = await Event.findById(id);
+    const event = await Event.findById(id).populate("participants.user");
     if (!event) return sendError(c, 404, "Event not found");
 
     return sendSuccess(c, 200, "Event fetched successfully", event);
@@ -125,27 +130,133 @@ const createEvent = async (c: Context) => {
 
 const registerForEvent = async (c: Context) => {
   const { id } = c.req.param();
-  const { mid } = await c.req.json();
+  const { _id } = (await c.get("user")) as Token;
 
   try {
-    await Event.findByIdAndUpdate(id, { $addToSet: { participants: mid } });
-    await User.findByIdAndUpdate(mid, { $addToSet: { registeredEvents: id } });
+    // Assuming participants are stored as ObjectId references
+    await Event.findByIdAndUpdate(id, {
+      $addToSet: {
+        participants: {
+          user: _id,
+          registeredAt: new Date(),
+        },
+      },
+    });
     return sendSuccess(c, 200, "Registered for event successfully");
   } catch (err) {
+    console.log(err);
     return sendError(c, 500, "Error in registering for event");
   }
 };
 
 const deregisterForEvent = async (c: Context) => {
   const { id } = c.req.param();
-  const { mid } = await c.req.json();
+  const { _id } = (await c.get("user")) as Token;
 
   try {
-    await Event.findByIdAndUpdate(id, { $pull: { participants: mid } });
-    await User.findByIdAndUpdate(mid, { $pull: { registeredEvents: id } });
+    await Event.findByIdAndUpdate(id, { $pull: { participants: _id } });
     return sendSuccess(c, 200, "Deregistered for event successfully");
   } catch (err) {
     return sendError(c, 500, "Error in deregistering for event");
+  }
+};
+
+const getMonthInThreeLetter = () => {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return months[new Date().getMonth()];
+};
+
+const allocatePoints = async (c: Context) => {
+  const { id } = c.req.param();
+  const { points } = await c.req.json();
+
+  try {
+    // Fetch the event and houses in parallel to reduce waiting time
+    const [event, allHouses] = await Promise.all([
+      Event.findById(id),
+      House.find(),
+    ]);
+
+    if (!event) return sendError(c, 404, "Event not found");
+
+    const houseMap = allHouses.reduce((map, house) => {
+      house.members.forEach((memberId) => {
+        map.set(memberId.toString(), house);
+      });
+      return map;
+    }, new Map<string, House>());
+
+    // Fetch all participants' users in parallel
+    const userIds = event.participants.map((p) => p.user);
+    const users = await User.find({ _id: { $in: userIds } });
+
+    // Create certificates and update points in parallel
+    const certificatePromises = [];
+    const houseUpdatePromises = [];
+
+    users.forEach((user) => {
+      const house = houseMap.get(user._id.toString());
+      if (!house) return; // Skip if the user is not part of any house
+
+      // Create certificate
+      const certificate: ICertificate = {
+        name: event.name,
+        issuingOrganization: "A.P. Shah Institute of Technology",
+        user: user._id as ObjectId,
+        issueDate: {
+          month: getMonthInThreeLetter(),
+          year: new Date().getFullYear(),
+        },
+        type: "event",
+        level: "beginner",
+        uploadType: "print",
+        status: "approved",
+        earnedXp: points,
+      };
+
+      const certificateDocument = new Certificate(certificate);
+      certificatePromises.push(certificateDocument.save());
+
+      // Prepare point object and update house
+      const pointObj = {
+        certificateId: certificateDocument._id,
+        userId: user._id,
+        points,
+      };
+
+      houseUpdatePromises.push(
+        House.findByIdAndUpdate(house._id, {
+          $push: { points: pointObj },
+        })
+      );
+    });
+
+    // Wait for all certificates to be saved
+    await Promise.all(certificatePromises);
+
+    // Wait for all house updates to be completed
+    await Promise.all(houseUpdatePromises);
+
+    // Mark points as allocated for the event
+    await Event.findByIdAndUpdate(id, { pointsAllocated: true, points });
+
+    return sendSuccess(c, 200, "Points allocated successfully");
+  } catch (err) {
+    console.error(err); // log the error for debugging
+    return sendError(c, 500, "Error in allocating points");
   }
 };
 
@@ -157,4 +268,5 @@ export default {
   createEvent,
   registerForEvent,
   deregisterForEvent,
+  allocatePoints,
 };

@@ -60,7 +60,14 @@ interface NavLinkProps {
   onClose?: () => void;
 }
 
-const NavLink = ({ icon, text, to, onClick, show = true, onClose }: NavLinkProps) => {
+const NavLink = ({
+  icon,
+  text,
+  to,
+  onClick,
+  show = true,
+  onClose,
+}: NavLinkProps) => {
   const navigate = useNavigate();
   if (!show) return null;
 
@@ -181,10 +188,66 @@ const FacultyNavbar = () => {
               onClick={() => navigate("/faculty")}
             >
               <img src={Logo} className="w-24" alt="Logo" />
-              <img src={Logo} className="w-24" alt="Logo" />
             </div>
 
             <div className="hidden md:flex ml-10 space-x-8">
+              {/* My House Group */}
+              {hasHouseCoordinatorPerms && (
+                <Menu>
+                  <MenuButton
+                    as="button"
+                    className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                  >
+                    <div className="flex items-center justify-center">
+                      <Award className="w-4 h-4" />
+                      <span className="mx-2">My House</span>
+                    </div>
+                  </MenuButton>
+                  <MenuList>
+                    <MenuItem onClick={() => navigate("/faculty/certificates")}>
+                      Manage Certificates
+                    </MenuItem>
+                    <MenuItem onClick={() => navigate("/faculty/enrollments")}>
+                      Enrollment Requests
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              )}
+
+              {/* Manage Students Group */}
+
+              {decoded?.perms?.includes("AES") ||
+              decoded?.perms?.includes("RSP") ? (
+                <Menu>
+                  <MenuButton
+                    as="button"
+                    className=" text-sm font-medium text-gray-600 hover:text-gray-900"
+                  >
+                    <div className="flex items-center justify-center">
+                      <Users className="w-4 h-4" />
+                      <span className="mx-2">Manage Students</span>
+                    </div>
+                  </MenuButton>
+                  <MenuList>
+                    {decoded?.perms?.includes("AES") && (
+                      <MenuItem onClick={() => navigate("/faculty/students")}>
+                        Manage Students
+                      </MenuItem>
+                    )}
+
+                    {decoded?.perms?.includes("RSP") && (
+                      <MenuItem
+                        onClick={() => {
+                          onResetOpen();
+                        }}
+                      >
+                        Reset Student Password
+                      </MenuItem>
+                    )}
+                  </MenuList>
+                </Menu>
+              ) : null}
+
               <NavLink
                 icon={<FileText className="w-4 h-4" />}
                 text="My Certifications"
@@ -199,30 +262,6 @@ const FacultyNavbar = () => {
                 icon={<Calendar className="w-4 h-4" />}
                 text="Events"
                 to="/events"
-              />
-              <NavLink
-                icon={<Award className="w-4 h-4" />}
-                text="Manage Certificates"
-                to="/faculty/certificates"
-                show={hasHouseCoordinatorPerms}
-              />
-              <NavLink
-                icon={<UserCheck className="w-4 h-4" />}
-                text="Enrollment Requests"
-                to="/faculty/enrollments"
-                show={hasHouseCoordinatorPerms}
-              />
-              <NavLink
-                icon={<Lock className="w-4 h-4" />}
-                text="Reset Student Password"
-                onClick={onResetOpen}
-                show={decoded?.perms?.includes("RSP")}
-              />
-              <NavLink
-                icon={<Users className="w-4 h-4" />}
-                text="Manage Students"
-                to="/faculty/students"
-                show={decoded?.perms?.includes("AES")}
               />
             </div>
           </div>

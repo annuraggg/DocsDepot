@@ -406,7 +406,13 @@ const Faculty = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Flex justify="space-between" align="center" mb={8} direction={{ base: "column", md: "row" }} gap={4}>
+        <Flex
+          justify="space-between"
+          align="center"
+          mb={8}
+          direction={{ base: "column", md: "row" }}
+          gap={4}
+        >
           <Box textAlign={{ base: "center", md: "left" }}>
             <Heading size="lg" mb={2}>
               Faculty Management

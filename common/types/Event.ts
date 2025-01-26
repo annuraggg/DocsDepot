@@ -30,7 +30,7 @@ interface Event {
   mode: Mode;
   link?: string;
   contact: Contact;
-  registeration: RegistrationTimeline;
+  registrationTimeline: RegistrationTimeline;
   eventTimeline: EventTimeline;
   registerationType: RegistrationType;
   pointsAllocated: boolean;

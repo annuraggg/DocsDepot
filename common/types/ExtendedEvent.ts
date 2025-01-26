@@ -5,7 +5,8 @@ interface ExtendedEvent extends Omit<Event, "participants"> {
   participants: ExtendedUser[];
 }
 
-interface ExtendedUser extends User {
+interface ExtendedUser {
+  user: User;
   registeredAt: Date;
 }
 

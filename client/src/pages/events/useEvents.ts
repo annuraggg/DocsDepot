@@ -63,6 +63,7 @@ export const useEvents = () => {
       }
       throw new Error("Failed to create event");
     } catch (err) {
+      console.error(err);
       toast({
         title: "Error",
         description: "Failed to create event",

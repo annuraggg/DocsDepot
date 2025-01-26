@@ -117,6 +117,7 @@ const Event = () => {
     const id = window.location.pathname.split("/")[2];
 
     axios.get(`/events/${id}`).then((res) => {
+      console.log(res.data.data);
       setEvent(res.data.data);
       setEventName(res.data.data.name);
       setEventImage(res.data.data.image);
@@ -196,25 +197,49 @@ const Event = () => {
       return;
     }
 
-    axios.put(`/events/${event._id}`, {
+    const data: Partial<IEvent> = {
       name: eventName,
       image: eventImage,
       desc: eventDesc,
       location: eventLocation,
-      mode: eventMode,
+      mode: eventMode as "online" | "offline",
       link: eventLink,
-      email: eventEmail,
-      phone: eventPhone,
-      eventStarts: new Date(
-        `${eventStarts}T${eventStartTime}:00`
-      ).toISOString(),
-      eventEnds: new Date(`${eventEnds}T${eventEndTime}:00`).toISOString(),
-      registerationStarts: new Date(
-        `${registerationStarts}T${registerationStartTime}:00`
-      ).toISOString(),
-      registerationEnds: new Date(
-        `${registerationEnds}T${registerationEndTime}:00`
-      ).toISOString(),
+      contact: {
+        email: eventEmail,
+        phone: eventPhone,
+      },
+
+      eventTimeline: {
+        start: new Date(`${eventStarts}T${eventStartTime}:00`).toISOString(),
+        end: new Date(`${eventEnds}T${eventEndTime}:00`).toISOString(),
+      },
+
+      registrationTimeline: {
+        start: new Date(`${registerationStarts}T${registerationStartTime}:00`),
+        end: new Date(`${registerationEnds}T${registerationEndTime}:00`),
+      },
+    };
+
+    axios.put(`/events/${event._id}`, { ...data }).then((res) => {
+      if (res.status === 200) {
+        toast({
+          title: "Success",
+          description: "Event Updated Successfully",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        setUpdate(!update);
+        onClose();
+      } else {
+        toast({
+          title: "Error",
+          description: "Some error occurred",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
     });
   };
 
@@ -304,7 +329,16 @@ const Event = () => {
   };
 
   const exportCSV = () => {
-    const csv = papa.unparse(participants);
+    const users = participants.map((participant) => ({
+      name: `${participant?.user?.fname} ${participant?.user?.lname}`,
+      email: participant?.user?.social?.email,
+      registeredAt: new Date(
+        participant?.registeredAt || ""
+      ).toLocaleDateString("en-US", dateOptions),
+    }));
+
+    const csv = papa.unparse(users);
+
     const csvData = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const csvURL = window.URL.createObjectURL(csvData);
     const tempLink = document.createElement("a");
@@ -454,15 +488,15 @@ const Event = () => {
               </Thead>
               <Tbody>
                 {participants.map((participant) => (
-                  <Tr key={participant._id}>
+                  <Tr key={participant?.user?._id}>
                     <Td>
-                      {participant.fname} {participant.lname}
+                      {participant?.user?.fname} {participant?.user?.lname}
                     </Td>
-                    <Td>{participant.social.email}</Td>
+                    <Td>{participant?.user?.social?.email}</Td>
 
                     <Td>
                       {new Date(
-                        participant.registeredAt || ""
+                        participant?.registeredAt || ""
                       ).toLocaleDateString("en-US", dateOptions)}
                     </Td>
                   </Tr>
@@ -496,7 +530,7 @@ const Event = () => {
           {decoded._id && (
             <Box mt={6}>
               {event?.participants?.some(
-                (participant) => participant._id === decoded._id
+                (participant) => participant?.user?._id === decoded._id
               ) ? (
                 <Button
                   colorScheme="red"
@@ -513,14 +547,35 @@ const Event = () => {
                   onClick={register}
                   isLoading={registerLoading}
                   isDisabled={
-                    new Date(date) < new Date(event.registeration.start) ||
-                    new Date(date) > new Date(event.registeration.end)
+                    new Date(date) <
+                      new Date(event?.registrationTimeline?.start) ||
+                    new Date(date) > new Date(event?.registrationTimeline?.end)
                   }
                   leftIcon={<UserPlus className="w-4 h-4" />}
                   className="shadow-md hover:shadow-lg transition-shadow"
                 >
                   Register
                 </Button>
+              )}
+
+              {/* Show messages for: registeration not started, registeration ended, event started, event edned */}
+              {new Date(date) <
+                new Date(event?.registrationTimeline?.start) && (
+                <Text mt={4} color="red.500">
+                  Registration has not started yet
+                </Text>
+              )}
+
+              {new Date(date) > new Date(event?.registrationTimeline?.end) && (
+                <Text mt={4} color="red.500">
+                  Registration has ended
+                </Text>
+              )}
+
+              {new Date(date) > new Date(event?.eventTimeline?.end) && (
+                <Text mt={4} color="red.500">
+                  Event has ended
+                </Text>
               )}
             </Box>
           )}

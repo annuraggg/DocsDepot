@@ -60,14 +60,14 @@ export const EventDetails = ({
             <>
               <Text className="font-medium">
                 Opens:{" "}
-                {new Date(event?.registeration?.start).toLocaleDateString(
+                {new Date(event?.registrationTimeline?.start).toLocaleDateString(
                   "en-US",
                   dateOptions
                 )}
               </Text>
               <Text className="font-medium">
                 Closes:{" "}
-                {new Date(event?.registeration?.end).toLocaleDateString(
+                {new Date(event?.registrationTimeline?.end).toLocaleDateString(
                   "en-US",
                   dateOptions
                 )}
