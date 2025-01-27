@@ -191,7 +191,6 @@ const FacultyNavbar = () => {
             </div>
 
             <div className="hidden md:flex ml-10 space-x-8">
-              {/* My House Group */}
               {hasHouseCoordinatorPerms && (
                 <Menu>
                   <MenuButton
@@ -213,8 +212,6 @@ const FacultyNavbar = () => {
                   </MenuList>
                 </Menu>
               )}
-
-              {/* Manage Students Group */}
 
               {decoded?.perms?.includes("AES") ||
               decoded?.perms?.includes("RSP") ? (

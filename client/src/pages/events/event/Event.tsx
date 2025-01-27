@@ -558,7 +558,6 @@ const Event = () => {
                 </Button>
               )}
 
-              {/* Show messages for: registeration not started, registeration ended, event started, event edned */}
               {new Date(date) <
                 new Date(event?.registrationTimeline?.start) && (
                   <Text mt={4} color="red.500">

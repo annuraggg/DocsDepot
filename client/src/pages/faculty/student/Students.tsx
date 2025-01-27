@@ -133,6 +133,13 @@ const Students = () => {
       .finally(() => setLoading(false));
   }, [update]);
 
+  // Extract unique years from students data
+  const uniqueYears = Array.from(
+    new Set(
+      students.map((student) => student.academicDetails.admissionYear?.toString())
+    )
+  ).filter((year) => year); // Filter out undefined or null values
+
   useEffect(() => {
     const filtered = students.filter((student) => {
       const matchesSearch = [
@@ -636,10 +643,11 @@ const Students = () => {
                   }
                 >
                   <Stack direction="row" spacing={4}>
-                    <Checkbox value="1">First Year</Checkbox>
-                    <Checkbox value="2">Second Year</Checkbox>
-                    <Checkbox value="3">Third Year</Checkbox>
-                    <Checkbox value="4">Fourth Year</Checkbox>
+                    {uniqueYears.map((year) => (
+                      <Checkbox key={year} value={year}>
+                        Year {year}
+                      </Checkbox>
+                    ))}
                   </Stack>
                 </CheckboxGroup>
               </FormControl>

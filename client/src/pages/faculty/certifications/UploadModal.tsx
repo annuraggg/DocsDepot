@@ -20,7 +20,6 @@ import {
   Alert,
   AlertIcon,
   useToast,
-  // useBreakpointValue,
   Stack,
 } from "@chakra-ui/react";
 import { Upload, Check } from "lucide-react";
@@ -32,6 +31,8 @@ interface UploadModalProps {
   onUpload: (formData: FormData) => Promise<void>;
 }
 
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
+
 export const UploadModal: React.FC<UploadModalProps> = ({
   isOpen,
   onClose,
@@ -39,7 +40,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 }) => {
   const toast = useToast();
   const [btnLoading, setBtnLoading] = useState(false);
-  // const isMobile = useBreakpointValue({ base: true, lg: false });
 
   // Form states
   const [certificateName, setCertificateName] = useState("");
@@ -135,6 +135,26 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     return true;
   };
 
+  const handleFile = (file: File) => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "Error",
+        description: "File size exceeds the limit of 3 MB",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top-right",
+      });
+      setFile(null);
+      setFileName("No File Selected");
+      return;
+    }
+
+    setFileName(file.name);
+    setFile(file);
+    setCertificateUrl("");
+  };
+
   const handleUpload = async () => {
     setBtnLoading(true);
 
@@ -195,12 +215,6 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     } finally {
       setBtnLoading(false);
     }
-  };
-
-  const handleFile = (file: File) => {
-    setFileName(file.name);
-    setFile(file);
-    setCertificateUrl("");
   };
 
   return (
@@ -462,7 +476,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                         )}
                       </Text>
                       <Text fontSize={{ base: "xs", lg: "sm" }} color="gray.500">
-                        Supports: PDF, JPG, PNG, WEBP
+                        Supports: PDF, JPG, PNG, WEBP (Max 3 MB)
                       </Text>
                     </VStack>
                   </label>

@@ -194,9 +194,14 @@ const Certificates: React.FC = () => {
           onClose={onUploadClose}
           onUpload={async (formData) => {
             const axios = useAxios();
-            const res = await axios.post("/certificates", formData);
-            if (res.status === 200) {
-              refreshCertificates();
+            try {
+              const res = await axios.post("/certificates", formData);
+              if (res.status === 200) {
+                refreshCertificates();
+                onUploadClose();
+              }
+            } catch (error) {
+              console.error("Error uploading certificate:", error);
             }
           }}
         />

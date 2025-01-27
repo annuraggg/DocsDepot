@@ -150,7 +150,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <Box minH="100vh" bg="gray.50" p={{ base: 4, md: 6 }}>
+    <Box minH="100vh" p={{ base: 4, md: 6 }}>
       <Grid
         templateColumns={{
           base: '1fr',
@@ -159,7 +159,6 @@ const Home: React.FC = () => {
         }}
         gap={6}
       >
-        {/* Points Distribution Card */}
         <Card gridColumn={{ md: '1 / 3' }} variant="elevated">
           <CardHeader pb={2}>
             <Heading size="md">Points Distribution - House Wise</Heading>
@@ -192,7 +191,6 @@ const Home: React.FC = () => {
           </CardBody>
         </Card>
 
-        {/* Certifications Submissions Card */}
         <Card variant="elevated">
           <CardHeader pb={2}>
             <Heading size="md">Certification Submissions</Heading>
@@ -229,7 +227,6 @@ const Home: React.FC = () => {
           </CardBody>
         </Card>
 
-        {/* Certifications Table Card */}
         <Card 
           gridColumn={{ base: '1', md: '1 / 3' }}
           variant="elevated"
@@ -334,7 +331,6 @@ const Home: React.FC = () => {
           </CardBody>
         </Card>
 
-        {/* House Assessment Card */}
         <Card variant="elevated">
           <CardHeader pb={2}>
             <Flex justify="space-between" align="center">

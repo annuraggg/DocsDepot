@@ -352,7 +352,6 @@ const Students = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             borderRadius="full"
-            bg="white"
             fontSize="sm"
           />
         </InputGroup>
@@ -467,15 +466,14 @@ const Students = () => {
             </SimpleGrid>
           ) : (
             <Box
-              bg="white"
               borderRadius="lg"
               boxShadow="sm"
               border="1px"
-              borderColor="gray.200"
+              borderColor="gray.200 dark:border-gray-700"
               overflowX="auto"
             >
               <Table variant="simple">
-                <Thead bg="gray.50">
+                <Thead>
                   <Tr>
                     {isBulkDelete && <Th width="5%"></Th>}
                     <Th width="15%">MOODLE ID</Th>

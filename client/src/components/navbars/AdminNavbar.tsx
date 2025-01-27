@@ -45,7 +45,6 @@ import useAxios from "@/config/axios";
 import Cookies from "js-cookie";
 import Logo from "@/assets/img/logo.png";
 
-// Helper component for navigation links
 interface NavLinkProps {
   icon: React.ReactNode;
   text: string;
@@ -132,10 +131,9 @@ const AdminNavbar = () => {
   };
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="border-b border-gray-600">
       <div className="w-full px-5 mx-auto">
         <div className="flex justify-between items-center h-16">
-          {/* Mobile Menu Hamburger */}
           <div className="md:hidden flex items-center">
             <MenuIcon
               className="w-6 h-6 mr-3 cursor-pointer"
@@ -146,13 +144,11 @@ const AdminNavbar = () => {
             </div>
           </div>
 
-          {/* Left section with logo and nav links */}
           <div className="hidden md:flex items-center w-full">
             <div className="cursor-pointer" onClick={() => navigate("/admin")}>
               <img src={Logo} className="w-24" alt="Logo" />
             </div>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex ml-10 space-x-8">
               <NavLink
                 icon={<Home className="w-4 h-4" />}
@@ -191,7 +187,6 @@ const AdminNavbar = () => {
                 </MenuList>
               </Menu>
 
-              {/* Certificates Dropdown */}
               <Menu>
                 <MenuButton
                   as="button"
@@ -229,7 +224,6 @@ const AdminNavbar = () => {
             </div>
           </div>
 
-          {/* Right section with notifications and profile */}
           <div className="flex items-center space-x-4">
             <Menu>
               <Box className="flex items-center gap-5">
@@ -239,7 +233,7 @@ const AdminNavbar = () => {
                 />*/}
                 <Box className="flex items-center justify-end bg-gray-100 dark:bg-gray-800 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
-                    {user?.fname} {user?.lname}
+                    {user?.fname}{user?.lname}
                   </Text>
                   <MenuButton value="profile">
                     <Avatar
@@ -274,7 +268,6 @@ const AdminNavbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
       <Drawer
         isOpen={isMobileMenuOpen}
         onClose={onMobileMenuClose}
@@ -389,7 +382,6 @@ const AdminNavbar = () => {
         </DrawerContent>
       </Drawer>
 
-      {/* Existing Reset Password Modal and other modals remain the same */}
       <Modal isOpen={isResetOpen} onClose={onResetClose}>
         <ModalOverlay />
         <ModalContent>

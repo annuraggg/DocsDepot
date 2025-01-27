@@ -41,15 +41,18 @@ const StudentImport = () => {
   const axios = useAxios();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-    const file = files[0];
-    Papa.parse(file, {
-      complete: (result) => {
-        setTableData(result.data as string[][]);
-      },
-    });
-  };
+      const files = event.target.files;
+      if (!files) return;
+      const file = files[0];
+      Papa.parse(file, {
+        complete: (result) => {
+          const filteredData = (result.data as string[][]).filter(
+            (row) => row.length > 0 && row.some((cell) => cell.trim() !== "")
+          );
+          setTableData(filteredData);
+        },
+      });
+    };
 
   const startImport = () => {
     setAdding(true);

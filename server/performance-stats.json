@@ -1,126 +1,53 @@
 {
   "endpointHits": {
-    "/certificates/faculty": 8,
-    "/user/faculty": 20,
-    "/houses": 54,
-    "/user/students": 43,
-    "/user/student": 6,
-    "/events": 10,
-    "/user/student/bulk": 1,
-    "/certificates/student": 4,
-    "/feedback": 4,
-    "/auth/profile/certificate-theme": 1,
-    "/logs": 2,
-    "/auth": 17,
-    "/auth/firsttime": 2,
-    "/user/679640eb1e5ba7ee0c6bfc25": 3,
-    "/houses/6796327e756bdffcf01e613f": 13,
-    "/houses/6796327e756bdffcf01e613f/logo": 1,
-    "/houses/6796327e756bdffcf01e613f/banner": 1,
-    "/houses/6796327e756bdffcf01e6140": 8,
-    "/houses/6796327e756bdffcf01e6141": 4,
-    "/houses/6796327e756bdffcf01e6142": 4,
-    "/user/67963cc31e5ba7ee0c6bfbb5": 1,
-    "/certificates/house/6796327e756bdffcf01e613f": 4,
-    "/enrollment": 4,
-    "/certificates/user": 9,
-    "/certificates": 1,
-    "/certificates/679649f41e5ba7ee0c6bfcca": 4,
-    "/certificates/679649f41e5ba7ee0c6bfcca/accept": 1,
-    "/user/not-alloted": 4,
-    "/houses/6796327e756bdffcf01e613f/member": 1,
-    "/user/bulk": 1,
-    "/events/6796603a1e5ba7ee0c6bfd35": 3
+    "/events/6796603a1e5ba7ee0c6bfd35": 7,
+    "/houses": 28,
+    "/houses/6796327e756bdffcf01e6142": 2,
+    "/user/students": 45,
+    "/user/faculty": 15,
+    "/auth/profile/theme": 35,
+    "/houses/6796327e756bdffcf01e6140": 4,
+    "/houses/6796327e756bdffcf01e613f": 8,
+    "/events": 8,
+    "/certificates/faculty": 11,
+    "/user/679640eb1e5ba7ee0c6bfc25": 1,
+    "/certificates/student": 2,
+    "/user/student": 1,
+    "/certificates/house/6796327e756bdffcf01e613f": 22,
+    "/enrollment": 2,
+    "/certificates/user": 6,
+    "/auth": 11,
+    "/certificates/house/null": 2,
+    "/auth/profile": 2,
+    "/user/not-alloted": 2,
+    "/certificates/house/undefined": 1
   },
   "responseTimes": [
     {
-      "path": "/certificates/faculty",
+      "path": "/events/6796603a1e5ba7ee0c6bfd35",
       "method": "GET",
-      "responseTime": 74,
+      "responseTime": 190,
       "status": 200,
       "authenticated": true
     },
     {
-      "path": "/certificates/faculty",
+      "path": "/events/6796603a1e5ba7ee0c6bfd35",
       "method": "GET",
-      "responseTime": 50,
+      "responseTime": 58,
       "status": 200,
       "authenticated": true
     },
     {
-      "path": "/user/faculty",
+      "path": "/events/6796603a1e5ba7ee0c6bfd35",
       "method": "GET",
-      "responseTime": 108,
+      "responseTime": 88,
       "status": 200,
       "authenticated": true
     },
     {
-      "path": "/user/faculty",
+      "path": "/events/6796603a1e5ba7ee0c6bfd35",
       "method": "GET",
-      "responseTime": 84,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 83,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 56,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "POST",
-      "responseTime": 191,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 78,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 62,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 96,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 56,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 137,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 64,
+      "responseTime": 65,
       "status": 200,
       "authenticated": true
     },
@@ -134,7 +61,1435 @@
     {
       "path": "/houses",
       "method": "GET",
+      "responseTime": 52,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e6142",
+      "method": "GET",
+      "responseTime": 64,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e6142",
+      "method": "GET",
+      "responseTime": 70,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 183,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 83,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 45,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 50,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 60,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 34,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 71,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 82,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 102,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 81,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 62,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 37,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 157,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 113,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 59,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 75,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 73,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 80,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 36,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 32,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e6140",
+      "method": "GET",
+      "responseTime": 104,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e6140",
+      "method": "GET",
+      "responseTime": 51,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 84,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 64,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 145,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 112,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 39,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 37,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 100,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 73,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 118,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 260,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/679640eb1e5ba7ee0c6bfc25",
+      "method": "PUT",
+      "responseTime": 231,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 85,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 76,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 45,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e6140",
+      "method": "GET",
+      "responseTime": 114,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e6140",
+      "method": "GET",
+      "responseTime": 113,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 99,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 122,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 100,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 103,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 92,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 105,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 63,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 36,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "POST",
+      "responseTime": 269,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "POST",
+      "responseTime": 289,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 96,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 118,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 100,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 387,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/student",
+      "method": "GET",
+      "responseTime": 72,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/student",
+      "method": "GET",
+      "responseTime": 78,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 113,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 70,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 78,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 78,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 85,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 81,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 81,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 32,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 51,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 41,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/student",
+      "method": "POST",
+      "responseTime": 128,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 124,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 66,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/enrollment",
+      "method": "GET",
+      "responseTime": 68,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/enrollment",
+      "method": "GET",
+      "responseTime": 36,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 118,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 105,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 328,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 104,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 87,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 84,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 82,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 83,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 109,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 76,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 132,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/user",
+      "method": "GET",
+      "responseTime": 94,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/user",
+      "method": "GET",
+      "responseTime": 80,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 190,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 117,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 31,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 29,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 33,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 65,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 105,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 109,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 110,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 65,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/faculty",
+      "method": "GET",
+      "responseTime": 69,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 67,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 78,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 87,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 71,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 68,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 68,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 188,
+      "status": 403,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/user",
+      "method": "GET",
+      "responseTime": 90,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/user",
+      "method": "GET",
+      "responseTime": 71,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 109,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/null",
+      "method": "GET",
+      "responseTime": 17,
+      "status": 500,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/null",
+      "method": "GET",
+      "responseTime": 5,
+      "status": 500,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 99,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 84,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 77,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 79,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 101,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 120,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 69,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 196,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 63,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 80,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 111,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 89,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 109,
+      "status": 401,
+      "authenticated": false
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 57,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/faculty",
+      "method": "GET",
+      "responseTime": 75,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 138,
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 84,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 85,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 84,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 144,
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/certificates/user",
+      "method": "GET",
+      "responseTime": 68,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/user",
+      "method": "GET",
+      "responseTime": 68,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 53,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 33,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 473,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 86,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile",
+      "method": "GET",
+      "responseTime": 99,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile",
+      "method": "GET",
+      "responseTime": 104,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 52,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 91,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 124,
+      "status": 403,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 184,
+      "status": 403,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 47,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 28,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 39,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 35,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 197,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 79,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 165,
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 112,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 115,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 58,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 94,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 99,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 59,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 99,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 89,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 95,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 125,
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 69,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 62,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 139,
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 123,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 172,
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 82,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 111,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth",
+      "method": "POST",
+      "responseTime": 146,
+      "status": 200,
+      "authenticated": false
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 137,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 52,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 71,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 85,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 71,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 95,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 59,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 73,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 64,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 71,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 79,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 81,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 76,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 63,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 80,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 70,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 89,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/certificates/house/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 62,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/auth/profile/theme",
+      "method": "POST",
+      "responseTime": 106,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
       "responseTime": 40,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses",
+      "method": "GET",
+      "responseTime": 29,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 121,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/houses/6796327e756bdffcf01e613f",
+      "method": "GET",
+      "responseTime": 72,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/not-alloted",
+      "method": "GET",
+      "responseTime": 32,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/not-alloted",
+      "method": "GET",
+      "responseTime": 32,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 41,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events",
+      "method": "GET",
+      "responseTime": 50,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events/6796603a1e5ba7ee0c6bfd35",
+      "method": "GET",
+      "responseTime": 38,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events/6796603a1e5ba7ee0c6bfd35",
+      "method": "GET",
+      "responseTime": 32,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/events/6796603a1e5ba7ee0c6bfd35",
+      "method": "GET",
+      "responseTime": 39,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 51,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 60,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 59,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 70,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 72,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 68,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 70,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 51,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 53,
+      "status": 200,
+      "authenticated": true
+    },
+    {
+      "path": "/user/students",
+      "method": "GET",
+      "responseTime": 103,
       "status": 200,
       "authenticated": true
     },
@@ -148,1561 +1503,28 @@
     {
       "path": "/user/students",
       "method": "GET",
-      "responseTime": 30,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 46,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 48,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
       "responseTime": 72,
       "status": 200,
       "authenticated": true
     },
     {
-      "path": "/houses",
+      "path": "/certificates/house/undefined",
       "method": "GET",
-      "responseTime": 60,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/student",
-      "method": "POST",
-      "responseTime": 149,
+      "responseTime": 23,
       "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/user/student",
-      "method": "POST",
-      "responseTime": 113,
-      "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/user/student",
-      "method": "POST",
-      "responseTime": 143,
-      "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/user/student",
-      "method": "POST",
-      "responseTime": 136,
-      "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/user/student",
-      "method": "POST",
-      "responseTime": 205,
-      "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/user/student",
-      "method": "POST",
-      "responseTime": 112,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 82,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 58,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 92,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 100,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 41,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 66,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 111,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 103,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 78,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 35,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 62,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 34,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 68,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 39,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 33,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 51,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 107,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 123,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 74,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 48,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 136,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 107,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 37,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 32,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/student/bulk",
-      "method": "POST",
-      "responseTime": 2297,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 108,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 74,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/faculty",
-      "method": "GET",
-      "responseTime": 47,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/faculty",
-      "method": "GET",
-      "responseTime": 29,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 86,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 70,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 64,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 54,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "POST",
-      "responseTime": 125,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 130,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 126,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/student",
-      "method": "GET",
-      "responseTime": 51,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/student",
-      "method": "GET",
-      "responseTime": 33,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/feedback",
-      "method": "GET",
-      "responseTime": 55,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/feedback",
-      "method": "GET",
-      "responseTime": 34,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth/profile/certificate-theme",
-      "method": "POST",
-      "responseTime": 134,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/logs",
-      "method": "GET",
-      "responseTime": 8,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/logs",
-      "method": "GET",
-      "responseTime": 34,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 128,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 100,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 120,
-      "status": 403,
-      "authenticated": false
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 115,
-      "status": 200,
       "authenticated": false
     },
     {
       "path": "/user/students",
       "method": "GET",
-      "responseTime": 136,
+      "responseTime": 541,
       "status": 200,
       "authenticated": true
     },
     {
       "path": "/user/students",
-      "method": "GET",
-      "responseTime": 77,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 88,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 131,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 102,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/auth/firsttime",
-      "method": "POST",
-      "responseTime": 178,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 139,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 117,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 91,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 128,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 108,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 82,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/679640eb1e5ba7ee0c6bfc25",
-      "method": "PUT",
-      "responseTime": 94,
-      "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/user/679640eb1e5ba7ee0c6bfc25",
-      "method": "PUT",
-      "responseTime": 107,
-      "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 39,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 70,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 90,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
       "method": "GET",
       "responseTime": 75,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "PUT",
-      "responseTime": 70,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 62,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f/logo",
-      "method": "PUT",
-      "responseTime": 144,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 64,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f/banner",
-      "method": "PUT",
-      "responseTime": 139,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 74,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 56,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 38,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "GET",
-      "responseTime": 39,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "GET",
-      "responseTime": 50,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "PUT",
-      "responseTime": 53,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "GET",
-      "responseTime": 45,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 41,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 34,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6141",
-      "method": "GET",
-      "responseTime": 33,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6141",
-      "method": "GET",
-      "responseTime": 72,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6141",
-      "method": "PUT",
-      "responseTime": 52,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6141",
-      "method": "GET",
-      "responseTime": 79,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 89,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 56,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6142",
-      "method": "GET",
-      "responseTime": 76,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6142",
-      "method": "GET",
-      "responseTime": 61,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6142",
-      "method": "PUT",
-      "responseTime": 90,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6142",
-      "method": "GET",
-      "responseTime": 60,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 88,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 30,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 81,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 93,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 78,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 33,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 61,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 40,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 42,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 65,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 61,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 48,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 81,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 85,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/67963cc31e5ba7ee0c6bfbb5",
-      "method": "PUT",
-      "responseTime": 216,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 77,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 46,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 107,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 78,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 93,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/faculty",
-      "method": "GET",
-      "responseTime": 84,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/679640eb1e5ba7ee0c6bfc25",
-      "method": "PUT",
-      "responseTime": 129,
-      "status": 500,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 72,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 29,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 72,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 70,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 108,
-      "status": 401,
-      "authenticated": false
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 171,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 84,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 61,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 34,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 40,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "GET",
-      "responseTime": 41,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "GET",
-      "responseTime": 44,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 45,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 47,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 89,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/auth/firsttime",
-      "method": "POST",
-      "responseTime": 187,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 109,
-      "status": 401,
-      "authenticated": false
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 166,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/certificates/house/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 112,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/house/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 76,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/enrollment",
-      "method": "GET",
-      "responseTime": 58,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/enrollment",
-      "method": "GET",
-      "responseTime": 71,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 128,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 159,
-      "status": 200,
-      "authenticated": false
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 83,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 72,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 116,
-      "status": 403,
-      "authenticated": true
-    },
-    {
-      "path": "/feedback",
-      "method": "GET",
-      "responseTime": 40,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/feedback",
-      "method": "GET",
-      "responseTime": 47,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/faculty",
-      "method": "GET",
-      "responseTime": 28,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/faculty",
-      "method": "GET",
-      "responseTime": 35,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 20,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 35,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates",
-      "method": "POST",
-      "responseTime": 93,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 82,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/679649f41e5ba7ee0c6bfcca",
-      "method": "GET",
-      "responseTime": 55,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/679649f41e5ba7ee0c6bfcca",
-      "method": "GET",
-      "responseTime": 60,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/faculty",
-      "method": "GET",
-      "responseTime": 60,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/faculty",
-      "method": "GET",
-      "responseTime": 67,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/679649f41e5ba7ee0c6bfcca",
-      "method": "GET",
-      "responseTime": 71,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/679649f41e5ba7ee0c6bfcca",
-      "method": "GET",
-      "responseTime": 85,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/679649f41e5ba7ee0c6bfcca/accept",
-      "method": "PUT",
-      "responseTime": 105,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 67,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 81,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/enrollment",
-      "method": "GET",
-      "responseTime": 69,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/enrollment",
-      "method": "GET",
-      "responseTime": 28,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 45,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 65,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 29,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 38,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 38,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 25,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/house/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 72,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/house/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 75,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 101,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/user",
-      "method": "GET",
-      "responseTime": 51,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 29,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 29,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "GET",
-      "responseTime": 31,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e6140",
-      "method": "GET",
-      "responseTime": 50,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 29,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses",
-      "method": "GET",
-      "responseTime": 39,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 66,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 72,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/not-alloted",
-      "method": "GET",
-      "responseTime": 28,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/not-alloted",
-      "method": "GET",
-      "responseTime": 28,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/not-alloted",
-      "method": "GET",
-      "responseTime": 34,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/not-alloted",
-      "method": "GET",
-      "responseTime": 40,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f/member",
-      "method": "POST",
-      "responseTime": 111,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/houses/6796327e756bdffcf01e613f",
-      "method": "GET",
-      "responseTime": 82,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 100,
-      "status": 403,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 119,
-      "status": 403,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 149,
-      "status": 403,
-      "authenticated": true
-    },
-    {
-      "path": "/auth",
-      "method": "POST",
-      "responseTime": 97,
-      "status": 403,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/student",
-      "method": "GET",
-      "responseTime": 92,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/certificates/student",
-      "method": "GET",
-      "responseTime": 67,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 66,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 100,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/bulk",
-      "method": "DELETE",
-      "responseTime": 91,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 67,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 84,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 55,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 113,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 269,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 100,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 292,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 283,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 68,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 57,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 49,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 53,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 49,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 126,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/user/students",
-      "method": "GET",
-      "responseTime": 52,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 135,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 22,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "POST",
-      "responseTime": 99,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events",
-      "method": "GET",
-      "responseTime": 72,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events/6796603a1e5ba7ee0c6bfd35",
-      "method": "GET",
-      "responseTime": 65,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events/6796603a1e5ba7ee0c6bfd35",
-      "method": "GET",
-      "responseTime": 57,
-      "status": 200,
-      "authenticated": true
-    },
-    {
-      "path": "/events/6796603a1e5ba7ee0c6bfd35",
-      "method": "GET",
-      "responseTime": 51,
       "status": 200,
       "authenticated": true
     }
