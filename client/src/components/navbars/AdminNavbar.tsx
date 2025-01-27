@@ -237,8 +237,8 @@ const AdminNavbar = () => {
                   size={20}
                   className="cursor-pointer"
                 />*/}
-                <Box className="flex items-center justify-end bg-gray-100 dark:bg-gray-800 rounded-xl rounded-r-2xl">
-                  <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
+                <Box className="flex items-center justify-end bg-gray-100 dark:bg-gray-800 rounded-xl rounded-r-2xl pl-5">
+                  <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm min-w-fit">
                     {user?.fname} {user?.lname}
                   </Text>
                   <MenuButton value="profile">

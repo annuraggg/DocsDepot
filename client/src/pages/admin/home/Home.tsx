@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -8,385 +8,290 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
-} from 'recharts';
-import {
-  Box,
-  Select,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Text,
-  Flex,
-  Card,
-  CardBody,
-  CardHeader,
-  Heading,
-  HStack,
-  Button,
-  Badge,
-  Icon,
-  Grid,
-  useBreakpointValue,
-} from '@chakra-ui/react';
-import { Award, Building2, Calendar, ChevronRight } from 'lucide-react';
+  ResponsiveContainer,
+} from "recharts";
+import { Card, CardBody, CardHeader } from "@chakra-ui/react";
+import { Select } from "@chakra-ui/react";
+import { Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
+import { Badge } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
+import { Award, Building2, Calendar, ChevronRight } from "lucide-react";
+import { House, Point } from "@shared-types/House";
+import { Certificate } from "@shared-types/Certificate";
+import useAxios from "@/config/axios";
 
-interface House {
-  id: string;
-  name: string;
-  color: string;
-  points: number;
+interface DashboardData {
+  houses: House[];
+  certificates: Certificate[];
+  user: any;
 }
 
-interface Certification {
-  _id: string;
-  name: string;
-  issuingOrganization: string;
-  issueDate: {
-    month: string;
-    year: string;
-  };
-  type: 'internal' | 'external';
-  level: 'beginner' | 'intermediate' | 'advanced';
-  status: 'active' | 'expired' | 'pending';
-}
-
-const mockHouses: House[] = [
-  { id: '1', name: 'Slytherin', color: '#FF6B6B', points: 450 },
-  { id: '2', name: 'Gryffindor', color: '#4ECDC4', points: 380 },
-  { id: '3', name: 'Ravenclaw', color: '#45B7D1', points: 520 },
-  { id: '4', name: 'Hufflepuff', color: '#96CEB4', points: 290 }
+const monthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
-const mockCertifications: Certification[] = [
-  {
-    _id: '1',
-    name: 'Web Development Fundamentals',
-    issuingOrganization: 'TechCert Academy',
-    issueDate: { month: 'january', year: '2024' },
-    type: 'internal',
-    level: 'beginner',
-    status: 'active'
-  },
-  {
-    _id: '2',
-    name: 'Data Science Specialization',
-    issuingOrganization: 'DataLearn Institute',
-    issueDate: { month: 'december', year: '2023' },
-    type: 'external',
-    level: 'intermediate',
-    status: 'pending'
-  },
-  {
-    _id: '3',
-    name: 'Advanced Cloud Architecture',
-    issuingOrganization: 'CloudMasters',
-    issueDate: { month: 'november', year: '2023' },
-    type: 'external',
-    level: 'advanced',
-    status: 'expired'
+const generateMonthlyPoints = (points: Point[]) => {
+  const monthlyPointsMap = points.reduce((acc, point) => {
+    const date = new Date(point.createdAt);
+    const monthKey = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    if (!acc[monthKey]) acc[monthKey] = 0;
+    acc[monthKey] += point.points;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return Object.entries(monthlyPointsMap)
+    .sort((a, b) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+    .map(([month, points]) => ({ month, points }))
+    .slice(-6);
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-2 border rounded-lg shadow-lg">
+        <p className="font-medium">{label}</p>
+        <p className="text-sm text-blue-600">{`Points: ${payload[0].value}`}</p>
+      </div>
+    );
   }
-];
+  return null;
+};
 
-const monthlyData = [
-  { month: 'Jan', points: 65 },
-  { month: 'Feb', points: 85 },
-  { month: 'Mar', points: 75 },
-  { month: 'Apr', points: 95 },
-  { month: 'May', points: 88 },
-  { month: 'Jun', points: 76 },
-  { month: 'Jul', points: 82 },
-  { month: 'Aug', points: 91 },
-  { month: 'Sep', points: 84 },
-  { month: 'Oct', points: 78 },
-  { month: 'Nov', points: 89 },
-  { month: 'Dec', points: 92 }
-];
+export default function Dashboard() {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [selectedHouse, setSelectedHouse] = useState<string | null>(null);
+  const [houseMonthlyData, setHouseMonthlyData] = useState<
+    { month: string; points: number }[]
+  >([]);
 
-const yearData = [
-  { year: '1st Year', submissions: 45 },
-  { year: '2nd Year', submissions: 38 },
-  { year: '3rd Year', submissions: 52 },
-  { year: '4th Year', submissions: 29 }
-];
+  const axios = useAxios();
+  useEffect(() => {
+    axios
+      .get("/dashboard/admin")
+      .then((res) => {
+        setDashboardData(res.data.data);
+        if (res.data.data.houses?.length) {
+          const firstHouseId = res.data.data.houses[0]._id;
+          setSelectedHouse(firstHouseId);
 
-const Home: React.FC = () => {
-  const [selectedHouse, setSelectedHouse] = useState<string>(mockHouses[0].id);
-  const isMobile = useBreakpointValue({ base: true, md: false });
+          const firstHouse = res.data.data.houses.find(
+            (h: House) => h._id === firstHouseId
+          );
+          if (firstHouse?.points) {
+            setHouseMonthlyData(
+              generateMonthlyPoints(firstHouse.points as Point[])
+            );
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Dashboard data fetch error:", error);
+      });
+  }, []);
 
-  const getLevelProps = (level: string) => {
-    switch (level?.toLowerCase()) {
-      case "beginner":
-        return { bg: "emerald.100", color: "emerald.800" };
-      case "intermediate":
-        return { bg: "orange.100", color: "orange.800" };
-      case "advanced":
-        return { bg: "red.100", color: "red.800" };
-      default:
-        return { bg: "gray.100", color: "gray.800" };
+  useEffect(() => {
+    if (selectedHouse) {
+      const house = dashboardData?.houses.find((h) => h._id === selectedHouse);
+      if (house?.points) {
+        setHouseMonthlyData(generateMonthlyPoints(house.points));
+      }
     }
+  }, [selectedHouse]);
+
+  const getBadgeVariant = (type: string) => {
+    const variants: Record<string, string> = {
+      approved: "bg-green-100 text-green-800",
+      rejected: "bg-red-100 text-red-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      external: "bg-purple-100 text-purple-800",
+      internal: "bg-blue-100 text-blue-800",
+      beginner: "bg-emerald-100 text-emerald-800",
+      intermediate: "bg-orange-100 text-orange-800",
+      advanced: "bg-red-100 text-red-800",
+    };
+    return variants[type.toLowerCase()] || "bg-gray-100 text-gray-800";
   };
 
-  const getTypeProps = (type: string) => {
-    return type?.toLowerCase() === "internal"
-      ? { bg: "blue.100", color: "blue.800" }
-      : { bg: "purple.100", color: "purple.800" };
-  };
+  const housePointsData =
+    dashboardData?.houses?.map((house) => ({
+      name: house.name,
+      points: house.points?.reduce((sum, p) => sum + p.points, 0) || 0,
+      color: house.color,
+    })) || [];
 
-  const getStatusProps = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case "active":
-        return { bg: "green.100", color: "green.800" };
-      case "expired":
-        return { bg: "red.100", color: "red.800" };
-      case "pending":
-        return { bg: "yellow.100", color: "yellow.800" };
-      default:
-        return { bg: "gray.100", color: "gray.800" };
-    }
-  };
+  if (!dashboardData) return <div>Loading...</div>;
 
   return (
-    <Box minH="100vh" bg="gray.50" p={{ base: 4, md: 6 }}>
-      <Grid
-        templateColumns={{
-          base: '1fr',
-          md: 'repeat(2, 1fr)',
-          lg: 'repeat(3, 1fr)'
-        }}
-        gap={6}
-      >
-        {/* Points Distribution Card */}
-        <Card gridColumn={{ md: '1 / 3' }} variant="elevated">
-          <CardHeader pb={2}>
-            <Heading size="md">Points Distribution - House Wise</Heading>
+    <div className="p-4 space-y-4 bg-gray-50 min-h-screen">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="col-span-full md:col-span-1">
+          <CardHeader className="pb-2">
+            <p className="text-lg font-medium">Points Distribution</p>
           </CardHeader>
-          <CardBody pt={0}>
-            <Box h={{ base: '300px', md: '400px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockHouses}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="name" 
-                    tick={{ fontSize: isMobile ? 12 : 14 }}
-                  />
-                  <YAxis tick={{ fontSize: isMobile ? 12 : 14 }} />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                    contentStyle={{
-                      borderRadius: '12px',
-                      boxShadow: 'md'
-                    }}
-                  />
-                  <Bar 
-                    dataKey="points" 
-                    fill="#4ECDC4"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
+          <CardBody>
+            <div className="h-64">
+              {housePointsData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={housePointsData}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                    barSize={30}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar
+                      dataKey="points"
+                      fill="#3b82f6"
+                      radius={[100, 100, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-500">No data available</p>
+                </div>
+              )}
+            </div>
           </CardBody>
         </Card>
 
-        {/* Certifications Submissions Card */}
-        <Card variant="elevated">
-          <CardHeader pb={2}>
-            <Heading size="md">Certification Submissions</Heading>
-          </CardHeader>
-          <CardBody pt={0}>
-            <Box h={{ base: '300px', md: '400px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={yearData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    type="number" 
-                    tick={{ fontSize: isMobile ? 12 : 14 }}
-                  />
-                  <YAxis 
-                    dataKey="year" 
-                    type="category" 
-                    tick={{ fontSize: isMobile ? 12 : 14 }}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                    contentStyle={{
-                      borderRadius: '12px',
-                      boxShadow: 'md'
-                    }}
-                  />
-                  <Bar 
-                    dataKey="submissions" 
-                    fill="#82ca9d"
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </CardBody>
-        </Card>
-
-        {/* Certifications Table Card */}
-        <Card 
-          gridColumn={{ base: '1', md: '1 / 3' }}
-          variant="elevated"
-          overflowX="auto"
-        >
-          <CardHeader>
-            <Heading size="md">Certifications Overview</Heading>
-          </CardHeader>
-          <CardBody pt={0}>
-            <Table variant="striped" colorScheme="gray">
-              <Thead>
-                <Tr>
-                  <Th>Sr No.</Th>
-                  <Th>Certificate</Th>
-                  <Th>Organization</Th>
-                  {!isMobile && (
-                    <>
-                      <Th>Issue Date</Th>
-                      <Th>Type</Th>
-                      <Th>Level</Th>
-                    </>
-                  )}
-                  <Th>Status</Th>
-                  <Th>Action</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {mockCertifications.map((cert, index) => (
-                  <Tr key={cert._id}>
-                    <Td fontWeight="medium">{index + 1}</Td>
-                    <Td>
-                      <HStack spacing={3}>
-                        <Icon as={Award} color="green.500" boxSize={5} />
-                        <Text fontWeight="medium">{cert.name}</Text>
-                      </HStack>
-                    </Td>
-                    <Td>
-                      <HStack spacing={3}>
-                        <Icon as={Building2} color="gray.500" boxSize={5} />
-                        <Text>{cert.issuingOrganization}</Text>
-                      </HStack>
-                    </Td>
-                    {!isMobile && (
-                      <>
-                        <Td>
-                          <HStack spacing={3}>
-                            <Icon as={Calendar} color="blue.500" boxSize={5} />
-                            <Text>
-                              {cert.issueDate.month.charAt(0).toUpperCase() +
-                              cert.issueDate.month.slice(1)} {cert.issueDate.year}
-                            </Text>
-                          </HStack>
-                        </Td>
-                        <Td>
-                          <Badge
-                            px={3}
-                            py={1}
-                            borderRadius="md"
-                            {...getTypeProps(cert.type)}
-                          >
-                            {cert.type}
-                          </Badge>
-                        </Td>
-                        <Td>
-                          <Badge
-                            px={3}
-                            py={1}
-                            borderRadius="md"
-                            {...getLevelProps(cert.level)}
-                          >
-                            {cert.level}
-                          </Badge>
-                        </Td>
-                      </>
-                    )}
-                    <Td>
-                      <Badge
-                        px={3}
-                        py={1}
-                        borderRadius="md"
-                        {...getStatusProps(cert.status)}
-                      >
-                        {cert.status}
-                      </Badge>
-                    </Td>
-                    <Td>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        colorScheme="blue"
-                        rightIcon={<ChevronRight size={16} />}
-                        _hover={{ transform: 'translateX(4px)' }}
-                        transition="transform 0.2s"
-                      >
-                        {isMobile ? 'View' : 'Details'}
-                      </Button>
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </CardBody>
-        </Card>
-
-        {/* House Assessment Card */}
-        <Card variant="elevated">
-          <CardHeader pb={2}>
-            <Flex justify="space-between" align="center">
-              <Heading size="md">House Progress</Heading>
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <p className="text-lg font-medium min-w-40">House Progress</p>
               <Select
-                value={selectedHouse}
+                value={selectedHouse || undefined}
                 onChange={(e) => setSelectedHouse(e.target.value)}
-                w="fit-content"
-                size="sm"
-                variant="filled"
+                placeholder="Select House"
               >
-                {mockHouses.map((house) => (
-                  <option key={house.id} value={house.id}>
+                {dashboardData.houses.map((house) => (
+                  <option key={house._id} value={house._id}>
                     {house.name}
                   </option>
                 ))}
               </Select>
-            </Flex>
+            </div>
           </CardHeader>
-          <CardBody pt={0}>
-            <Box h={{ base: '300px', md: '400px' }}>
+          <CardBody>
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: isMobile ? 12 : 14 }}
-                  />
-                  <YAxis tick={{ fontSize: isMobile ? 12 : 14 }} />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                    contentStyle={{
-                      borderRadius: '12px',
-                      boxShadow: 'md'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="points" 
-                    stroke="#8884d8" 
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 8 }}
-                  />
-                </LineChart>
+                {houseMonthlyData.length > 2 ? (
+                  <LineChart
+                    data={houseMonthlyData}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Line
+                      type="monotone"
+                      dataKey="points"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-gray-500">No data available</p>
+                  </div>
+                )}
               </ResponsiveContainer>
-            </Box>
+            </div>
           </CardBody>
         </Card>
-      </Grid>
-    </Box>
-  );
-};
+      </div>
 
-export default Home;
+      <Card>
+        <CardHeader>
+          <p className="text-lg font-medium">Certifications Overview</p>
+        </CardHeader>
+        <CardBody>
+          <div className="overflow-x-auto">
+            {dashboardData.certificates.length > 0 ? (
+              <Table>
+                <Thead>
+                  <Tr>
+                    <Th>Certificate</Th>
+                    <Th>Organization</Th>
+                    <Th>Issue Date</Th>
+                    <Th>Type</Th>
+                    <Th>Level</Th>
+                    <Th>Status</Th>
+                    <Th className="text-right">Action</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {dashboardData.certificates.map((cert) => (
+                    <Tr key={cert._id}>
+                      <Td className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <Award className="h-4 w-4 text-blue-500" />
+                          {cert.name}
+                        </div>
+                      </Td>
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-gray-500" />
+                          {cert.issuingOrganization}
+                        </div>
+                      </Td>
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-gray-500" />
+                          {cert.issueDate.month} {cert.issueDate.year}
+                        </div>
+                      </Td>
+                      <Td>
+                        <Badge className={getBadgeVariant(cert.type)}>
+                          {cert.type}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <Badge className={getBadgeVariant(cert.level)}>
+                          {cert.level}
+                        </Badge>
+                      </Td>
+                      <Td>
+                        <Badge className={getBadgeVariant(cert.status)}>
+                          {cert.status}
+                        </Badge>
+                      </Td>
+                      <Td className="text-right">
+                        <Button variant="outline" size="sm" className="gap-2">
+                          Details
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">No data available</p>
+              </div>
+            )}
+          </div>
+        </CardBody>
+      </Card>
+    </div>
+  );
+}

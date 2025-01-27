@@ -36,4 +36,21 @@ const getStudentDashboard = async (c: Context) => {
   }
 };
 
-export default { getStudentDashboard };
+const getAdminDashboard = async (c: Context) => {
+  try {
+    const u = (await c.get("user")) as Token;
+    const houses = await House.find({}).populate("members");
+    const certificates = await Certificate.find({}).populate("user");
+    const user = await User.findOne({ _id: u._id });
+
+    return sendSuccess(c, 200, "Dashboard data fetched successfully", {
+      houses,
+      certificates,
+      user,
+    });
+  } catch (error) {
+    return sendError(c, 500, "Error fetching dashboard data");
+  }
+};
+
+export default { getStudentDashboard, getAdminDashboard };
