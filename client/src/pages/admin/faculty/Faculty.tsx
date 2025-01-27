@@ -41,7 +41,7 @@ import Loader from "../../../components/Loader";
 import FacultyTable from "./FacultyTable";
 import EditModal from "./EditModal";
 import PermissionsModal from "./PermissionsModal";
-import { User } from "@shared-types/User";
+import { User, Gender } from "@shared-types/User";
 
 const MotionBox = motion(Box);
 
@@ -113,6 +113,15 @@ const Faculty = () => {
   };
 
   const confirmBulkDelete = async () => {
+    const previousFaculty = [...faculty];
+    const previousFilteredFaculty = [...filteredFaculty];
+
+    const remainingFaculty = faculty.filter(f => !selectedFaculty.includes(f._id));
+    const remainingFilteredFaculty = filteredFaculty.filter(f => !selectedFaculty.includes(f._id));
+
+    setFaculty(remainingFaculty);
+    setFilteredFaculty(remainingFilteredFaculty);
+
     try {
       await axios.delete("/user/bulk", { data: { ids: selectedFaculty } });
 
@@ -124,18 +133,14 @@ const Faculty = () => {
         isClosable: true,
       });
 
-      // Remove deleted faculty from the list
-      setFaculty(faculty.filter((f) => !selectedFaculty.includes(f._id)));
-      setFilteredFaculty(
-        filteredFaculty.filter((f) => !selectedFaculty.includes(f._id))
-      );
-
       setIsBulkDelete(false);
       setSelectedFaculty([]);
       onDeleteAlertClose();
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || "Error deleting faculty";
+      setFaculty(previousFaculty);
+      setFilteredFaculty(previousFilteredFaculty);
+
+      const errorMessage = err.response?.data?.message || "Error deleting faculty";
       toast({
         title: "Error",
         description: errorMessage,
@@ -232,50 +237,45 @@ const Faculty = () => {
     onDeleteOpen();
   };
 
-  const confirmDelete = () => {
-    setLoading(true);
-    axios
-      .delete(`/user/${state.delItem}`)
-      .then((res) => {
-        setLoading(false);
-        if (res.data.success) {
-          onDeleteClose();
-          setState((prev) => ({ ...prev, searchQuery: "" }));
-          toast({
-            title: "Success",
-            description: "Faculty deleted successfully",
-            status: "success",
-            duration: 2000,
-            isClosable: true,
-          });
-          setFaculty(faculty.filter((faculty) => faculty._id !== state.delItem));
+  const confirmDelete = async () => {
+    const previousFaculty = [...faculty];
+    const previousFilteredFaculty = [...filteredFaculty];
 
-          onDeleteAlertClose();
-          onDeleteClose();
-        } else {
-          onDeleteClose();
-          toast({
-            title: "Error",
-            description: "Something went wrong",
-            status: "error",
-            duration: 2000,
-            isClosable: true,
-          });
-        }
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.error(err);
-        const errorMessage =
-          err.response?.data?.message || "Error deleting faculty";
-        toast({
-          title: "Error",
-          description: errorMessage,
-          status: "error",
-          duration: 2000,
-          isClosable: true,
-        });
+    const remainingFaculty = faculty.filter(f => f._id !== state.delItem);
+    const remainingFilteredFaculty = filteredFaculty.filter(f => f._id !== state.delItem);
+
+    setFaculty(remainingFaculty);
+    setFilteredFaculty(remainingFilteredFaculty);
+    setLoading(false);
+    onDeleteClose();
+    onDeleteAlertClose();
+
+    try {
+      await axios.delete(`/user/${state.delItem}`);
+
+      toast({
+        title: "Success",
+        description: "Faculty deleted successfully",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
       });
+
+      setState(prev => ({ ...prev, searchQuery: "" }));
+    } catch (err: any) {
+      setFaculty(previousFaculty);
+      setFilteredFaculty(previousFilteredFaculty);
+
+      console.error(err);
+      const errorMessage = err.response?.data?.message || "Error deleting faculty";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
   };
 
   const openEdit = (id: string) => {
@@ -298,7 +298,7 @@ const Faculty = () => {
     }));
   };
 
-  const updateFaculty = () => {
+  const updateFaculty = async () => {
     function checkElements(arr: string | string[]) {
       const elementsToCheck = ["H1", "H2", "H3", "H4"];
       let count = 0;
@@ -325,56 +325,73 @@ const Faculty = () => {
       return;
     }
 
-    setLoading(true);
-    axios
-      .put(`/user/${state.facOID}`, {
+    const previousFaculty = [...faculty];
+    const previousFilteredFaculty = [...filteredFaculty];
+
+    const updatedFacultyMember: User = {
+      _id: state.facOID,
+      mid: state.mid,
+      fname: state.fname,
+      lname: state.lname,
+      social: { email: state.email, github: "", linkedin: "" },
+      gender: state.gender as Gender,
+      permissions: state.perms,
+      password: "",
+      profilePicture: "",
+      role: "F",
+      house: "",
+      academicDetails: { branch: "", admissionYear: 0 },
+      settings: { colorMode: "light", certificateLayout: "classic" },
+      onboarding: { firstTime: false, approved: false, defaultPW: false },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const updatedFaculty = faculty.map(f =>
+      f._id === state.facOID ? { ...f, ...updatedFacultyMember } : f
+    );
+    const updatedFilteredFaculty = filteredFaculty.map(f =>
+      f._id === state.facOID ? { ...f, ...updatedFacultyMember } : f
+    );
+
+    setFaculty(updatedFaculty);
+    setFilteredFaculty(updatedFilteredFaculty);
+    onEditClose();
+
+    try {
+      await axios.put(`/user/${state.facOID}`, {
         mid: state.mid,
         fname: state.fname,
         lname: state.lname,
         email: state.email,
         gender: state.gender,
         permissions: state.perms,
-      })
-      .then((res) => {
-        setLoading(false);
-        if (res.data.success) {
-          onEditClose();
-          setState((prev) => ({ ...prev, searchQuery: "" }));
-          toast({
-            title: "Success",
-            description: "Faculty updated successfully",
-            status: "success",
-            duration: 2000,
-            isClosable: true,
-          });
-
-          setUpdate(!update);
-        } else {
-          onEditClose();
-          toast({
-            title: "Error",
-            description: "Something went wrong",
-            status: "error",
-            duration: 2000,
-            isClosable: true,
-          });
-        }
-      })
-      .catch((err) => {
-        setLoading(false);
-        console.error(err);
-        const errorMessage =
-          err.response?.data?.message || "Error updating faculty";
-        toast({
-          title: "Error",
-          description: errorMessage,
-          status: "error",
-          duration: 2000,
-          isClosable: true,
-        });
       });
-  };
 
+      toast({
+        title: "Success",
+        description: "Faculty updated successfully",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+
+      setState(prev => ({ ...prev, searchQuery: "" }));
+    } catch (err: any) {
+      setFaculty(previousFaculty);
+      setFilteredFaculty(previousFilteredFaculty);
+
+      console.error(err);
+      const errorMessage = err.response?.data?.message || "Error updating faculty";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
+  };
   const setFacultyData = (data: any) => {
     setState((prev) => ({
       ...prev,

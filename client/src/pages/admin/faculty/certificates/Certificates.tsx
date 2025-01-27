@@ -201,7 +201,17 @@ const FacultyCertificates = () => {
       return;
     }
 
+    const previousCertificates = [...certificates];
+    const updatedCertificates = certificates.map((cert) =>
+      cert._id === selectedCertificate
+        ? { ...cert, status: action === "approved" ? "active" : "rejected" }
+        : cert
+    );
+    setCertificates(updatedCertificates);
+    setFilteredCertificates(updatedCertificates);
+
     setUpdateLoading(true);
+
     axios
       .post("/admin/faculty/certificates/update", {
         id: selectedCertificate,
@@ -209,8 +219,6 @@ const FacultyCertificates = () => {
         comments: comments,
       })
       .then(() => {
-        setUpdate(!update);
-        onModalClose();
         toast({
           title: "Success",
           description: "Certificate status updated successfully",
@@ -220,6 +228,9 @@ const FacultyCertificates = () => {
         });
       })
       .catch((err) => {
+        setCertificates(previousCertificates);
+        setFilteredCertificates(previousCertificates);
+
         console.error("Update error:", err);
         toast({
           title: "Error",
@@ -233,6 +244,7 @@ const FacultyCertificates = () => {
         setUpdateLoading(false);
         setAction("");
         setComments([]);
+        onModalClose();
       });
   };
 

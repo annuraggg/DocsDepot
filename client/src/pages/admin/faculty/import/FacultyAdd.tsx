@@ -78,19 +78,26 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const setClose = () => {
     setModal(false);
     onClose();
+    setFname("");
+    setLname("");
+    setMoodleid("");
+    setEmail("");
+    setGender("Male");
+    setPerms(["UFC"]);
   };
 
   const axios = useAxios();
 
   const addFaculty = () => {
     setIsLoading(true);
+
     const data = {
-      fname: fname,
-      lname: lname,
+      fname,
+      lname,
       mid: moodleid,
-      email: email,
-      gender: gender,
-      perms: perms,
+      email,
+      gender,
+      perms,
       role: "F",
     };
 
@@ -133,7 +140,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
       .catch((err) => {
         console.error("Faculty add error:", err);
         const errorMessage = err.response?.data?.message || "Something went wrong";
-        
+
         toast({
           title: "Error",
           description: errorMessage,
@@ -268,8 +275,8 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
               <Button variant="ghost" onClick={setClose} isLoading={isLoading}>
                 Cancel
               </Button>
-              <Button 
-                colorScheme="blue" 
+              <Button
+                colorScheme="blue"
                 onClick={addFaculty}
                 isLoading={isLoading}
                 loadingText="Adding..."

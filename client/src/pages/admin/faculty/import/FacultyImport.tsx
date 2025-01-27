@@ -18,6 +18,7 @@ import {
   Text,
   HStack,
 } from "@chakra-ui/react";
+import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { Upload, UserPlus, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import Papa from "papaparse";
@@ -28,17 +29,27 @@ import Loader from "@/components/Loader";
 const MotionBox = motion(Box);
 import useAxios from "@/config/axios";
 
+interface FacultyMember {
+  moodleId: string;
+  firstName: string;
+  lastName: string;
+  gender: string;
+  email: string;
+}
+
 const FacultyImport = () => {
   const [tableData, setTableData] = useState<string[][]>([]);
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState<House[]>([]);
   const [isHousesLoading, setIsHousesLoading] = useState(true);
+  const [facultyMembers, setFacultyMembers] = useState<FacultyMember[]>([]);
 
   const toast = useToast();
   const bgColor = useColorModeValue("white", "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const axios = useAxios();
+  const navigate = useNavigate();
 
   const isValidRow = (row: string[]) => {
     return row.some((cell) => cell.trim() !== "");
@@ -71,8 +82,70 @@ const FacultyImport = () => {
     }
   };
 
+  const convertTableDataToFacultyMembers = (data: string[][]): FacultyMember[] => {
+    return data.map(row => ({
+      moodleId: row[0],
+      firstName: row[1],
+      lastName: row[2],
+      gender: row[3],
+      email: row[4]
+    }));
+  };
+
   const handleModal = (value: boolean) => {
     setAddIndividual(value);
+  };
+
+  const startImport = async () => {
+    setAdding(true);
+    const invalidRows = tableData.filter((row) => {
+      const hasInvalidLength = row.length !== 5;
+      const hasInvalidMoodleId = row[0].length !== 3;
+      const hasEmptyFields = row.some((cell) => cell.trim() === "");
+      return hasInvalidLength || hasInvalidMoodleId || hasEmptyFields;
+    });
+
+    if (invalidRows.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: "Some rows contain invalid data. Please check the format and ensure no fields are empty.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setAdding(false);
+      return;
+    }
+
+    const newFacultyMembers = convertTableDataToFacultyMembers(tableData);
+    const previousFacultyMembers = [...facultyMembers];
+    setFacultyMembers(prev => [...prev, ...newFacultyMembers]);
+
+    try {
+      await axios.post("/user/faculty/bulk", { tableData });
+      toast({
+        title: "Faculty Imported",
+        description: "Faculty members have been successfully imported",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      setTableData([]);
+      navigate("/admin/faculty");
+    } catch (err: any) {
+      setFacultyMembers(previousFacultyMembers);
+      console.error("Bulk import error:", err);
+      const errorMessage = err.response?.data?.message || "Error in importing faculty";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setAdding(false);
+    }
   };
 
   useEffect(() => {
@@ -94,56 +167,6 @@ const FacultyImport = () => {
       })
       .finally(() => setIsHousesLoading(false));
   }, []);
-
-  const startImport = () => {
-    setAdding(true);
-    const invalidRows = tableData.filter((row) => {
-      const hasInvalidLength = row.length !== 5;
-      const hasInvalidMoodleId = row[0].length !== 3;
-      const hasEmptyFields = row.some((cell) => cell.trim() === "");
-      return hasInvalidLength || hasInvalidMoodleId || hasEmptyFields;
-    });
-
-    if (invalidRows.length > 0) {
-      toast({
-        title: "Validation Error",
-        description: "Some rows contain invalid data. Please check the format and ensure no fields are empty.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      setAdding(false);
-      return;
-    }
-
-    axios
-      .post("/user/faculty/bulk", { tableData })
-      .then(() => {
-        toast({
-          title: "Faculty Imported",
-          description: "Faculty members have been successfully imported",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-        setTableData([]);
-        setTimeout(() => {
-          window.location.href = "/admin/faculty";
-        }, 3000);
-      })
-      .catch((err) => {
-        console.error("Bulk import error:", err);
-        const errorMessage = err.response?.data?.message || "Error in importing faculty";
-        toast({
-          title: "Error",
-          description: errorMessage,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      })
-      .finally(() => setAdding(false));
-  };
 
   if (isHousesLoading) {
     return <Loader />;
