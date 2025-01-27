@@ -7,6 +7,7 @@ app.post("/", authController.login);
 app.post("/firsttime", authController.firstTimePassword);
 
 app.get("/profile", authController.getProfile);
+app.get("/profile/:mid", authController.getProfile);
 app.post("/profile", authController.updateProfile);
 app.post("/profile/picture", authController.updateProfilePicture);
 app.post("/profile/password", authController.updatePassword);

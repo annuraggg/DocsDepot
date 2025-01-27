@@ -44,48 +44,50 @@ const StudentImport = () => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const isValidRow = (row: string[]) => {
+    // Check if row has any non-empty values
+    return row.some((cell) => cell.trim() !== "");
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
     const file = files[0];
     Papa.parse(file, {
       complete: (result) => {
-        setTableData(result.data as string[][]);
+        // Filter out empty rows and trim whitespace from all cells
+        const cleanedData = (result.data as string[][])
+          .filter(isValidRow)
+          .map((row) => row.map((cell) => cell.trim()));
+        setTableData(cleanedData);
       },
     });
   };
 
   const startImport = () => {
     setAdding(true);
-    tableData.forEach((row) => {
-      if (row.length !== 5) {
-        toast({
-          title: "Error",
-          description: `Invalid CSV format at row ${tableData.indexOf(row) + 1}`,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        setAdding(false);
-        setTableData([]);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
-      }
 
-      if (row[0].length !== 8) {
-        toast({
-          title: "Error",
-          description: `Invalid Student ID at row ${tableData.indexOf(row) + 1}`,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        setAdding(false);
-        setTableData([]);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        return;
-      }
+    // Additional validation before import
+    const invalidRows = tableData.filter((row) => {
+      return (
+        row.length !== 5 ||
+        row[0].length !== 8 ||
+        row.some((cell) => cell.trim() === "")
+      );
     });
+
+    if (invalidRows.length > 0) {
+      toast({
+        title: "Validation Error",
+        description:
+          "Some rows contain invalid data. Please check the format and try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setAdding(false);
+      return;
+    }
 
     axios
       .post("/user/student/bulk", { tableData })
@@ -108,14 +110,15 @@ const StudentImport = () => {
             duration: 3000,
             isClosable: true,
           });
+        } else {
+          toast({
+            title: "Error",
+            description: err.response.data.message || "Import failed",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
         }
-        toast({
-          title: "Error",
-          description: err.response.data.message || "Import failed",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
       })
       .finally(() => {
         setTableData([]);
@@ -198,9 +201,10 @@ const StudentImport = () => {
                 "CSV format: ID (8 digits), First, Last, Gender, Email"
               ) : (
                 <>
-                  Please upload a CSV file with columns in order: Student ID, First Name,
-                  Last Name, Gender, Email. First row should not contain column names.
-                  No blank rows allowed.
+                  Please upload a CSV file with columns in order: Student ID,
+                  First Name, Last Name, Gender, Email. First row should not
+                  contain column names. Empty rows will be automatically
+                  removed.
                 </>
               )}
             </AlertDescription>

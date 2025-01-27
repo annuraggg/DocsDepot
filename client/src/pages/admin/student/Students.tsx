@@ -64,7 +64,7 @@ interface FilterState {
   gender: string[];
   status: string[];
   houses: string[];
-  years: number[];
+  years: string[];
 }
 
 const Students = () => {
@@ -148,13 +148,16 @@ const Students = () => {
 
       const matchesGender =
         filters.gender.length === 0 || filters.gender.includes(student.gender);
+
       const academicYear = getAcademicYear(
         student.academicDetails.admissionYear,
         student.academicDetails.isDSE,
         student.academicDetails.yearBacklog
       );
+
       const matchesYear =
-        filters.years.length === 0 || filters.years.includes(Number(academicYear));
+        filters.years.length === 0 || filters.years.includes(academicYear);
+
       const matchesHouse =
         filters.houses.length === 0 ||
         filters.houses.includes(student.house?._id);
@@ -295,7 +298,13 @@ const Students = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Flex justify="space-between" align="center" mb={8} direction={{ base: "column", md: "row" }} gap={4}>
+        <Flex
+          justify="space-between"
+          align="center"
+          mb={8}
+          direction={{ base: "column", md: "row" }}
+          gap={4}
+        >
           <Box textAlign={{ base: "center", md: "left" }}>
             <Heading size="lg" mb={2}>
               Student Management
@@ -315,8 +324,8 @@ const Students = () => {
               {isBulkDelete ? "Cancel" : "Bulk Delete"}
             </Button>
             {isBulkDelete && selectedStudents.length > 0 && (
-              <Button 
-                colorScheme="red" 
+              <Button
+                colorScheme="red"
                 onClick={onDeleteAlertOpen}
                 size="sm"
                 leftIcon={<Trash2 size={18} />}
@@ -358,11 +367,7 @@ const Students = () => {
         </InputGroup>
 
         <Flex justify="center" align="center" my={4} gap={2}>
-          <Button
-            onClick={prevPage}
-            isDisabled={currentPage === 1}
-            size="sm"
-          >
+          <Button onClick={prevPage} isDisabled={currentPage === 1} size="sm">
             Previous
           </Button>
           <Text fontSize="sm" mx={2} color="gray.600">
@@ -639,18 +644,18 @@ const Students = () => {
                 <FormControl>
                   <FormLabel>Academic Year</FormLabel>
                   <CheckboxGroup
-                    value={filters.years.map(String)}
+                    value={filters.years}
                     onChange={(values) =>
                       setFilters({
                         ...filters,
-                        years: (values as string[]).map(v => parseInt(v, 10))
+                        years: values as string[],
                       })
                     }
                   >
                     <Stack direction="row" wrap="wrap">
                       {uniqueYears.map((year) => (
-                        <Checkbox key={year} value={String(year)}>
-                          Year {year}
+                        <Checkbox key={year} value={year}>
+                          {year} 
                         </Checkbox>
                       ))}
                     </Stack>
