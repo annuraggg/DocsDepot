@@ -177,15 +177,21 @@ const firstTimePassword = async (c: Context) => {
 const getProfile = async (c: Context) => {
   // give the following data back: allHouses, user, certifications for the user
   const { _id } = (await c.get("user")) as Token;
+  const { mid } = c.req.param();
   try {
     const allHouses = await House.find({});
-    const user = await User.findOne({ _id: _id });
+    let user;
+    if (mid) {
+      user = await User.findOne({ mid });
+    } else {
+      user = await User.findOne({ _id });
+    }
 
     if (!user) {
       return sendError(c, 500, "User not found");
     }
 
-    const certifications = await Certificate.find({ user: _id });
+    const certifications = await Certificate.find({ user: user._id });
 
     return sendSuccess(c, 200, "Profile data fetched successfully", {
       allHouses,

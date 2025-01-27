@@ -38,6 +38,11 @@ const FacultyImport = () => {
   const borderColor = useColorModeValue("gray.200", "gray.700");
   const axios = useAxios();
 
+  const isValidRow = (row: string[]) => {
+    // Check if row has any non-empty values
+    return row.some((cell) => cell.trim() !== "");
+  };
+
   const handleFileUpload = (
     event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
   ) => {
@@ -46,10 +51,11 @@ const FacultyImport = () => {
     if (file) {
       Papa.parse(file, {
         complete: (result) => {
-          const filteredData = (result.data as string[][]).filter(
-            (row) => row.length > 0 && row.some((cell) => cell.trim() !== "")
-          );
-          setTableData(filteredData);
+          // Filter out empty rows and trim whitespace from all cells
+          const cleanedData = (result.data as string[][])
+            .filter(isValidRow)
+            .map((row) => row.map((cell) => cell.trim()));
+          setTableData(cleanedData);
         },
       });
     }
@@ -67,42 +73,40 @@ const FacultyImport = () => {
       })
       .catch((err) => {
         console.error(err);
+        toast({
+          title: "Error",
+          description: "Failed to fetch houses data",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       });
   }, []);
 
   const startImport = () => {
     setAdding(true);
 
-    tableData.forEach((row) => {
-      if (row.length !== 5) {
-        toast({
-          title: "Error",
-          description:
-            "Invalid CSV File with length at row " +
-            (tableData.indexOf(row) + 1),
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        setAdding(false);
-        setTableData([]);
-        return;
-      }
+    // Validate all rows before proceeding with import
+    const invalidRows = tableData.filter((row) => {
+      const hasInvalidLength = row.length !== 5;
+      const hasInvalidMoodleId = row[0].length !== 3;
+      const hasEmptyFields = row.some((cell) => cell.trim() === "");
 
-      if (row[0].length !== 3) {
-        toast({
-          title: "Error",
-          description:
-            "Invalid Moodle ID at row " + (tableData.indexOf(row) + 1),
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-        setAdding(false);
-        setTableData([]);
-        return;
-      }
+      return hasInvalidLength || hasInvalidMoodleId || hasEmptyFields;
     });
+
+    if (invalidRows.length > 0) {
+      toast({
+        title: "Validation Error",
+        description:
+          "Some rows contain invalid data. Please check the format and ensure no fields are empty.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setAdding(false);
+      return;
+    }
 
     axios
       .post("/user/faculty/bulk", { tableData })
@@ -133,7 +137,7 @@ const FacultyImport = () => {
           toast({
             title: "Error",
             description:
-              err.response.data?.message || "Error in importing faculty",
+              err.response?.data?.message || "Error in importing faculty",
             status: "error",
             duration: 3000,
             isClosable: true,
@@ -197,9 +201,10 @@ const FacultyImport = () => {
           >
             <AlertTriangle className="mr-3 text-orange-500" />
             <AlertDescription>
-              Please upload a CSV file with columns in order: Moodle ID, First
-              Name, Last Name, Gender, Email. First row should not contain
-              column names. No blank rows allowed.
+              Please upload a CSV file with columns in order: Moodle ID (3
+              digits), First Name, Last Name, Gender, Email. First row should
+              not contain column names. Empty rows will be automatically
+              removed.
             </AlertDescription>
           </Alert>
 
@@ -211,45 +216,47 @@ const FacultyImport = () => {
             style={{ display: "none" }}
           />
 
-          <MotionBox
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            bg={bgColor}
-            borderRadius="lg"
-            shadow="xl"
-            overflow="hidden"
-            border="1px"
-            borderColor={borderColor}
-          >
-            <Box overflowX="auto">
-              <Table variant="simple">
-                <Thead>
-                  <Tr bg={useColorModeValue("gray.50", "gray.900")}>
-                    <Th>Moodle ID</Th>
-                    <Th>First Name</Th>
-                    <Th>Last Name</Th>
-                    <Th>Gender</Th>
-                    <Th>Email</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {tableData.map((row, index) => (
-                    <motion.tr
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      {row.map((cell, cellIndex) => (
-                        <Td key={cellIndex}>{cell}</Td>
-                      ))}
-                    </motion.tr>
-                  ))}
-                </Tbody>
-              </Table>
-            </Box>
-          </MotionBox>
+          {tableData.length > 0 && (
+            <MotionBox
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              bg={bgColor}
+              borderRadius="lg"
+              shadow="xl"
+              overflow="hidden"
+              border="1px"
+              borderColor={borderColor}
+            >
+              <Box overflowX="auto">
+                <Table variant="simple">
+                  <Thead>
+                    <Tr bg={useColorModeValue("gray.50", "gray.900")}>
+                      <Th>Moodle ID</Th>
+                      <Th>First Name</Th>
+                      <Th>Last Name</Th>
+                      <Th>Gender</Th>
+                      <Th>Email</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {tableData.map((row, index) => (
+                      <motion.tr
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        {row.map((cell, cellIndex) => (
+                          <Td key={cellIndex}>{cell}</Td>
+                        ))}
+                      </motion.tr>
+                    ))}
+                  </Tbody>
+                </Table>
+              </Box>
+            </MotionBox>
+          )}
 
           {tableData.length > 0 && (
             <motion.div
@@ -276,11 +283,7 @@ const FacultyImport = () => {
         </VStack>
       </MotionBox>
 
-      {addIndividual ? (
-        <FacultyAdd setModal={handleModal} h={{ houses }} />
-      ) : (
-        <></>
-      )}
+      {addIndividual && <FacultyAdd setModal={handleModal} h={{ houses }} />}
     </Container>
   );
 };

@@ -9,7 +9,7 @@ import StudentLayout from "./components/layouts/StudentLayout";
 import useAxios from "./config/axios";
 import StudentHome from "./pages/student/home/Home";
 import StudentCertificates from "./pages/student/certificates/Certificates";
-import StudentProfile from "./pages/student/profile/Profile";
+import StudentProfile from "./pages/profile/Profile.js";
 import Certificate from "./pages/certificate/Certificate";
 import Events from "./pages/events/Events";
 import Event from "./pages/events/event/Event";
@@ -45,7 +45,6 @@ import { useColorMode } from "@chakra-ui/react";
 function App() {
   const studentRoutes = [
     { path: "", element: <StudentHome /> },
-    { path: "profile", element: <StudentProfile /> },
     { path: "certificates", element: <StudentCertificates /> },
     { path: "settings", element: <StudentSettings /> },
   ];

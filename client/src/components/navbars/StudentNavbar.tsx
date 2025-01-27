@@ -169,7 +169,7 @@ const StudentNavbar = ({ notifications = [] }: StudentNavbarProps) => {
                     Settings
                   </MenuItem>
                 </Link>
-                <Link to="/profile">
+                <Link to={`/profile/${user?.mid}`}>
                   <MenuItem value="profile">
                     <UserCircle className="w-4 h-4 mr-2" />
                     Profile

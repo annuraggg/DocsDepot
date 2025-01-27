@@ -87,7 +87,7 @@ const Profile: React.FC = () => {
     }
 
     axios
-      .get("/auth/profile")
+      .get("/auth/profile/" + id)
       .then((res) => {
         interface ResponseType {
           user: User;
@@ -115,7 +115,7 @@ const Profile: React.FC = () => {
         console.error(err);
         toast({
           title: "Error",
-          description: "Error fetching dashboard data",
+          description: "Error fetching profile data",
           status: "error",
           duration: 2000,
           isClosable: true,
