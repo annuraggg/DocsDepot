@@ -70,6 +70,8 @@ interface FilterState {
 const Students = () => {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [students, setStudents] = useState<ExtendedUser[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>({
@@ -117,14 +119,15 @@ const Students = () => {
   const axios = useAxios();
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/user/students")
       .then((res) => {
         setStudents(res.data.data);
       })
-      .catch((err) => {
-        const errorMessage =
-          err.response?.data?.message || "Error fetching students";
+      .catch((err: unknown) => {
+        console.error("Error fetching students:", err);
+        const errorMessage = (err instanceof Error && (err as any).response?.data?.message) || "Something went wrong";
         toast({
           title: "Error",
           description: errorMessage,
@@ -195,6 +198,7 @@ const Students = () => {
   };
 
   const confirmDelete = async () => {
+    setIsDeleting(true);
     try {
       if (studentToDelete) {
         await axios.delete(`/user/${studentToDelete}`);
@@ -214,9 +218,10 @@ const Students = () => {
       setIsBulkDelete(false);
       setSelectedStudents([]);
       setStudentToDelete("");
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || "Something went wrong";
+      onDeleteAlertClose();
+    } catch (err) {
+      console.error("Error deleting student(s):", err);
+      const errorMessage = (err instanceof Error && (err as any).response?.data?.message) || "Something went wrong";
       toast({
         title: "Error",
         description: errorMessage,
@@ -224,8 +229,9 @@ const Students = () => {
         duration: 2000,
         isClosable: true,
       });
+    } finally {
+      setIsDeleting(false);
     }
-    onDeleteAlertClose();
   };
 
   const openEdit = (mid: string) => {
@@ -243,7 +249,7 @@ const Students = () => {
   };
 
   const updateStudent = () => {
-    onEditClose();
+    setIsUpdating(true);
     axios
       .put(`/user/${studentId}`, {
         mid: moodleid,
@@ -258,20 +264,24 @@ const Students = () => {
           title: "Success",
           description: "Student Updated Successfully",
           status: "success",
-          duration: 5000,
+          duration: 2000,
           isClosable: true,
         });
         setUpdate(!update);
+        onEditClose();
       })
       .catch((err) => {
+        console.error("Error updating student:", err);
+        const errorMessage = err.response?.data?.message || "Something went wrong";
         toast({
           title: "Error",
-          description: err.response?.data?.message || "Error updating student",
+          description: errorMessage,
           status: "error",
-          duration: 5000,
+          duration: 2000,
           isClosable: true,
         });
-      });
+      })
+      .finally(() => setIsUpdating(false));
   };
 
   const uniqueHouses = Array.from(
@@ -570,7 +580,13 @@ const Students = () => {
                 <Button ref={cancelRef} onClick={onDeleteAlertClose}>
                   Cancel
                 </Button>
-                <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                <Button
+                  colorScheme="red"
+                  onClick={confirmDelete}
+                  ml={3}
+                  isLoading={isDeleting}
+                  loadingText="Deleting"
+                >
                   Delete
                 </Button>
               </AlertDialogFooter>
@@ -612,7 +628,12 @@ const Students = () => {
               </VStack>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="blue" onClick={updateStudent}>
+              <Button
+                colorScheme="blue"
+                onClick={updateStudent}
+                isLoading={isUpdating}
+                loadingText="Updating"
+              >
                 Update Student
               </Button>
             </ModalFooter>
@@ -655,7 +676,7 @@ const Students = () => {
                     <Stack direction="row" wrap="wrap">
                       {uniqueYears.map((year) => (
                         <Checkbox key={year} value={year}>
-                          {year} 
+                          {year}
                         </Checkbox>
                       ))}
                     </Stack>

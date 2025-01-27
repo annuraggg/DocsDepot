@@ -29,6 +29,7 @@ interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpload: (formData: FormData) => Promise<void>;
+  isUploading: boolean;
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;

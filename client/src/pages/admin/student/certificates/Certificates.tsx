@@ -80,6 +80,7 @@ const StudentCertificates = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/certificates/student")
       .then((res) => {
@@ -90,7 +91,8 @@ const StudentCertificates = () => {
         console.error(err);
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description:
+            err.response?.data?.message || "Something went wrong",
           status: "error",
           duration: 5000,
           isClosable: true,

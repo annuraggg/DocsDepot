@@ -35,6 +35,13 @@ export const House: React.FC = () => {
   const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
   const [updateImagesValue, setUpdateImagesValue] = React.useState(0);
 
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isUpdating, setIsUpdating] = React.useState(false);
+  const [isAddingMember, setIsAddingMember] = React.useState(false);
+  const [isDeletingMember, setIsDeletingMember] = React.useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = React.useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = React.useState(false);
+
   const [isViewAllMembersOpen, setIsViewAllMembersOpen] = React.useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen] = React.useState(false);
   const [selectedMember, setSelectedMember] = React.useState<User | null>(null);
@@ -103,6 +110,7 @@ export const House: React.FC = () => {
 
   // Functions
   const fetchHouseData = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get(`/houses/${houseID}`);
       if (response.status === 200) {
@@ -111,29 +119,35 @@ export const House: React.FC = () => {
         setBanner(house.banner);
         setLogo(house.logo);
       }
-    } catch (error) {
+    } catch (error: any) {
       toast(
         "Failed to fetch house data",
-        "Failed to fetch house data",
+        error.response?.data?.message || "Something went wrong while fetching house data",
         "error"
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleUpdateHouse = async () => {
+    setIsUpdating(true);
     try {
       const response = await axios.put(`/houses/${houseID}`, { house });
       if (response.status === 200) {
         toast("Success", "House updated successfully", "success");
         onSettingsClose();
-        fetchHouseData();
+        await fetchHouseData();
       }
-    } catch (error) {
-      toast("Error", "Failed to update house", "error");
+    } catch (error: any) {
+      toast("Error", error.response?.data?.message || "Failed to update house", "error");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const addUserToHouse = async (userId: string) => {
+    setIsAddingMember(true);
     try {
       const response = await axios.post(`/houses/${houseID}/member`, {
         _id: userId,
@@ -142,17 +156,20 @@ export const House: React.FC = () => {
       if (response.status === 200) {
         toast("Success", "Member added successfully", "success");
         setIsAddMemberOpen(false);
-        fetchHouseData();
+        await fetchHouseData();
       }
-    } catch (error) {
-      toast("Error", "Failed to add member", "error");
+    } catch (error: any) {
+      toast("Error", error.response?.data?.message || "Failed to add member", "error");
+      throw error;
+    } finally {
+      setIsAddingMember(false);
     }
   };
 
   const handleDeleteMember = async () => {
+    if (!selectedMember) return;
+    setIsDeletingMember(true);
     try {
-      if (!selectedMember) return;
-
       const response = await axios.delete(`/houses/${houseID}/member`, {
         data: {
           mid: selectedMember._id,
@@ -162,10 +179,12 @@ export const House: React.FC = () => {
       if (response.status === 200) {
         toast("Success", "Member removed successfully", "success");
         onDeleteClose();
-        fetchHouseData();
+        await fetchHouseData();
       }
-    } catch (error) {
-      toast("Error", "Failed to remove member", "error");
+    } catch (error: any) {
+      toast("Error", error.response?.data?.message || "Failed to remove member", "error");
+    } finally {
+      setIsDeletingMember(false);
     }
   };
 
@@ -191,60 +210,63 @@ export const House: React.FC = () => {
 
   const handleSaveLogo = async () => {
     if (!logoRef.current) return;
-
-    // Wrap toBlob in a Promise to handle it correctly
-    const canvasBlob = await new Promise((resolve, reject) => {
-      logoRef?.current?.getImage().toBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error("Failed to create blob"));
-      });
-    });
-
-    if (!canvasBlob) return;
-
-    const formData = new FormData();
-    formData.append("image", canvasBlob as Blob);
+    setIsUploadingLogo(true);
 
     try {
+      const canvasBlob = await new Promise((resolve, reject) => {
+        logoRef?.current?.getImage().toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to create blob"));
+        });
+      });
+
+      if (!canvasBlob) throw new Error("Failed to create image blob");
+
+      const formData = new FormData();
+      formData.append("image", canvasBlob as Blob);
+
       const response = await axios.put(`/houses/${houseID}/logo`, formData);
       if (response.status === 200) {
         toast("Success", "Logo updated successfully", "success");
         onLogoClose();
-        fetchHouseData();
+        await fetchHouseData();
         refreshComponent();
       }
-    } catch (error) {
-      toast("Error", "Failed to update logo", "error");
+    } catch (error: any) {
+      toast("Error", error.response?.data?.message || "Failed to update logo", "error");
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
   const handleSaveBanner = async () => {
     if (!bannerRef.current) return;
-
-    // Wrap toBlob in a Promise to handle it correctly
-    const canvasBlob = await new Promise((resolve, reject) => {
-      bannerRef?.current?.getImage().toBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error("Failed to create blob"));
-      });
-    });
-
-    if (!canvasBlob) return;
-
-    const formData = new FormData();
-    formData.append("image", canvasBlob as Blob);
+    setIsUploadingBanner(true);
 
     try {
+      const canvasBlob = await new Promise((resolve, reject) => {
+        bannerRef?.current?.getImage().toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("Failed to create blob"));
+        });
+      });
+
+      if (!canvasBlob) throw new Error("Failed to create image blob");
+
+      const formData = new FormData();
+      formData.append("image", canvasBlob as Blob);
+
       const response = await axios.put(`/houses/${houseID}/banner`, formData);
       if (response.status === 200) {
         toast("Success", "Banner updated successfully", "success");
         onBannerClose();
-        fetchHouseData();
-
+        await fetchHouseData();
         refreshComponent();
       }
-    } catch (error) {
-      toast("Error", "Failed to update banner", "error");
+    } catch (error: any) {
+      toast("Error", error.response?.data?.message || "Failed to update banner", "error");
+    } finally {
+      setIsUploadingBanner(false);
     }
   };
 
@@ -364,6 +386,7 @@ export const House: React.FC = () => {
         house={house}
         setHouse={setHouse}
         onSave={handleUpdateHouse}
+        isLoading={isUpdating}
       />
 
       <ImageEditorModal
@@ -377,6 +400,7 @@ export const House: React.FC = () => {
           setLogoZoom(Array.isArray(value) ? value[0] : value)
         }
         onSave={handleSaveLogo}
+        isLoading={isUploadingLogo}
       />
 
       <ImageEditorModal
@@ -390,6 +414,7 @@ export const House: React.FC = () => {
           setBannerZoom(Array.isArray(value) ? value[0] : value)
         }
         onSave={handleSaveBanner}
+        isLoading={isUploadingBanner}
       />
 
       <DeleteConfirmDialog
@@ -398,6 +423,7 @@ export const House: React.FC = () => {
         onConfirm={handleDeleteMember}
         title="Remove Member"
         description="Are you sure you want to remove this member? This action cannot be undone."
+        isLoading={isDeletingMember}
       />
 
       <Modal

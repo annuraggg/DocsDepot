@@ -117,9 +117,12 @@ const Settings = () => {
           setToastDispatched(false);
         })
         .catch((err) => {
-          console.log(err);
+          const errorMessage =
+            err?.response?.data?.message || "Something went wrong";
+          console.error("Password change error:", errorMessage);
           toast({
-            title: err?.response?.data.message || "Password Change Failed!",
+            title: "Error",
+            description: errorMessage,
             status: "error",
             duration: 3000,
             isClosable: true,
@@ -190,10 +193,11 @@ const Settings = () => {
 
             case "error":
               eventSource.close();
+              const errorMessage = data.error || "An error occurred while creating the backup";
+              console.error("Backup error:", errorMessage);
               toast({
                 title: "Backup Failed",
-                description:
-                  data.error || "An error occurred while creating the backup",
+                description: errorMessage,
                 status: "error",
                 duration: 5000,
                 isClosable: true,
@@ -206,9 +210,11 @@ const Settings = () => {
 
         eventSource.onerror = () => {
           eventSource.close();
+          const errorMessage = "Failed to connect to backup service";
+          console.error("Backup connection error:", errorMessage);
           toast({
             title: "Connection Error",
-            description: "Failed to connect to backup service",
+            description: errorMessage,
             status: "error",
             duration: 5000,
             isClosable: true,
@@ -217,10 +223,11 @@ const Settings = () => {
           setProgress(0);
         };
       } else {
+        const errorMessage = "Your browser doesn't support automatic progress tracking";
+        console.error("Backup error:", errorMessage);
         toast({
           title: "Browser Not Supported",
-          description:
-            "Your browser doesn't support automatic progress tracking",
+          description: errorMessage,
           status: "warning",
           duration: 5000,
           isClosable: true,
@@ -228,10 +235,11 @@ const Settings = () => {
         setIsLoading(false);
       }
     } catch (error) {
-      console.error("Backup error:", error);
+      const errorMessage = "An error occurred while creating the backup";
+      console.error("Backup error:", errorMessage, error);
       toast({
         title: "Backup Failed",
-        description: "An error occurred while creating the backup",
+        description: errorMessage,
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -254,9 +262,12 @@ const Settings = () => {
         });
       })
       .catch((err) => {
+        const errorMessage =
+          err?.response?.data?.message || "Something went wrong";
+        console.error("Maintenance mode toggle error:", errorMessage);
         toast({
-          title:
-            err?.response?.data.message || "Maintenance Mode Toggle Failed!",
+          title: "Error",
+          description: errorMessage,
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -278,7 +289,9 @@ const Settings = () => {
         Cookies.set("token", token);
       })
       .catch((err) => {
-        console.log(err);
+        const errorMessage =
+          err?.response?.data?.message || "Something went wrong";
+        console.error("Theme toggle error:", errorMessage);
       });
   };
 
@@ -310,9 +323,12 @@ const Settings = () => {
         Cookies.set("token", token);
       })
       .catch((err) => {
-        console.log(err);
+        const errorMessage =
+          err?.response?.data?.message || "Something went wrong";
+        console.error("Certificate theme update error:", errorMessage);
         toast({
-          title: err?.response?.data.message || "Theme Change Failed!",
+          title: "Error",
+          description: errorMessage,
           status: "error",
           duration: 3000,
           isClosable: true,

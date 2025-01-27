@@ -26,7 +26,6 @@ import {
   Stack,
   Divider,
   Tooltip,
-  Spinner,
   useColorModeValue,
   Select,
   HStack,
@@ -43,6 +42,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import Loader from "@/components/Loader";
 import debounce from "lodash/debounce";
 import jsPDF from "jspdf";
 import useAxios from "@/config/axios";
@@ -93,9 +93,8 @@ const LogEntry: React.FC<LogEntryProps> = ({ log, isNew }) => {
 
   return (
     <Box
-      className={`p-3 hover:bg-${bgHover} border-b border-${borderColor} transition-colors duration-200 ${
-        isNew ? "animate-highlight" : ""
-      }`}
+      className={`p-3 hover:bg-${bgHover} border-b border-${borderColor} transition-colors duration-200 ${isNew ? "animate-highlight" : ""
+        }`}
     >
       <Flex align="center" gap={4}>
         <Tag
@@ -123,6 +122,7 @@ const Logs: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filters, setFilters] = useState<FilterOptions>({
     level: "all",
@@ -214,9 +214,12 @@ const Logs: React.FC = () => {
       setLogs(logLines);
       setCurrentPage(1);
     } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Something went wrong";
+      console.error("Error fetching logs:", errorMessage);
       toast({
-        title: "Error fetching logs",
-        description: err.message || "An error occurred",
+        title: "Error",
+        description: errorMessage,
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -254,6 +257,7 @@ const Logs: React.FC = () => {
 
   const deleteLogs = async () => {
     try {
+      setIsDeleting(true);
       const res = await axios.delete("/admin/logs/");
       if (res.data.data.success) {
         toast({
@@ -267,12 +271,17 @@ const Logs: React.FC = () => {
       }
     } catch (err) {
       const error = err as Error;
+      const errorMessage =
+        (err as any).response?.data?.message ||
+        "Failed to delete logs: " + error.message;
       toast({
         title: "Error",
-        description: "Failed to delete logs: " + error.message,
+        description: errorMessage,
         status: "error",
         duration: 5000,
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -356,11 +365,7 @@ const Logs: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <Flex className="h-96 items-center justify-center">
-        <Spinner size="xl" color="blue.500" thickness="3px" />
-      </Flex>
-    );
+    return <Loader />;
   }
 
   return (
@@ -504,8 +509,8 @@ const Logs: React.FC = () => {
                   <AlertCircle className="w-5 h-5" />
                   <Text>
                     {searchTerm ||
-                    filters.level !== "all" ||
-                    filters.dateRange !== "all"
+                      filters.level !== "all" ||
+                      filters.dateRange !== "all"
                       ? "No logs match your criteria"
                       : "No logs found"}
                   </Text>
@@ -563,7 +568,13 @@ const Logs: React.FC = () => {
               <Button ref={cancelRef} onClick={onClose}>
                 Cancel
               </Button>
-              <Button colorScheme="red" onClick={deleteLogs} ml={3}>
+              <Button
+                colorScheme="red"
+                onClick={deleteLogs}
+                ml={3}
+                isLoading={isDeleting}
+                loadingText="Deleting..."
+              >
                 Delete
               </Button>
             </AlertDialogFooter>

@@ -40,7 +40,8 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
 }) => {
   const axios = useAxios();
   const toast = useToast();
-  const [btnLoading, setBtnLoading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Form states with initial values from existing certificate
   const [certificateName, setCertificateName] = useState(certificate.name);
@@ -66,9 +67,10 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
     certificate.url ? "Existing File" : "No File Selected"
   );
 
-  // Reset form when modal opens
+  // Reset form and errors when modal opens
   useEffect(() => {
     if (isOpen) {
+      setFormErrors({});
       setCertificateName(certificate.name);
       setIssuingOrg(certificate.issuingOrganization);
       setIssueMonth(certificate.issueDate?.month || "");
@@ -80,6 +82,7 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
       setCertificateLevel(certificate.level);
       setCertificateUrl(certificate.url || "");
       setFileName(certificate.url ? "Existing File" : "No File Selected");
+      setFile(null);
     }
   }, [isOpen, certificate]);
 
@@ -143,70 +146,96 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
   };
 
   const handleUpdate = async () => {
-    setBtnLoading(true);
-
     if (!validateForm()) {
-      setBtnLoading(false);
-      return;
-    }
-
-    const formData = new FormData();
-
-    const issue = {
-      month: issueMonth,
-      year: parseInt(issueYear),
-    };
-
-    const expirationDate = {
-      month: expiryMonth,
-      year: parseInt(expiryYear),
-    };
-
-    formData.append("name", certificateName);
-    formData.append("issuingOrganization", issuingOrg);
-    formData.append("issueDate", JSON.stringify(issue));
-    formData.append("expires", expiry ? "true" : "false");
-    formData.append("expirationDate", JSON.stringify(expirationDate));
-    formData.append("type", certificateType);
-    formData.append("level", certificateLevel);
-    formData.append("uploadType", certificateUrl ? "url" : "file");
-
-    if (certificateUrl) formData.append("url", certificateUrl);
-    if (file) formData.append("certificate", file);
-
-    try {
-      const response = await axios.put(
-        `/certificates/${certificate._id}`,
-        formData
-      );
-      onUpdate(response.data.data);
       toast({
-        title: "Success",
-        description: "Certificate updated successfully",
-        status: "success",
+        title: "Validation Error",
+        description: "Please check all required fields",
+        status: "error",
         duration: 5000,
         isClosable: true,
         position: "top-right",
       });
-      onClose();
-    } catch (error) {
+      return;
+    }
+
+    setIsUpdating(true);
+
+    const formData = new FormData();
+
+    try {
+      const issue = {
+        month: issueMonth,
+        year: parseInt(issueYear),
+      };
+
+      const expirationDate = expiry ? {
+        month: expiryMonth,
+        year: parseInt(expiryYear),
+      } : null;
+
+      formData.append("name", certificateName.trim());
+      formData.append("issuingOrganization", issuingOrg.trim());
+      formData.append("issueDate", JSON.stringify(issue));
+      formData.append("expires", expiry ? "true" : "false");
+      formData.append("expirationDate", JSON.stringify(expirationDate));
+      formData.append("type", certificateType);
+      formData.append("level", certificateLevel);
+      formData.append("uploadType", certificateUrl ? "url" : "file");
+
+      if (certificateUrl) formData.append("url", certificateUrl.trim());
+      if (file) formData.append("certificate", file);
+
+      const response = await axios.put(
+        `/certificates/${certificate._id}`,
+        formData
+      );
+
+      console.log('Certificate updated successfully:', response.data);
+
+      onUpdate(response.data.data);
       toast({
-        title: "Error",
-        description: "Failed to update certificate",
+        title: "Certificate Updated",
+        description: response.data?.message || "Certificate updated successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "top-right",
+      });
+      onClose();
+    } catch (err: any) {
+      console.error('Error updating certificate:', err);
+
+      toast({
+        title: "Update Failed",
+        description: err.response?.data?.message ||
+          "Failed to update certificate. Please try again.",
         status: "error",
         duration: 5000,
         isClosable: true,
         position: "top-right",
       });
     } finally {
-      setBtnLoading(false);
+      setIsUpdating(false);
     }
   };
 
   const handleFile = (file: File) => {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File Too Large",
+        description: "Please upload a file smaller than 5MB",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     setFileName(file.name);
     setFile(file);
     setCertificateUrl("");
+    setFormErrors((prev) => ({ ...prev, upload: "" }));
   };
 
   return (
@@ -215,6 +244,8 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
       onClose={onClose}
       size="6xl"
       motionPreset="slideInBottom"
+      closeOnOverlayClick={!isUpdating}
+      closeOnEsc={!isUpdating}
     >
       <ModalOverlay backdropFilter="blur(8px)" />
       <ModalContent>
@@ -224,40 +255,62 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
             <Text>Edit Certificate</Text>
           </HStack>
         </ModalHeader>
-        <ModalCloseButton />
+        <ModalCloseButton disabled={isUpdating} />
 
         <ModalBody>
           <VStack spacing={6}>
             <HStack width="full" spacing={4}>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!formErrors.name}>
                 <FormLabel>Certificate Name</FormLabel>
                 <Input
                   placeholder="Enter certificate name"
                   value={certificateName}
-                  onChange={(e) => setCertificateName(e.target.value)}
+                  onChange={(e) => {
+                    setCertificateName(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, name: "" }));
+                  }}
                   size="lg"
+                  disabled={isUpdating}
                 />
+                {formErrors.name && (
+                  <Text color="red.500" fontSize="sm" mt={1}>
+                    {formErrors.name}
+                  </Text>
+                )}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!formErrors.org}>
                 <FormLabel>Issuing Organization</FormLabel>
                 <Input
                   placeholder="Enter organization name"
                   value={issuingOrg}
-                  onChange={(e) => setIssuingOrg(e.target.value)}
+                  onChange={(e) => {
+                    setIssuingOrg(e.target.value);
+                    setFormErrors((prev) => ({ ...prev, org: "" }));
+                  }}
                   size="lg"
+                  disabled={isUpdating}
                 />
+                {formErrors.org && (
+                  <Text color="red.500" fontSize="sm" mt={1}>
+                    {formErrors.org}
+                  </Text>
+                )}
               </FormControl>
             </HStack>
 
             <HStack width="full" spacing={4}>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!formErrors.issueMonth || !!formErrors.issueYear}>
                 <FormLabel>Issue Date</FormLabel>
                 <HStack spacing={4}>
                   <Select
                     value={issueMonth}
-                    onChange={(e) => setIssueMonth(e.target.value)}
+                    onChange={(e) => {
+                      setIssueMonth(e.target.value);
+                      setFormErrors((prev) => ({ ...prev, issueMonth: "" }));
+                    }}
                     placeholder="Select Month"
+                    disabled={isUpdating}
                   >
                     {months.map((month) => (
                       <option
@@ -271,8 +324,12 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
 
                   <Select
                     value={issueYear}
-                    onChange={(e) => setIssueYear(e.target.value)}
+                    onChange={(e) => {
+                      setIssueYear(e.target.value);
+                      setFormErrors((prev) => ({ ...prev, issueYear: "" }));
+                    }}
                     placeholder="Select Year"
+                    disabled={isUpdating}
                   >
                     {getYearRange(-3, 0).map((year) => (
                       <option key={year} value={year.toString()}>
@@ -281,10 +338,15 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                     ))}
                   </Select>
                 </HStack>
+                {(formErrors.issueMonth || formErrors.issueYear) && (
+                  <Text color="red.500" fontSize="sm" mt={1}>
+                    {formErrors.issueMonth || formErrors.issueYear}
+                  </Text>
+                )}
               </FormControl>
             </HStack>
 
-            <FormControl>
+            <FormControl isInvalid={!!formErrors.expiryMonth || !!formErrors.expiryYear}>
               <HStack spacing={4} align="flex-start">
                 <Checkbox
                   isChecked={expiry}
@@ -293,9 +355,15 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                     if (!e.target.checked) {
                       setExpiryMonth("");
                       setExpiryYear("");
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        expiryMonth: "",
+                        expiryYear: "",
+                      }));
                     }
                   }}
                   colorScheme="green"
+                  disabled={isUpdating}
                 >
                   Certificate Expires?
                 </Checkbox>
@@ -304,8 +372,12 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                   <HStack spacing={4} flex={1}>
                     <Select
                       value={expiryMonth}
-                      onChange={(e) => setExpiryMonth(e.target.value)}
+                      onChange={(e) => {
+                        setExpiryMonth(e.target.value);
+                        setFormErrors((prev) => ({ ...prev, expiryMonth: "" }));
+                      }}
                       placeholder="Expiry Month"
+                      disabled={isUpdating}
                     >
                       {months.map((month) => (
                         <option
@@ -319,8 +391,12 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
 
                     <Select
                       value={expiryYear}
-                      onChange={(e) => setExpiryYear(e.target.value)}
+                      onChange={(e) => {
+                        setExpiryYear(e.target.value);
+                        setFormErrors((prev) => ({ ...prev, expiryYear: "" }));
+                      }}
                       placeholder="Expiry Year"
+                      disabled={isUpdating}
                     >
                       {getYearRange(0, 10).map((year) => (
                         <option key={year} value={year.toString()}>
@@ -331,37 +407,60 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                   </HStack>
                 )}
               </HStack>
+              {(formErrors.expiryMonth || formErrors.expiryYear) && (
+                <Text color="red.500" fontSize="sm" mt={1}>
+                  {formErrors.expiryMonth || formErrors.expiryYear}
+                </Text>
+              )}
             </FormControl>
 
             <HStack width="full" spacing={4}>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!formErrors.type}>
                 <FormLabel>Certificate Type</FormLabel>
                 <Select
                   value={certificateType}
-                  onChange={(e) => setCertificateType(e.target.value as "external" | "internal" | "event")}
+                  onChange={(e) => {
+                    setCertificateType(e.target.value as "external" | "internal" | "event");
+                    setFormErrors((prev) => ({ ...prev, type: "" }));
+                  }}
                   placeholder="Select Type"
+                  disabled={isUpdating}
                 >
                   <option value="internal">Internal Certification</option>
                   <option value="external">External Certification</option>
                 </Select>
+                {formErrors.type && (
+                  <Text color="red.500" fontSize="sm" mt={1}>
+                    {formErrors.type}
+                  </Text>
+                )}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!formErrors.level}>
                 <FormLabel>Certificate Level</FormLabel>
                 <Select
                   value={certificateLevel}
-                  onChange={(e) => setCertificateLevel(e.target.value as "beginner" | "intermediate" | "advanced" | "department")}
+                  onChange={(e) => {
+                    setCertificateLevel(e.target.value as "beginner" | "intermediate" | "advanced" | "department");
+                    setFormErrors((prev) => ({ ...prev, level: "" }));
+                  }}
                   placeholder="Select Level"
+                  disabled={isUpdating}
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>
                 </Select>
+                {formErrors.level && (
+                  <Text color="red.500" fontSize="sm" mt={1}>
+                    {formErrors.level}
+                  </Text>
+                )}
               </FormControl>
             </HStack>
 
             <VStack width="full" spacing={4}>
-              <FormControl>
+              <FormControl isInvalid={!!formErrors.upload}>
                 <FormLabel>Certificate URL</FormLabel>
                 <Input
                   placeholder="Enter certificate URL"
@@ -370,7 +469,9 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                     setCertificateUrl(e.target.value);
                     setFile(null);
                     setFileName("No File Selected");
+                    setFormErrors((prev) => ({ ...prev, upload: "" }));
                   }}
+                  disabled={isUpdating}
                 />
               </FormControl>
 
@@ -378,15 +479,15 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                 OR
               </Text>
 
-              <FormControl>
+              <FormControl isInvalid={!!formErrors.upload}>
                 <FormLabel>Upload Certificate</FormLabel>
                 <Box
                   border="2px dashed"
-                  borderColor="gray.200"
+                  borderColor={formErrors.upload ? "red.500" : "gray.200"}
                   borderRadius="md"
                   p={6}
                   textAlign="center"
-                  _hover={{ borderColor: "blue.500" }}
+                  _hover={{ borderColor: formErrors.upload ? "red.600" : "blue.500" }}
                   transition="all 0.2s"
                 >
                   <Input
@@ -399,13 +500,14 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                       }
                     }}
                     display="none"
+                    disabled={isUpdating}
                   />
                   <label
                     htmlFor="certificate-upload"
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: isUpdating ? "not-allowed" : "pointer" }}
                   >
                     <VStack spacing={2}>
-                      <Icon as={Upload} boxSize={8} color="gray.400" />
+                      <Icon as={Upload} boxSize={8} color={formErrors.upload ? "red.500" : "gray.400"} />
                       <Text fontWeight="medium">
                         {fileName === "No File Selected" ? (
                           <>
@@ -417,24 +519,35 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
                         )}
                       </Text>
                       <Text fontSize="sm" color="gray.500">
-                        Supports: PDF, JPG, PNG, WEBP
+                        Supports: PDF, JPG, PNG, WEBP (Max 5MB)
                       </Text>
                     </VStack>
                   </label>
                 </Box>
+                {formErrors.upload && (
+                  <Text color="red.500" fontSize="sm" mt={1}>
+                    {formErrors.upload}
+                  </Text>
+                )}
               </FormControl>
             </VStack>
           </VStack>
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
+          <Button
+            variant="ghost"
+            mr={3}
+            onClick={onClose}
+            isDisabled={isUpdating}
+          >
             Cancel
           </Button>
           <Button
             colorScheme="green"
             onClick={handleUpdate}
-            isLoading={btnLoading}
+            isLoading={isUpdating}
+            loadingText="Updating..."
             leftIcon={<Edit />}
           >
             Update Certificate

@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Card, CardBody, CardHeader } from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, useToast } from "@chakra-ui/react";
 import { Select } from "@chakra-ui/react";
 import { Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
 import { Badge } from "@chakra-ui/react";
@@ -19,6 +19,7 @@ import { Award, Building2, Calendar, ChevronRight } from "lucide-react";
 import { House, Point } from "@shared-types/House";
 import { Certificate } from "@shared-types/Certificate";
 import useAxios from "@/config/axios";
+import Loader from "@/components/Loader";
 
 interface DashboardData {
   houses: House[];
@@ -69,25 +70,28 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function Dashboard() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [selectedHouse, setSelectedHouse] = useState<string | null>(null);
   const [houseMonthlyData, setHouseMonthlyData] = useState<
     { month: string; points: number }[]
   >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const axios = useAxios();
+  const toast = useToast();
+
   useEffect(() => {
-    axios
-      .get("/dashboard/admin")
-      .then((res) => {
-        setDashboardData(res.data.data);
-        if (res.data.data.houses?.length) {
-          const firstHouseId = res.data.data.houses[0]._id;
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/dashboard/admin");
+        setDashboardData(response.data.data);
+        if (response.data.data.houses?.length) {
+          const firstHouseId = response.data.data.houses[0]._id;
           setSelectedHouse(firstHouseId);
 
-          const firstHouse = res.data.data.houses.find(
+          const firstHouse = response.data.data.houses.find(
             (h: House) => h._id === firstHouseId
           );
           if (firstHouse?.points) {
@@ -96,10 +100,23 @@ export default function Dashboard() {
             );
           }
         }
-      })
-      .catch((error) => {
-        console.error("Dashboard data fetch error:", error);
-      });
+        setLoading(false);
+      } catch (error: any) {
+        setLoading(false);
+        const errorMessage =
+          error.response?.data?.message || "Failed to load dashboard data.";
+        setError(errorMessage);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   useEffect(() => {
@@ -132,7 +149,19 @@ export default function Dashboard() {
       color: house.color,
     })) || [];
 
-  if (!dashboardData) return <div>Loading...</div>;
+  if (loading) {
+    return <Loader />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="bg-red-100 text-red-800 p-4 rounded-lg">
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4 bg-gray-50 min-h-screen">
@@ -179,7 +208,7 @@ export default function Dashboard() {
                 onChange={(e) => setSelectedHouse(e.target.value)}
                 placeholder="Select House"
               >
-                {dashboardData.houses.map((house) => (
+                {dashboardData?.houses.map((house) => (
                   <option key={house._id} value={house._id}>
                     {house.name}
                   </option>
@@ -225,7 +254,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardBody>
           <div className="overflow-x-auto">
-            {dashboardData.certificates.length > 0 ? (
+            {dashboardData?.certificates?.length?.toString() ? (
               <Table>
                 <Thead>
                   <Tr>
@@ -239,7 +268,7 @@ export default function Dashboard() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {dashboardData.certificates.map((cert) => (
+                  {dashboardData?.certificates.map((cert) => (
                     <Tr key={cert._id}>
                       <Td className="font-medium">
                         <div className="flex items-center gap-2">

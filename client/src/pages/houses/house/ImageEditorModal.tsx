@@ -22,6 +22,7 @@ interface ImageEditorModalProps {
   zoom: number;
   onZoomChange: (value: number | number[]) => void;
   onSave: () => void;
+  isLoading: boolean;
 }
 
 export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({

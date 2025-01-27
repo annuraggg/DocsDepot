@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Container,
@@ -19,6 +19,7 @@ import {
   ButtonGroup,
   Box,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { Upload, Filter, Search } from "lucide-react";
 import { CertificateFilters } from "./CertificateFilters";
@@ -51,6 +52,8 @@ const itemVariants = {
 };
 
 const Certificates: React.FC = () => {
+  const [isUploading, setIsUploading] = useState(false);
+  const toast = useToast();
   const {
     isOpen: isUploadOpen,
     onOpen: onUploadOpen,
@@ -75,6 +78,38 @@ const Certificates: React.FC = () => {
   const hasActiveFilters = Object.values(filters).some((filter) =>
     Array.isArray(filter) ? filter.length > 0 : !!filter
   );
+
+  const handleUpload = async (formData: FormData) => {
+    const axios = useAxios();
+    setIsUploading(true);
+
+    try {
+      const response = await axios.post("/certificates", formData);
+
+      if (response.status === 200) {
+        toast({
+          title: "Success",
+          description: "Certificate uploaded successfully",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        await refreshCertificates();
+        onUploadClose();
+      }
+    } catch (error: any) {
+      console.error("Error uploading certificate:", error);
+      toast({
+        title: "Upload Failed",
+        description: error.response?.data?.message || "Failed to upload certificate",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (loading) return <Loader />;
 
@@ -192,18 +227,8 @@ const Certificates: React.FC = () => {
         <UploadModal
           isOpen={isUploadOpen}
           onClose={onUploadClose}
-          onUpload={async (formData) => {
-            const axios = useAxios();
-            try {
-              const res = await axios.post("/certificates", formData);
-              if (res.status === 200) {
-                refreshCertificates();
-                onUploadClose();
-              }
-            } catch (error) {
-              console.error("Error uploading certificate:", error);
-            }
-          }}
+          onUpload={handleUpload}
+          isUploading={isUploading}
         />
       </Container>
     </motion.div>

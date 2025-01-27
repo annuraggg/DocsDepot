@@ -44,6 +44,7 @@ import {
 } from "@shared-types/ExtendedEvent";
 import useAxios from "../../../config/axios";
 import { Download, UserMinus, UserPlus } from "lucide-react";
+import Loader from "@/components/Loader";
 
 const Event = () => {
   const navigate = useNavigate();
@@ -77,21 +78,9 @@ const Event = () => {
 
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const {
-    isOpen: isAllocateOpen,
-    onOpen: onAllocateOpen,
-    onClose: onAllocateClose,
-  } = useDisclosure();
-  const {
-    isOpen: isParticipantsOpen,
-    onOpen: onParticipantsOpen,
-    onClose: onParticipantsClose,
-  } = useDisclosure();
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-  } = useDisclosure();
+  const { isOpen: isAllocateOpen, onOpen: onAllocateOpen, onClose: onAllocateClose } = useDisclosure();
+  const { isOpen: isParticipantsOpen, onOpen: onParticipantsOpen, onClose: onParticipantsClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
 
   const cancelDeleteRef = useRef<HTMLButtonElement>(null);
   const allocateRef = useRef<HTMLButtonElement>(null);
@@ -110,75 +99,69 @@ const Event = () => {
       }
     } catch (err) {
       console.error(err);
+      toast({
+        title: "Error",
+        description: "Session expired. Please login again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      navigate("/login");
     }
   }, []);
 
   useEffect(() => {
     const id = window.location.pathname.split("/")[2];
+    setLoading(true);
 
-    axios.get(`/events/${id}`).then((res) => {
-      console.log(res.data.data);
-      setEvent(res.data.data);
-      setEventName(res.data.data.name);
-      setEventImage(res.data.data.image);
-      setEventDesc(res.data.data.desc);
-      setEventLocation(res.data.data.location);
-      setEventMode(res.data.data.mode);
-      setEventLink(res.data.data.link);
-      setEventEmail(res.data.data.contact.email);
-      setEventPhone(res.data.data.contact.phone);
-      setParticipants(res.data.data.participants);
+    axios.get(`/events/${id}`)
+      .then((res) => {
+        setEvent(res.data.data);
+        setEventName(res.data.data.name);
+        setEventImage(res.data.data.image);
+        setEventDesc(res.data.data.desc);
+        setEventLocation(res.data.data.location);
+        setEventMode(res.data.data.mode);
+        setEventLink(res.data.data.link);
+        setEventEmail(res.data.data.contact.email);
+        setEventPhone(res.data.data.contact.phone);
+        setParticipants(res.data.data.participants);
 
-      const eventStartsDate = new Date(res.data.data.eventTimeline.start);
-      const eventEndsDate = new Date(res.data.data.eventTimeline.end);
-      const registerationStartsDate = new Date(
-        res.data.data.registrationTimeline.start
-      );
-      const registerationEndsDate = new Date(
-        res.data.data.registrationTimeline.end
-      );
+        const eventStartsDate = new Date(res.data.data.eventTimeline.start);
+        const eventEndsDate = new Date(res.data.data.eventTimeline.end);
+        const registerationStartsDate = new Date(res.data.data.registrationTimeline.start);
+        const registerationEndsDate = new Date(res.data.data.registrationTimeline.end);
 
-      [
-        eventStartsDate,
-        eventEndsDate,
-        registerationStartsDate,
-        registerationEndsDate,
-      ].forEach((date) => {
-        date.setHours(date.getHours() + 5);
-        date.setMinutes(date.getMinutes() + 30);
+        [eventStartsDate, eventEndsDate, registerationStartsDate, registerationEndsDate].forEach((date) => {
+          date.setHours(date.getHours() + 5);
+          date.setMinutes(date.getMinutes() + 30);
+        });
+
+        setEventStarts(eventStartsDate.toISOString().split("T")[0]);
+        setEventEnds(eventEndsDate.toISOString().split("T")[0]);
+        setRegisterationStarts(registerationStartsDate.toISOString().split("T")[0]);
+        setRegisterationEnds(registerationEndsDate.toISOString().split("T")[0]);
+
+        setEventStartTime(eventStartsDate.toISOString().split("T")[1].slice(0, 5));
+        setEventEndTime(eventEndsDate.toISOString().split("T")[1].slice(0, 5));
+        setRegisterationStartTime(registerationStartsDate.toISOString().split("T")[1].slice(0, 5));
+        setRegisterationEndTime(registerationEndsDate.toISOString().split("T")[1].slice(0, 5));
+      })
+      .catch((err) => {
+        console.error(err);
+        toast({
+          title: "Error",
+          description: err.response?.data?.message || "Failed to fetch event details",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        navigate("/events");
+      })
+      .finally(() => {
+        setLoading(false);
       });
-
-      setEventStarts(eventStartsDate.toISOString().split("T")[0]);
-      setEventEnds(eventEndsDate.toISOString().split("T")[0]);
-      setRegisterationStarts(
-        registerationStartsDate.toISOString().split("T")[0]
-      );
-      setRegisterationEnds(registerationEndsDate.toISOString().split("T")[0]);
-
-      setEventStartTime(
-        eventStartsDate.toISOString().split("T")[1].slice(0, 5)
-      );
-      setEventEndTime(eventEndsDate.toISOString().split("T")[1].slice(0, 5));
-      setRegisterationStartTime(
-        registerationStartsDate.toISOString().split("T")[1].slice(0, 5)
-      );
-      setRegisterationEndTime(
-        registerationEndsDate.toISOString().split("T")[1].slice(0, 5)
-      );
-
-      setLoading(false);
-    });
   }, [update]);
-
-  const date = new Date().toISOString();
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  };
 
   const updateEvent = () => {
     if (
@@ -197,6 +180,7 @@ const Event = () => {
       return;
     }
 
+    setLoading(true);
     const data: Partial<IEvent> = {
       name: eventName,
       image: eventImage,
@@ -213,15 +197,15 @@ const Event = () => {
         start: new Date(`${eventStarts}T${eventStartTime}:00`).toISOString(),
         end: new Date(`${eventEnds}T${eventEndTime}:00`).toISOString(),
       },
-
+      
       registrationTimeline: {
         start: new Date(`${registerationStarts}T${registerationStartTime}:00`),
         end: new Date(`${registerationEnds}T${registerationEndTime}:00`),
       },
     };
 
-    axios.put(`/events/${event._id}`, { ...data }).then((res) => {
-      if (res.status === 200) {
+    axios.put(`/events/${event._id}`, { ...data })
+      .then(() => {
         toast({
           title: "Success",
           description: "Event Updated Successfully",
@@ -231,21 +215,26 @@ const Event = () => {
         });
         setUpdate(!update);
         onClose();
-      } else {
+      })
+      .catch((err) => {
+        console.error(err);
         toast({
           title: "Error",
-          description: "Some error occurred",
+          description: err.response?.data?.message || "Failed to update event",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
-      }
-    });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const deleteEvent = () => {
-    axios.delete(`/events/${event._id}`).then((res) => {
-      if (res.status === 200) {
+    setLoading(true);
+    axios.delete(`/events/${event._id}`)
+      .then(() => {
         toast({
           title: "Success",
           description: "Event Deleted Successfully",
@@ -254,23 +243,26 @@ const Event = () => {
           isClosable: true,
         });
         navigate("/events");
-      } else {
+      })
+      .catch((err) => {
+        console.error(err);
         toast({
           title: "Error",
-          description: "Some error occurred",
+          description: err.response?.data?.message || "Failed to delete event",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
-      }
-    });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const register = () => {
     setRegisterLoading(true);
-    axios.post(`/events/${event._id}/register`).then((res) => {
-      setRegisterLoading(false);
-      if (res.status === 200) {
+    axios.post(`/events/${event._id}/register`)
+      .then(() => {
         toast({
           title: "Success",
           description: "Registered Successfully",
@@ -279,15 +271,26 @@ const Event = () => {
           isClosable: true,
         });
         setUpdate(!update);
-      }
-    });
+      })
+      .catch((err) => {
+        console.error(err);
+        toast({
+          title: "Error",
+          description: err.response?.data?.message || "Failed to register",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setRegisterLoading(false);
+      });
   };
 
   const deregister = () => {
     setDeregisterLoading(true);
-    axios.post(`/events/${event._id}/deregister`).then((res) => {
-      setDeregisterLoading(false);
-      if (res.status === 200) {
+    axios.post(`/events/${event._id}/deregister`)
+      .then(() => {
         toast({
           title: "Success",
           description: "De-registered Successfully",
@@ -296,35 +299,49 @@ const Event = () => {
           isClosable: true,
         });
         setUpdate(!update);
-      }
-    });
-  };
-
-  const allocate = () => {
-    axios
-      .post(`/events/${event._id}/allocate`, { points: allocatePoints })
-      .then((res) => {
-        if (res.status === 200) {
-          toast({
-            title: "Success",
-            description: "Points Allocated Successfully",
-            status: "success",
-            duration: 5000,
-            isClosable: true,
-          });
-          setUpdate(!update);
-          onAllocateClose();
-        }
       })
       .catch((err) => {
         console.error(err);
         toast({
           title: "Error",
-          description: "Some error occurred",
+          description: err.response?.data?.message || "Failed to de-register",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setDeregisterLoading(false);
+      });
+  };
+
+  const allocate = () => {
+    setLoading(true);
+    axios.post(`/events/${event._id}/allocate`, { points: allocatePoints })
+      .then(() => {
+        toast({
+          title: "Success",
+          description: "Points Allocated Successfully",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        setUpdate(!update);
+        onAllocateClose();
+      })
+      .catch((err) => {
+        console.error(err);
+        toast({
+          title: "Error",
+          description: err.response?.data?.message || "Failed to allocate points",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+        setAllocatePoints(0);
       });
   };
 
@@ -332,13 +349,10 @@ const Event = () => {
     const users = participants.map((participant) => ({
       name: `${participant?.user?.fname} ${participant?.user?.lname}`,
       email: participant?.user?.social?.email,
-      registeredAt: new Date(
-        participant?.registeredAt || ""
-      ).toLocaleDateString("en-US", dateOptions),
+      registeredAt: new Date(participant?.registeredAt || "").toLocaleDateString("en-US", dateOptions),
     }));
 
     const csv = papa.unparse(users);
-
     const csvData = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const csvURL = window.URL.createObjectURL(csvData);
     const tempLink = document.createElement("a");
@@ -347,8 +361,18 @@ const Event = () => {
     tempLink.click();
   };
 
+  const date = new Date().toISOString();
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  };
+
   if (loading) {
-    return <Box>Loading...</Box>;
+    return <Loader />;
   }
 
   return (

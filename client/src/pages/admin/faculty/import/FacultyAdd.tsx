@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { House } from "@shared-types/House";
 import useAxios from "@/config/axios";
+import Loader from "@/components/Loader";
 
 const MotionModalContent = motion(ModalContent);
 
@@ -57,19 +58,19 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
     onOpen: openPerms,
     onClose: setPermClose,
   } = useDisclosure();
-  const [gender, setGender] = React.useState("Male");
-  const [fname, setFname] = React.useState("");
-  const [lname, setLname] = React.useState("");
-  const [moodleid, setMoodleid] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [perms, setPerms] = React.useState(["UFC"]);
-  const [houses, setHouses] = React.useState<House[]>([]);
+  const [gender, setGender] = useState("Male");
+  const [fname, setFname] = useState("");
+  const [lname, setLname] = useState("");
+  const [moodleid, setMoodleid] = useState("");
+  const [email, setEmail] = useState("");
+  const [perms, setPerms] = useState(["UFC"]);
+  const [houses, setHouses] = useState<House[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const toast = useToast();
 
   useEffect(() => {
     const houseObjects = h.houses.map((house: House) => house);
-
     setHouses(houseObjects);
     onOpen();
   }, []);
@@ -82,6 +83,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
   const axios = useAxios();
 
   const addFaculty = () => {
+    setIsLoading(true);
     const data = {
       fname: fname,
       lname: lname,
@@ -92,7 +94,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
       role: "F",
     };
 
-    function checkElements(arr: string | string[]) {
+    const checkElements = (arr: string | string[]) => {
       const elementsToCheck = ["HCO0", "HCO1", "HCO2", "HCO3"];
       let count = 0;
       for (const element of elementsToCheck) {
@@ -102,7 +104,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
         }
       }
       return true;
-    }
+    };
 
     if (!checkElements(perms)) {
       toast({
@@ -112,6 +114,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
         duration: 2000,
         isClosable: true,
       });
+      setIsLoading(false);
       return;
     }
 
@@ -125,29 +128,21 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
           duration: 3000,
           isClosable: true,
         });
-
         setClose();
       })
       .catch((err) => {
-        if (err.response.status === 409) {
-          toast({
-            title: "Error",
-            description: "Moodle ID or email already exists",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Error",
-            description:
-              err?.response?.data?.message || "Failed to add faculty",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-      });
+        console.error("Faculty add error:", err);
+        const errorMessage = err.response?.data?.message || "Something went wrong";
+        
+        toast({
+          title: "Error",
+          description: errorMessage,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      })
+      .finally(() => setIsLoading(false));
   };
 
   const closePerms = () => {
@@ -157,9 +152,7 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
 
   const setupPermissions = (checkboxPerms: string[]) => {
     const hPermissions = perms.filter((perm) => perm.startsWith("H"));
-    const finalPermissions = [...hPermissions, ...checkboxPerms].filter(
-      Boolean
-    );
+    const finalPermissions = [...hPermissions, ...checkboxPerms].filter(Boolean);
     setPerms(finalPermissions);
   };
 
@@ -178,82 +171,86 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
             <ModalHeader fontSize="2xl">Add New Faculty</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
-              <VStack spacing={6}>
-                <Stack direction={["column", "row"]} spacing={4} w="full">
+              {isLoading ? (
+                <Loader />
+              ) : (
+                <VStack spacing={6}>
+                  <Stack direction={["column", "row"]} spacing={4} w="full">
+                    <FormControl>
+                      <FormLabel>First Name</FormLabel>
+                      <InputGroup>
+                        <InputLeftElement>
+                          <User size={18} />
+                        </InputLeftElement>
+                        <Input
+                          placeholder="First Name"
+                          value={fname}
+                          onChange={(e) => setFname(e.target.value)}
+                        />
+                      </InputGroup>
+                    </FormControl>
+
+                    <FormControl>
+                      <FormLabel>Last Name</FormLabel>
+                      <InputGroup>
+                        <InputLeftElement>
+                          <User size={18} />
+                        </InputLeftElement>
+                        <Input
+                          placeholder="Last Name"
+                          value={lname}
+                          onChange={(e) => setLname(e.target.value)}
+                        />
+                      </InputGroup>
+                    </FormControl>
+                  </Stack>
+
                   <FormControl>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>Moodle ID</FormLabel>
                     <InputGroup>
                       <InputLeftElement>
-                        <User size={18} />
+                        <Hash size={18} />
                       </InputLeftElement>
                       <Input
-                        placeholder="First Name"
-                        value={fname}
-                        onChange={(e) => setFname(e.target.value)}
+                        placeholder="Moodle ID"
+                        value={moodleid}
+                        onChange={(e) => setMoodleid(e.target.value)}
                       />
                     </InputGroup>
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <InputGroup>
                       <InputLeftElement>
-                        <User size={18} />
+                        <Mail size={18} />
                       </InputLeftElement>
                       <Input
-                        placeholder="Last Name"
-                        value={lname}
-                        onChange={(e) => setLname(e.target.value)}
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                       />
                     </InputGroup>
                   </FormControl>
-                </Stack>
 
-                <FormControl>
-                  <FormLabel>Moodle ID</FormLabel>
-                  <InputGroup>
-                    <InputLeftElement>
-                      <Hash size={18} />
-                    </InputLeftElement>
-                    <Input
-                      placeholder="Moodle ID"
-                      value={moodleid}
-                      onChange={(e) => setMoodleid(e.target.value)}
-                    />
-                  </InputGroup>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Email</FormLabel>
-                  <InputGroup>
-                    <InputLeftElement>
-                      <Mail size={18} />
-                    </InputLeftElement>
-                    <Input
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </InputGroup>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Gender</FormLabel>
-                  <RadioGroup onChange={setGender} value={gender}>
-                    <Stack direction="row" spacing={6}>
-                      <Radio value="M" colorScheme="blue">
-                        Male
-                      </Radio>
-                      <Radio value="F" colorScheme="pink">
-                        Female
-                      </Radio>
-                      <Radio value="O" colorScheme="purple">
-                        Others
-                      </Radio>
-                    </Stack>
-                  </RadioGroup>
-                </FormControl>
-              </VStack>
+                  <FormControl>
+                    <FormLabel>Gender</FormLabel>
+                    <RadioGroup onChange={setGender} value={gender}>
+                      <Stack direction="row" spacing={6}>
+                        <Radio value="M" colorScheme="blue">
+                          Male
+                        </Radio>
+                        <Radio value="F" colorScheme="pink">
+                          Female
+                        </Radio>
+                        <Radio value="O" colorScheme="purple">
+                          Others
+                        </Radio>
+                      </Stack>
+                    </RadioGroup>
+                  </FormControl>
+                </VStack>
+              )}
             </ModalBody>
 
             <ModalFooter gap={3}>
@@ -264,13 +261,19 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
                   onClose();
                   openPerms();
                 }}
+                isLoading={isLoading}
               >
                 Configure Permissions
               </Button>
-              <Button variant="ghost" onClick={setClose}>
+              <Button variant="ghost" onClick={setClose} isLoading={isLoading}>
                 Cancel
               </Button>
-              <Button colorScheme="blue" onClick={addFaculty}>
+              <Button 
+                colorScheme="blue" 
+                onClick={addFaculty}
+                isLoading={isLoading}
+                loadingText="Adding..."
+              >
                 Add Faculty
               </Button>
             </ModalFooter>
@@ -434,9 +437,8 @@ const FacultyAdd: React.FC<FacultyAddProps> = ({ setModal, h }) => {
           <ModalFooter>
             <Button
               colorScheme="green"
-              onClick={() => {
-                closePerms();
-              }}
+              onClick={closePerms}
+              isLoading={isLoading}
             >
               Set
             </Button>

@@ -1,23 +1,26 @@
 import { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
+import { ErrorBoundary } from "react-error-boundary";
+import { useColorMode } from "@chakra-ui/react";
+
+// Pages
 import Maintainance from "./pages/maintainance-mode/Maintainance";
 import FourZeroFour from "./pages/four-zero-four/FourZeroFour";
 import Feedback from "./pages/feedback/Feedback";
 import Auth from "./pages/auth/Auth";
-
+import ErrorPage from "./components/Error";
 import StudentLayout from "./components/layouts/StudentLayout";
 import useAxios from "./config/axios";
 import StudentHome from "./pages/student/home/Home";
 import StudentCertificates from "./pages/student/certificates/Certificates";
-import StudentProfile from "./pages/profile/Profile.js";
+import StudentProfile from "./pages/profile/Profile";
 import Certificate from "./pages/certificate/Certificate";
 import Events from "./pages/events/Events";
 import Event from "./pages/events/event/Event";
 import StudentSettings from "./pages/student/settings/Settings";
 import Houses from "./pages/houses/Houses";
 import House from "./pages/houses/house/House";
-
-import AdminHome from "./pages/admin/home/Home.js";
+import AdminHome from "./pages/admin/home/Home";
 import AdminStudents from "./pages/admin/student/Students";
 import AdminStudentsImport from "./pages/admin/student/import/StudentImport";
 import AdminFacultyImport from "./pages/admin/faculty/import/FacultyImport";
@@ -27,20 +30,18 @@ import AdminLogs from "./pages/admin/logs/Logs";
 import AdminStudentCertificates from "./pages/admin/student/certificates/Certificates";
 import AdminFeedback from "./pages/admin/feedback/Feedback";
 import AdminFacultyCertificates from "./pages/admin/faculty/certificates/Certificates";
-import AdminLayout from "./components/layouts/AdminLayout.js";
-import SelectiveLayout from "./components/layouts/SelectiveLayout.js";
-
+import AdminLayout from "./components/layouts/AdminLayout";
+import SelectiveLayout from "./components/layouts/SelectiveLayout";
 import FacultyHome from "./pages/faculty/home/Home";
 import Certificates from "./pages/faculty/certificates/Certificates";
 import Enrollments from "./pages/faculty/enrollments/Enrollments";
 import FacultySettings from "./pages/faculty/settings/Settings";
-import FacultyStudent from "./pages/faculty/student/Students.js";
-import FacultyStudentAdd from "./pages/faculty/student/import/StudentImport.js";
-import FacultyCertifications from "./pages/faculty/certifications/Certificates.js";
-import FacultyLayout from "./components/layouts/FacultyLayout.js";
-import About from "./pages/about/About.js";
-import Lander from "./pages/lander/Lander.js";
-import { useColorMode } from "@chakra-ui/react";
+import FacultyStudent from "./pages/faculty/student/Students";
+import FacultyStudentAdd from "./pages/faculty/student/import/StudentImport";
+import FacultyCertifications from "./pages/faculty/certifications/Certificates";
+import FacultyLayout from "./components/layouts/FacultyLayout";
+import About from "./pages/about/About";
+import Lander from "./pages/lander/Lander";
 
 function App() {
   const studentRoutes = [
@@ -82,18 +83,46 @@ function App() {
   ];
 
   const router = createBrowserRouter([
-    { path: "*", element: <FourZeroFour /> },
-    { path: "/feedback", element: <Feedback /> },
-    { path: "/auth", element: <Auth /> },
-
-    { path: "/", element: <Lander /> },
-    { path: "/", element: <SelectiveLayout />, children: selectiveRoutes },
-    { path: "/student", element: <StudentLayout />, children: studentRoutes },
-    { path: "/admin", element: <AdminLayout />, children: adminRoutes },
-    { path: "/faculty", element: <FacultyLayout />, children: facultyRoutes },
-    { path: "/about", element: <About /> },
-    // { path: "/profile/:id/generate/report", element: <Report /> },
-    // { path: "/profile/faculty/:id", element },
+    { 
+      path: "*", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><FourZeroFour /></ErrorBoundary> 
+    },
+    { 
+      path: "/feedback", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><Feedback /></ErrorBoundary> 
+    },
+    { 
+      path: "/auth", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><Auth /></ErrorBoundary> 
+    },
+    { 
+      path: "/", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><Lander /></ErrorBoundary> 
+    },
+    { 
+      path: "/", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><SelectiveLayout /></ErrorBoundary>, 
+      children: selectiveRoutes 
+    },
+    { 
+      path: "/student", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><StudentLayout /></ErrorBoundary>, 
+      children: studentRoutes 
+    },
+    { 
+      path: "/admin", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><AdminLayout /></ErrorBoundary>, 
+      children: adminRoutes 
+    },
+    { 
+      path: "/faculty", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><FacultyLayout /></ErrorBoundary>, 
+      children: facultyRoutes 
+    },
+    { 
+      path: "/about", 
+      element: <ErrorBoundary FallbackComponent={ErrorPage}><About /></ErrorBoundary> 
+    },
   ]);
 
   const maintainanceModeRouter = createBrowserRouter([
@@ -109,26 +138,30 @@ function App() {
     const axios = useAxios();
 
     axios.get("/maintainance").catch((err) => {
-      console.log(err);
-      if (err.response.status === 503) {
+      if (err.response?.status === 503) {
         setMaintainenaceMode(true);
         return;
       }
-      console.log(err);
+      console.error(err);
     });
   }, []);
 
   const { colorMode } = useColorMode();
   useEffect(() => {
     const htmlElement = document.documentElement;
-    if (colorMode === "dark") htmlElement.classList.add("dark");
-    else htmlElement.classList.remove("dark");
+    if (colorMode === "dark") {
+      htmlElement.classList.add("dark");
+    } else {
+      htmlElement.classList.remove("dark");
+    }
   }, [colorMode]);
 
   return (
-    <RouterProvider
-      router={maintainenaceMode ? maintainanceModeRouter : router}
-    />
+    <ErrorBoundary FallbackComponent={ErrorPage}>
+      <RouterProvider
+        router={maintainenaceMode ? maintainanceModeRouter : router}
+      />
+    </ErrorBoundary>
   );
 }
 

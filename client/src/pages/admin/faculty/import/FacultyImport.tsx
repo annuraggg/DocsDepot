@@ -23,6 +23,7 @@ import { Upload, UserPlus, FileSpreadsheet, AlertTriangle } from "lucide-react";
 import Papa from "papaparse";
 import FacultyAdd from "./FacultyAdd";
 import { House } from "@shared-types/House";
+import Loader from "@/components/Loader";
 
 const MotionBox = motion(Box);
 import useAxios from "@/config/axios";
@@ -32,6 +33,7 @@ const FacultyImport = () => {
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState<House[]>([]);
+  const [isHousesLoading, setIsHousesLoading] = useState(true);
 
   const toast = useToast();
   const bgColor = useColorModeValue("white", "gray.800");
@@ -39,7 +41,6 @@ const FacultyImport = () => {
   const axios = useAxios();
 
   const isValidRow = (row: string[]) => {
-    // Check if row has any non-empty values
     return row.some((cell) => cell.trim() !== "");
   };
 
@@ -51,12 +52,21 @@ const FacultyImport = () => {
     if (file) {
       Papa.parse(file, {
         complete: (result) => {
-          // Filter out empty rows and trim whitespace from all cells
           const cleanedData = (result.data as string[][])
             .filter(isValidRow)
             .map((row) => row.map((cell) => cell.trim()));
           setTableData(cleanedData);
         },
+        error: (error) => {
+          console.error("CSV parsing error:", error);
+          toast({
+            title: "CSV Error",
+            description: "Failed to parse CSV file",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        }
       });
     }
   };
@@ -66,40 +76,38 @@ const FacultyImport = () => {
   };
 
   useEffect(() => {
+    setIsHousesLoading(true);
     axios
       .get("/houses")
       .then((res) => {
         setHouses(res.data.data);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Houses fetch error:", err);
         toast({
           title: "Error",
-          description: "Failed to fetch houses data",
+          description: err.response?.data?.message || "Failed to fetch houses data",
           status: "error",
           duration: 3000,
           isClosable: true,
         });
-      });
+      })
+      .finally(() => setIsHousesLoading(false));
   }, []);
 
   const startImport = () => {
     setAdding(true);
-
-    // Validate all rows before proceeding with import
     const invalidRows = tableData.filter((row) => {
       const hasInvalidLength = row.length !== 5;
       const hasInvalidMoodleId = row[0].length !== 3;
       const hasEmptyFields = row.some((cell) => cell.trim() === "");
-
       return hasInvalidLength || hasInvalidMoodleId || hasEmptyFields;
     });
 
     if (invalidRows.length > 0) {
       toast({
         title: "Validation Error",
-        description:
-          "Some rows contain invalid data. Please check the format and ensure no fields are empty.",
+        description: "Some rows contain invalid data. Please check the format and ensure no fields are empty.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -118,36 +126,28 @@ const FacultyImport = () => {
           duration: 3000,
           isClosable: true,
         });
-
         setTableData([]);
         setTimeout(() => {
           window.location.href = "/admin/faculty";
         }, 3000);
       })
       .catch((err) => {
-        if (err?.response?.status === 409) {
-          toast({
-            title: "Error",
-            description: "Moodle ID already exists",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Error",
-            description:
-              err.response?.data?.message || "Error in importing faculty",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
+        console.error("Bulk import error:", err);
+        const errorMessage = err.response?.data?.message || "Error in importing faculty";
+        toast({
+          title: "Error",
+          description: errorMessage,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
       })
-      .finally(() => {
-        setAdding(false);
-      });
+      .finally(() => setAdding(false));
   };
+
+  if (isHousesLoading) {
+    return <Loader />;
+  }
 
   return (
     <Container maxW="container.xl" py={8}>
@@ -175,6 +175,8 @@ const FacultyImport = () => {
               shadow="md"
               _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
               transition="all 0.2s"
+              isLoading={isHousesLoading}
+              loadingText="Loading..."
             >
               Add Individual
             </Button>
@@ -188,6 +190,7 @@ const FacultyImport = () => {
               _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
               transition="all 0.2s"
               cursor="pointer"
+              isDisabled={isHousesLoading}
             >
               Upload CSV
             </Button>
@@ -270,6 +273,7 @@ const FacultyImport = () => {
                   colorScheme="green"
                   onClick={startImport}
                   isLoading={adding}
+                  loadingText="Importing..."
                   size="lg"
                   shadow="md"
                   _hover={{ transform: "translateY(-2px)", shadow: "lg" }}

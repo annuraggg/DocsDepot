@@ -177,6 +177,7 @@ const Faculty = () => {
   } = useDisclosure();
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/user/faculty")
       .then((res) => {
@@ -186,10 +187,13 @@ const Faculty = () => {
         setFilteredFaculty(res.data.data.faculty);
       })
       .catch((err) => {
+        setLoading(false);
         console.error(err);
+        const errorMessage =
+          err.response?.data?.message || "Error fetching faculty";
         toast({
           title: "Error",
-          description: "Error fetching faculty",
+          description: errorMessage,
           status: "error",
           duration: 2000,
           isClosable: true,
@@ -229,32 +233,49 @@ const Faculty = () => {
   };
 
   const confirmDelete = () => {
-    axios.delete(`/user/${state.delItem}`).then((res) => {
-      if (res.data.success) {
-        onDeleteClose();
-        setState((prev) => ({ ...prev, searchQuery: "" }));
-        toast({
-          title: "Success",
-          description: "Faculty deleted successfully",
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-        });
-        setFaculty(faculty.filter((faculty) => faculty._id !== state.delItem));
+    setLoading(true);
+    axios
+      .delete(`/user/${state.delItem}`)
+      .then((res) => {
+        setLoading(false);
+        if (res.data.success) {
+          onDeleteClose();
+          setState((prev) => ({ ...prev, searchQuery: "" }));
+          toast({
+            title: "Success",
+            description: "Faculty deleted successfully",
+            status: "success",
+            duration: 2000,
+            isClosable: true,
+          });
+          setFaculty(faculty.filter((faculty) => faculty._id !== state.delItem));
 
-        onDeleteAlertClose();
-        onDeleteClose();
-      } else {
-        onDeleteClose();
+          onDeleteAlertClose();
+          onDeleteClose();
+        } else {
+          onDeleteClose();
+          toast({
+            title: "Error",
+            description: "Something went wrong",
+            status: "error",
+            duration: 2000,
+            isClosable: true,
+          });
+        }
+      })
+      .catch((err) => {
+        setLoading(false);
+        console.error(err);
+        const errorMessage =
+          err.response?.data?.message || "Error deleting faculty";
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: errorMessage,
           status: "error",
           duration: 2000,
           isClosable: true,
         });
-      }
-    });
+      });
   };
 
   const openEdit = (id: string) => {
@@ -304,6 +325,7 @@ const Faculty = () => {
       return;
     }
 
+    setLoading(true);
     axios
       .put(`/user/${state.facOID}`, {
         mid: state.mid,
@@ -314,6 +336,7 @@ const Faculty = () => {
         permissions: state.perms,
       })
       .then((res) => {
+        setLoading(false);
         if (res.data.success) {
           onEditClose();
           setState((prev) => ({ ...prev, searchQuery: "" }));
@@ -338,11 +361,13 @@ const Faculty = () => {
         }
       })
       .catch((err) => {
+        setLoading(false);
         console.error(err);
-        onEditClose();
+        const errorMessage =
+          err.response?.data?.message || "Error updating faculty";
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: errorMessage,
           status: "error",
           duration: 2000,
           isClosable: true,

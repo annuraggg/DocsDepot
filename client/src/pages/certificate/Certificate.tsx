@@ -35,6 +35,11 @@ const Certificate = () => {
   const toast = useToast();
   const [certificate, setCertificate] = useState<ICertificate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [buttonLoading, setButtonLoading] = useState({
+    approve: false,
+    reject: false,
+    download: false,
+  });
   const [editPrivilege, setEditPrivilege] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -44,6 +49,7 @@ const Certificate = () => {
 
   useEffect(() => {
     const id = window.location.pathname.split("/")[2];
+    setLoading(true);
     axios
       .get(`/certificates/${id}`)
       .then((res) => {
@@ -53,10 +59,10 @@ const Certificate = () => {
         );
       })
       .catch((err) => {
-        console.error(err);
+        console.error('Error fetching certificate:', err);
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: err.response?.data?.message || "Failed to load certificate",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -78,18 +84,32 @@ const Certificate = () => {
   };
 
   const handleDownload = async () => {
-    const res = await axios.get(`/certificates/${certificate!._id}/download`, {
-      responseType: "blob",
-    });
-    const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute(
-      "download",
-      `${certificate?.name}.${certificate?.extension}`
-    );
-    document.body.appendChild(link);
-    link.click();
+    setButtonLoading(prev => ({ ...prev, download: true }));
+    try {
+      const res = await axios.get(`/certificates/${certificate!._id}/download`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `${certificate?.name}.${certificate?.extension}`
+      );
+      document.body.appendChild(link);
+      link.click();
+    } catch (err: any) {
+      console.error('Error downloading certificate:', err);
+      toast({
+        title: "Download Failed",
+        description: err.response?.data?.message || "Failed to download certificate",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setButtonLoading(prev => ({ ...prev, download: false }));
+    }
   };
 
   const addComment = async (comment: ExtendedComment) => {
@@ -118,51 +138,53 @@ const Certificate = () => {
   };
 
   const approveCertificate = async () => {
-    axios
-      .put(`/certificates/${certificate!._id}/accept`)
-      .then(() => {
-        toast({
-          title: "Certificate Approved",
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-        });
-        setCertificate({ ...certificate!, status: "approved" });
-      })
-      .catch((e) => {
-        console.error(e);
-        toast({
-          title: "Error approving certificate",
-          description: "Please try again later",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+    setButtonLoading(prev => ({ ...prev, approve: true }));
+    try {
+      await axios.put(`/certificates/${certificate!._id}/accept`);
+      toast({
+        title: "Certificate Approved",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
       });
+      setCertificate({ ...certificate!, status: "approved" });
+    } catch (err: any) {
+      console.error('Error approving certificate:', err);
+      toast({
+        title: "Approval Failed",
+        description: err.response?.data?.message || "Failed to approve certificate",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setButtonLoading(prev => ({ ...prev, approve: false }));
+    }
   };
 
   const rejectCertificate = async () => {
-    axios
-      .put(`/certificates/${certificate!._id}/reject`)
-      .then(() => {
-        toast({
-          title: "Certificate Rejected",
-          status: "success",
-          duration: 2000,
-          isClosable: true,
-        });
-        setCertificate({ ...certificate!, status: "rejected", earnedXp: 10 });
-      })
-      .catch((e) => {
-        console.error(e);
-        toast({
-          title: "Error rejecting certificate",
-          description: "Please try again later",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+    setButtonLoading(prev => ({ ...prev, reject: true }));
+    try {
+      await axios.put(`/certificates/${certificate!._id}/reject`);
+      toast({
+        title: "Certificate Rejected",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
       });
+      setCertificate({ ...certificate!, status: "rejected", earnedXp: 10 });
+    } catch (err: any) {
+      console.error('Error rejecting certificate:', err);
+      toast({
+        title: "Rejection Failed",
+        description: err.response?.data?.message || "Failed to reject certificate",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setButtonLoading(prev => ({ ...prev, reject: false }));
+    }
   };
 
   return (
@@ -207,11 +229,13 @@ const Certificate = () => {
 
         {certificate?.uploadType === "file" && (
           <Button
+            colorScheme="blue"
             className="w-full mt-4"
             onClick={handleDownload}
-            colorScheme="blue"
+            isLoading={buttonLoading.download}
+            loadingText="Downloading..."
           >
-            Download Original Certficate
+            Download Original Certificate
           </Button>
         )}
 
@@ -231,6 +255,8 @@ const Certificate = () => {
                   colorScheme="green"
                   className="w-full"
                   onClick={approveCertificate}
+                  isLoading={buttonLoading.approve}
+                  loadingText="Approving..."
                 >
                   Approve Certificate
                 </Button>
@@ -238,6 +264,8 @@ const Certificate = () => {
                   colorScheme="red"
                   className="w-full"
                   onClick={rejectCertificate}
+                  isLoading={buttonLoading.reject}
+                  loadingText="Rejecting..."
                 >
                   Reject Certificate
                 </Button>

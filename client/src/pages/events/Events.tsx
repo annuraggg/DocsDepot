@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import {
   Box,
+  Button,
   Heading,
   Text,
 } from '@chakra-ui/react';
@@ -14,7 +15,7 @@ import { Event, Mode } from '@shared-types/Event';
 import Loader from '@/components/Loader';
 
 export const Events = () => {
-  const { events, isLoading, error, createEvent, editPrivilege } = useEvents();
+  const { events, isLoading, error, createEvent, editPrivilege, refreshEvents: fetchEvents, isSubmitting } = useEvents();
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>(['active', 'upcoming', 'expired']);
   const [selectedMode, setSelectedMode] = useState<Mode | ''>('');
@@ -28,7 +29,7 @@ export const Events = () => {
   }, [events]);
 
   const handleFilterChange = (filters: string[]) => {
-    setSelectedFilters(filters);
+    setSelectedFilters(filters);  
     applyFilters(events, '', filters, selectedMode, pointsRange);
   };
 
@@ -114,8 +115,16 @@ export const Events = () => {
 
   if (error) {
     return (
-      <Box className="flex items-center justify-center min-h-screen">
-        <Text className="text-red-500">Error: {error}</Text>
+      <Box className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <Text className="text-red-500 text-lg font-medium">Error loading events</Text>
+        <Text className="text-gray-600">{error}</Text>
+        <Button
+          onClick={fetchEvents}
+          variant="outline"
+          colorScheme="blue"
+        >
+          Try Again
+        </Button>
       </Box>
     );
   }
@@ -200,6 +209,7 @@ export const Events = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateEvent}
+        isSubmitting={isSubmitting}
       />
     </motion.div>
   );

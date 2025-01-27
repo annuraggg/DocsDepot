@@ -73,11 +73,11 @@ const Profile: React.FC = () => {
     if (!id) {
       try {
         id = user?.mid || "";
-      } catch {
-        console.error("Error");
+      } catch (error) {
+        console.error("Error getting user ID:", error);
         toast({
           title: "Error",
-          description: "Error fetching profile data",
+          description: "Unable to load profile - missing user ID",
           status: "error",
           duration: 2000,
           isClosable: true,
@@ -86,6 +86,7 @@ const Profile: React.FC = () => {
       }
     }
 
+    setLoading(true);
     axios
       .get("/auth/profile/" + id)
       .then((res) => {
@@ -97,7 +98,9 @@ const Profile: React.FC = () => {
 
         const data: ResponseType = res.data.data;
 
-        if (!data.user || !data.allHouses || !data.certifications) return;
+        if (!data.user || !data.allHouses || !data.certifications) {
+          throw new Error("Invalid response data");
+        }
 
         setHouses(data.allHouses);
         const userH = data.allHouses.find(
@@ -106,20 +109,22 @@ const Profile: React.FC = () => {
         setUserHouse(userH);
         setUser(data.user);
         setCertifications(data.certifications);
-        setLoading(false);
         setEmail(data.user.social.email);
         setLinkedin(data.user.social.linkedin);
         setGithub(data.user.social.github);
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((error) => {
+        console.error("Error fetching profile data:", error);
         toast({
           title: "Error",
-          description: "Error fetching profile data",
+          description: error.response?.data?.message || "Error loading profile data",
           status: "error",
           duration: 2000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [update]);
 
@@ -127,15 +132,15 @@ const Profile: React.FC = () => {
     setEmail(e.target.value);
   };
 
-  const handleEmailKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const validateEmail = (email: string) => {
-      return String(email)
-        .toLowerCase()
-        .match(
-          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        );
-    };
+  const validateEmail = (email: string): boolean => {
+    return Boolean(String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      ));
+  };
 
+  const handleEmailKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       if (!validateEmail(email)) {
         toast({
@@ -147,34 +152,31 @@ const Profile: React.FC = () => {
         return;
       }
 
+      setBtnLoading(true);
       axios
         .post("/auth/profile", { email, linkedin, github })
-        .then((res) => {
-          if (res.status === 200) {
-            toast({
-              title: "Email Updated Successfully",
-              status: "success",
-              duration: 3000,
-              isClosable: true,
-            });
-            (e.target as HTMLInputElement).blur();
-          } else {
-            toast({
-              title: "Error",
-              status: "error",
-              duration: 3000,
-              isClosable: true,
-            });
-          }
+        .then(() => {
+          toast({
+            title: "Email Updated Successfully",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          (e.target as HTMLInputElement).blur();
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((error: unknown) => {
+          console.error("Error updating email:", error);
+          const err = error as { response?: { data?: { message?: string } } };
           toast({
             title: "Error",
+            description: err.response?.data?.message || "Error updating email",
             status: "error",
             duration: 3000,
             isClosable: true,
           });
+        })
+        .finally(() => {
+          setBtnLoading(false);
         });
     }
   };
@@ -350,43 +352,36 @@ const Profile: React.FC = () => {
       setBtnLoading(false);
       return;
     }
-    const image = await newImageRef.current
-      .getImageScaledToCanvas()
-      .toDataURL("image/png");
 
-    axios
-      .post(`auth/profile/picture`, { image })
-      .then((res) => {
-        setBtnLoading(false);
-        if (res.status === 200) {
-          toast({
-            title: "Profile Picture Updated Successfully",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-          onClose();
-          setUpdate(!update);
-          window.location.reload();
-        } else {
-          toast({
-            title: "Error",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-      })
-      .catch((err) => {
-        setBtnLoading(false);
-        console.error(err);
-        toast({
-          title: "Error",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
+    try {
+      const image = await newImageRef.current
+        .getImageScaledToCanvas()
+        .toDataURL("image/png");
+
+      await axios.post(`auth/profile/picture`, { image });
+
+      toast({
+        title: "Profile Picture Updated Successfully",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
       });
+      onClose();
+      setUpdate(!update);
+      window.location.reload();
+    } catch (error: unknown) {
+      console.error("Error uploading profile picture:", error);
+      const err = error as { response?: { data?: { message?: string } } };
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Error uploading profile picture",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setBtnLoading(false);
+    }
   };
 
   const closeModal = () => {

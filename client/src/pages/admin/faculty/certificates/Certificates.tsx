@@ -54,19 +54,16 @@ const MotionBox = motion(Box);
 
 const FacultyCertificates = () => {
   const isMobile = useBreakpointValue({ base: true, md: false });
-  const [pendingCertificates, _setPendingCertificates] = useState<
-    Certificate[]
-  >([]);
+  const [pendingCertificates, _setPendingCertificates] = useState<Certificate[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  const [filteredCertificates, setFilteredCertificates] = useState<
-    Certificate[]
-  >([]);
+  const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [update, setUpdate] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState<string>("");
   const [action, setAction] = useState<string>("");
   const [comments, setComments] = useState<Comment[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [updateLoading, setUpdateLoading] = useState(false);
   const [filters, setFilters] = useState<{
     types: string[];
     levels: string[];
@@ -97,6 +94,7 @@ const FacultyCertificates = () => {
   const axios = useAxios();
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/certificates/faculty")
       .then((res) => {
@@ -104,10 +102,10 @@ const FacultyCertificates = () => {
         setFilteredCertificates(res.data.data);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Fetch error:", err);
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: err.response?.data?.message || "Failed to fetch certificates",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -203,6 +201,7 @@ const FacultyCertificates = () => {
       return;
     }
 
+    setUpdateLoading(true);
     axios
       .post("/admin/faculty/certificates/update", {
         id: selectedCertificate,
@@ -221,14 +220,19 @@ const FacultyCertificates = () => {
         });
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Update error:", err);
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: err.response?.data?.message || "Failed to update certificate",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setUpdateLoading(false);
+        setAction("");
+        setComments([]);
       });
   };
 
@@ -399,216 +403,234 @@ const FacultyCertificates = () => {
 
   return (
     <Container maxW="container.xl" p={{ base: 4, md: 8 }}>
-      <MotionBox
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Tabs variant="soft-rounded" colorScheme="green">
-          <Flex
-            justify="space-between"
-            align="center"
-            mb={6}
-            direction={{ base: "column", md: "row" }}
-            gap={4}
+      {loading ? (
+        <Flex justify="center" align="center" minH="200px">
+          <Loader />
+        </Flex>
+      ) : (
+        <MotionBox
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Tabs variant="soft-rounded" colorScheme="green">
+            <Flex
+              justify="space-between"
+              align="center"
+              mb={6}
+              direction={{ base: "column", md: "row" }}
+              gap={4}
+            >
+              <TabList>
+                <Tab>All Certificates</Tab>
+                <Tab>
+                  Pending Review
+                  {pendingCertificates.length > 0 && (
+                    <Badge ml={2} colorScheme="red">
+                      {pendingCertificates.length}
+                    </Badge>
+                  )}
+                </Tab>
+              </TabList>
+
+              <InputGroup maxW={{ base: "full", md: "300px" }} size="sm">
+                <InputLeftElement pointerEvents="none">
+                  <Search size={18} />
+                </InputLeftElement>
+                <Input
+                  placeholder="Search certificates..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  borderRadius="full"
+                  bg="white"
+                />
+              </InputGroup>
+            </Flex>
+
+            <TabPanels>
+              <TabPanel px={0}>
+                <Flex justify="end" mb={4}>
+                  <Button
+                    leftIcon={<Filter size={16} />}
+                    onClick={onFilterOpen}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Filters
+                  </Button>
+                </Flex>
+
+                <AnimatePresence>
+                  {isMobile ? (
+                    <SimpleGrid columns={1} spacing={4}>
+                      {filteredCertificates.map((cert, index) => (
+                        <CertificateCard
+                          key={cert._id}
+                          cert={cert}
+                          index={index}
+                        />
+                      ))}
+                    </SimpleGrid>
+                  ) : (
+                    <CertificateTableComponent data={filteredCertificates} />
+                  )}
+                </AnimatePresence>
+              </TabPanel>
+
+              <TabPanel px={0}>
+                <AnimatePresence>
+                  {isMobile ? (
+                    <SimpleGrid columns={1} spacing={4}>
+                      {pendingCertificates.map((cert, index) => (
+                        <CertificateCard
+                          key={cert._id}
+                          cert={cert}
+                          index={index}
+                        />
+                      ))}
+                    </SimpleGrid>
+                  ) : (
+                    <CertificateTableComponent data={pendingCertificates} />
+                  )}
+                </AnimatePresence>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+
+          <Modal
+            isOpen={isModalOpen}
+            onClose={onModalClose}
+            size={{ base: "full", md: "md" }}
           >
-            <TabList>
-              <Tab>All Certificates</Tab>
-              <Tab>
-                Pending Review
-                {pendingCertificates.length > 0 && (
-                  <Badge ml={2} colorScheme="red">
-                    {pendingCertificates.length}
-                  </Badge>
-                )}
-              </Tab>
-            </TabList>
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Review Certificate</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Stack spacing={4}>
+                  <Select
+                    placeholder="Choose an action"
+                    value={action}
+                    onChange={(e) => setAction(e.target.value)}
+                    size="sm"
+                  >
+                    <option value="approved">Accept Certificate</option>
+                    <option value="rejected">Reject Certificate</option>
+                  </Select>
 
-            <InputGroup maxW={{ base: "full", md: "300px" }} size="sm">
-              <InputLeftElement pointerEvents="none">
-                <Search size={18} />
-              </InputLeftElement>
-              <Input
-                placeholder="Search certificates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                borderRadius="full"
-                bg="white"
-              />
-            </InputGroup>
-          </Flex>
+                  <Textarea
+                    placeholder="Add your comments..."
+                    value={comments[0]?.comment || ""}
+                    onChange={(e) =>
+                      setComments([
+                        {
+                          comment: e.target.value,
+                          user: user?._id!,
+                        },
+                      ])
+                    }
+                    size="sm"
+                    minH="120px"
+                  />
+                </Stack>
+              </ModalBody>
 
-          <TabPanels>
-            <TabPanel px={0}>
-              <Flex justify="end" mb={4}>
+              <ModalFooter>
                 <Button
-                  leftIcon={<Filter size={16} />}
-                  onClick={onFilterOpen}
+                  variant="outline"
+                  mr={3}
+                  onClick={onModalClose}
+                  size="sm"
+                  isDisabled={updateLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  colorScheme="green"
+                  onClick={updateCert}
+                  size="sm"
+                  isLoading={updateLoading}
+                  loadingText="Submitting..."
+                >
+                  Submit
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+
+          <Modal
+            isOpen={isFilterOpen}
+            onClose={onFilterClose}
+            size={{ base: "full", md: "md" }}
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Filter Certificates</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Stack spacing={4}>
+                  <FormControl>
+                    <FormLabel>Certificate Type</FormLabel>
+                    <CheckboxGroup
+                      value={filters.types}
+                      onChange={(values) =>
+                        setFilters({ ...filters, types: values as string[] })
+                      }
+                    >
+                      <Stack>
+                        <Checkbox value="internal">Internal</Checkbox>
+                        <Checkbox value="external">External</Checkbox>
+                      </Stack>
+                    </CheckboxGroup>
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Level</FormLabel>
+                    <CheckboxGroup
+                      value={filters.levels}
+                      onChange={(values) =>
+                        setFilters({ ...filters, levels: values as string[] })
+                      }
+                    >
+                      <Stack>
+                        <Checkbox value="beginner">Beginner</Checkbox>
+                        <Checkbox value="intermediate">Intermediate</Checkbox>
+                        <Checkbox value="advanced">Advanced</Checkbox>
+                      </Stack>
+                    </CheckboxGroup>
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Status</FormLabel>
+                    <CheckboxGroup
+                      value={filters.status}
+                      onChange={(values) =>
+                        setFilters({ ...filters, status: values as string[] })
+                      }
+                    >
+                      <Stack>
+                        <Checkbox value="active">Active</Checkbox>
+                        <Checkbox value="expired">Expired</Checkbox>
+                        <Checkbox value="pending">Pending</Checkbox>
+                      </Stack>
+                    </CheckboxGroup>
+                  </FormControl>
+                </Stack>
+              </ModalBody>
+              <ModalFooter>
+                <Button
                   size="sm"
                   variant="outline"
+                  mr={3}
+                  onClick={onFilterClose}
                 >
-                  Filters
+                  Close
                 </Button>
-              </Flex>
-
-              <AnimatePresence>
-                {isMobile ? (
-                  <SimpleGrid columns={1} spacing={4}>
-                    {filteredCertificates.map((cert, index) => (
-                      <CertificateCard
-                        key={cert._id}
-                        cert={cert}
-                        index={index}
-                      />
-                    ))}
-                  </SimpleGrid>
-                ) : (
-                  <CertificateTableComponent data={filteredCertificates} />
-                )}
-              </AnimatePresence>
-            </TabPanel>
-
-            <TabPanel px={0}>
-              <AnimatePresence>
-                {isMobile ? (
-                  <SimpleGrid columns={1} spacing={4}>
-                    {pendingCertificates.map((cert, index) => (
-                      <CertificateCard
-                        key={cert._id}
-                        cert={cert}
-                        index={index}
-                      />
-                    ))}
-                  </SimpleGrid>
-                ) : (
-                  <CertificateTableComponent data={pendingCertificates} />
-                )}
-              </AnimatePresence>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-
-        <Modal
-          isOpen={isModalOpen}
-          onClose={onModalClose}
-          size={{ base: "full", md: "md" }}
-        >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Review Certificate</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Stack spacing={4}>
-                <Select
-                  placeholder="Choose an action"
-                  value={action}
-                  onChange={(e) => setAction(e.target.value)}
-                  size="sm"
-                >
-                  <option value="approved">Accept Certificate</option>
-                  <option value="rejected">Reject Certificate</option>
-                </Select>
-
-                <Textarea
-                  placeholder="Add your comments..."
-                  value={comments[0]?.comment || ""}
-                  onChange={(e) =>
-                    setComments([
-                      {
-                        comment: e.target.value,
-                        user: user?._id!,
-                      },
-                    ])
-                  }
-                  size="sm"
-                  minH="120px"
-                />
-              </Stack>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button variant="outline" mr={3} onClick={onModalClose} size="sm">
-                Cancel
-              </Button>
-              <Button colorScheme="green" onClick={updateCert} size="sm">
-                Submit
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-
-        <Modal
-          isOpen={isFilterOpen}
-          onClose={onFilterClose}
-          size={{ base: "full", md: "md" }}
-        >
-          <ModalOverlay />
-          <ModalContent>
-            <ModalHeader>Filter Certificates</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Stack spacing={4}>
-                <FormControl>
-                  <FormLabel>Certificate Type</FormLabel>
-                  <CheckboxGroup
-                    value={filters.types}
-                    onChange={(values) =>
-                      setFilters({ ...filters, types: values as string[] })
-                    }
-                  >
-                    <Stack>
-                      <Checkbox value="internal">Internal</Checkbox>
-                      <Checkbox value="external">External</Checkbox>
-                    </Stack>
-                  </CheckboxGroup>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Level</FormLabel>
-                  <CheckboxGroup
-                    value={filters.levels}
-                    onChange={(values) =>
-                      setFilters({ ...filters, levels: values as string[] })
-                    }
-                  >
-                    <Stack>
-                      <Checkbox value="beginner">Beginner</Checkbox>
-                      <Checkbox value="intermediate">Intermediate</Checkbox>
-                      <Checkbox value="advanced">Advanced</Checkbox>
-                    </Stack>
-                  </CheckboxGroup>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>Status</FormLabel>
-                  <CheckboxGroup
-                    value={filters.status}
-                    onChange={(values) =>
-                      setFilters({ ...filters, status: values as string[] })
-                    }
-                  >
-                    <Stack>
-                      <Checkbox value="active">Active</Checkbox>
-                      <Checkbox value="expired">Expired</Checkbox>
-                      <Checkbox value="pending">Pending</Checkbox>
-                    </Stack>
-                  </CheckboxGroup>
-                </FormControl>
-              </Stack>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                size="sm"
-                variant="outline"
-                mr={3}
-                onClick={onFilterClose}
-              >
-                Close
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </MotionBox>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        </MotionBox>
+      )}
     </Container>
   );
 };
