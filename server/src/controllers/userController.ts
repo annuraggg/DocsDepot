@@ -158,7 +158,7 @@ const createStudent = async (c: Context) => {
       ...body,
       role: "S",
       house,
-      onboarding: { firstTime, approved: firstTime, defaultPW: true },
+      onboarding: { firstTime, approved: !firstTime, defaultPW: true },
       password: bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10),
       academicDetails: {
         admissionYear: body.mid.slice(0, 2),
