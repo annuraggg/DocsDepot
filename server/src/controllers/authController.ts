@@ -68,13 +68,6 @@ const login = async (c: Context) => {
       }
     } else if (findUser.role === "S") {
       const firstTime = findUser.onboarding?.defaultPW;
-      if (findUser.onboarding?.approved === false) {
-        return sendError(
-          c,
-          403,
-          "You have been not alloted to any house yet. Please try again after a while."
-        );
-      }
       if (firstTime) {
         token = "Invalid";
       } else {
@@ -97,6 +90,14 @@ const login = async (c: Context) => {
           theme: findUser.settings?.colorMode || "light",
         };
         token = jwt.sign(data, process.env.JWT_SECRET!);
+      }
+
+      if (findUser.onboarding?.approved === false) {
+        return sendError(
+          c,
+          403,
+          "You have been not alloted to any house yet. Please try again after a while."
+        );
       }
     }
 
