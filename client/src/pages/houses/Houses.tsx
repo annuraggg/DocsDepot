@@ -78,17 +78,18 @@ const Houses = () => {
   const axios = useAxios();
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/houses")
       .then((res) => {
         setHouses(res.data.data);
-        setLoading(false);
       })
-      .catch((err) => {
-        console.error(err);
+      .catch((error) => {
+        console.error('Failed to fetch houses:', error);
+        const errorMessage = error.response?.data?.message || "Something went wrong";
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: errorMessage,
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -199,7 +200,6 @@ const Houses = () => {
         transition={{ duration: 0.6 }}
         className="max-w-7xl mx-auto"
       >
-        {/* House Cards */}
         {houses.length === 0 ? (
           <div className="text-center text-gray-500 my-8">
             No houses found. Create a house to start tracking points.
@@ -233,7 +233,6 @@ const Houses = () => {
           </div>
         )}
 
-        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {renderChart("monthly")}
           {renderChart("previous")}

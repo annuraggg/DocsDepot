@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
-import { useToast } from '@chakra-ui/react';
-import useAxios from '@/config/axios';
-import { Event } from '@shared-types/Event';
-import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
-import { Token } from '@shared-types/Token';
+import { useState, useEffect } from "react";
+import { useToast } from "@chakra-ui/react";
+import useAxios from "@/config/axios";
+import { Event } from "@shared-types/Event";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+import { Token } from "@shared-types/Token";
 
 export const useEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editPrivilege, setEditPrivilege] = useState(false);
   const toast = useToast();
@@ -26,31 +27,37 @@ export const useEvents = () => {
 
   const fetchEvents = async () => {
     setIsLoading(true);
-    try {
-      const response = await axios.get("/events");
-      if (response.status === 200) {
+    setError(null);
+
+    return axios
+      .get("/events")
+      .then((response) => {
         setEvents(response.data.data);
-      } else {
-        throw new Error("Failed to fetch events");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-      toast({
-        title: "Error",
-        description: "Failed to fetch events",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
+      })
+      .catch((error) => {
+        const errorMessage =
+          error.response?.data?.message || "Failed to fetch events";
+        console.error("Error fetching events:", error);
+        setError(errorMessage);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const createEvent = async (eventData: Partial<Event>) => {
-    try {
-      const response = await axios.post("/events", eventData);
-      if (response.status === 200) {
+    setIsSubmitting(true);
+
+    return axios
+      .post("/events", eventData)
+      .then(() => {
         toast({
           title: "Success",
           description: "Event created successfully",
@@ -58,21 +65,26 @@ export const useEvents = () => {
           duration: 5000,
           isClosable: true,
         });
-        await fetchEvents();
+        fetchEvents();
         return true;
-      }
-      throw new Error("Failed to create event");
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Error",
-        description: "Failed to create event",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
+      })
+      .catch((error) => {
+        const errorMessage =
+          error.response?.data?.message ||
+          "Something went wrong while creating the event";
+        console.error("Error creating event:", error);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return false;
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-      return false;
-    }
   };
 
   useEffect(() => {
@@ -82,6 +94,7 @@ export const useEvents = () => {
   return {
     events,
     isLoading,
+    isSubmitting,
     error,
     createEvent,
     editPrivilege,

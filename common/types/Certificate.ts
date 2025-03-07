@@ -37,7 +37,7 @@ interface Certificate {
   uploadType: UploadType;
   url?: string | null;
   extension?: string;
-  status: CertificateStatus;
+  status: string;
   earnedXp: number;
   comments: Comment[];
   hashes: Hashes;

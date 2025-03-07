@@ -19,12 +19,13 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Spinner,
-  useBreakpointValue
+  useBreakpointValue,
+  useToast
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { Star, MessageCircle, ThumbsUp, AlertCircle } from 'lucide-react';
 import useAxios from '@/config/axios';
+import Loader from '@/components/Loader';
 
 interface Feedback {
   _id: string;
@@ -44,15 +45,25 @@ const Feedback: React.FC = () => {
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const axios = useAxios();
+  const toast = useToast();
 
   useEffect(() => {
     const fetchFeedback = async () => {
+      setLoading(true);
       try {
         const response = await axios.get('/feedback');
         setFeedback(response.data.data);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load feedback. Please try again later.');
+      } catch (err: any) {
+        const errorMessage = err.response?.data?.message || 'Something went wrong';
+        setError(errorMessage);
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          status: 'error',
+          duration: 2000,
+          isClosable: true,
+        });
+      } finally {
         setLoading(false);
       }
     };
@@ -77,11 +88,7 @@ const Feedback: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <Flex minH="100vh" align="center" justify="center">
-        <Spinner size="xl" thickness="4px" color="blue.500" />
-      </Flex>
-    );
+    return <Loader />;
   }
 
   if (error) {

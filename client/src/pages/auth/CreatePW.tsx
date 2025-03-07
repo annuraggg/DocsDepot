@@ -33,75 +33,96 @@ const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
   const [show2, setShow2] = React.useState(false);
   const handleClick2 = () => setShow2(!show2);
 
-  function isPasswordValid(password: string) {
-    if (password.length < 9) {
-      return false;
-    }
-    if (!/[A-Z]/.test(password)) {
-      return false;
-    }
-    if (!/[a-z]/.test(password)) {
-      return false;
-    }
-    if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)) {
-      return false;
-    }
-    if (!/\d/.test(password)) {
-      return false;
-    }
-    return true;
-  }
-
+  const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const toaster = useToast();
 
-  const submitPW = () => {
-    setLoading(true);
-
-    if (!isPasswordValid(pw)) {
-      toaster({
-        title: "Error",
-        description:
-          "Password must be at least 9 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
-        status: "error",
-      });
-      setLoading(false);
-      return;
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 9) {
+      return "Password must be at least 9 characters long";
     }
-
-    if (pw !== pw2) {
-      toaster({
-        title: "Error",
-        description: "Passwords do not match.",
-        status: "error",
-      });
-      return;
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
     }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)) {
+      return "Password must contain at least one special character";
+    }
+    if (!/\d/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    return null;
+  };
 
-    const axios = useAxios();
-    axios
-      .post("/auth/firsttime", {
+  const submitPW = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      // Validate password
+      const validationError = validatePassword(pw);
+      if (validationError) {
+        toaster({
+          title: "Invalid Password",
+          description: validationError,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Check password match
+      if (pw !== pw2) {
+        toaster({
+          title: "Error",
+          description: "Passwords do not match",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      const axios = useAxios();
+      const res = await axios.post("/auth/firsttime", {
         mid,
         password: pw.trim(),
         password2: pw2.trim(),
-      })
-      .then((res) => {
-        setLoading(false);
-        if (res.status === 200) {
-          toaster({
-            title: "Password Created",
-            description: "You may now log in!",
-            status: "success",
-          });
-          onClose();
-        } else {
-          toaster({
-            title: "Error",
-            description: "An error occurred. Please try again later.",
-            status: "error",
-          });
-        }
       });
+
+      if (res.status === 200) {
+        toaster({
+          title: "Success",
+          description: "Password created successfully! You may now log in.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        // Clear form
+        setPW("");
+        setPW2("");
+        onClose();
+      } else {
+        throw new Error("Failed to create password");
+      }
+    } catch (err: any) {
+      console.error("Error creating password:", err);
+      const errorMessage = err.response?.data?.message || "Failed to create password. Please try again.";
+
+      toaster({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -109,15 +130,11 @@ const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay backdropFilter="blur(10px)" />
         <ModalContent>
-          <ModalHeader
-            fontSize="lg"
-            fontWeight="bold"
-            className="CreatePWHeader"
-          >
+          <ModalHeader fontSize="lg" fontWeight="bold">
             Create a New, Secure Password
           </ModalHeader>
 
-          <ModalBody className="">
+          <ModalBody>
             <Box className="flex flex-col">
               <Text className="mb-5">
                 As You Are Logging In For the First Time, You Need To Create a
@@ -130,9 +147,10 @@ const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
                   type={show ? "text" : "password"}
                   placeholder="Enter Your New, Secure Password"
                   onChange={(e) => setPW(e.target.value)}
+                  value={pw}
+                  isInvalid={!!error}
                 />
                 <InputRightAddon>
-                  {" "}
                   <Button h="1.75rem" size="sm" onClick={handleClick}>
                     {show ? "Hide" : "Show"}
                   </Button>
@@ -145,26 +163,37 @@ const CreatePW = ({ isOpen, onClose, onOpen, mid }: CreatePWProps) => {
                   type={show2 ? "text" : "password"}
                   placeholder="Confirm Your Password"
                   onChange={(e) => setPW2(e.target.value)}
+                  value={pw2}
+                  isInvalid={!!error}
                 />
                 <InputRightAddon>
-                  {" "}
-                  {
-                    <Button h="1.75rem" size="sm" onClick={handleClick2}>
-                      {show2 ? "Hide" : "Show"}
-                    </Button>
-                  }
+                  <Button h="1.75rem" size="sm" onClick={handleClick2}>
+                    {show2 ? "Hide" : "Show"}
+                  </Button>
                 </InputRightAddon>
               </InputGroup>
+
+              {error && (
+                <Text color="red.500" fontSize="sm" mt={2}>
+                  {error}
+                </Text>
+              )}
             </Box>
           </ModalBody>
 
           <ModalFooter>
-            <Button onClick={onOpen}>Cancel</Button>
+            <Button
+              onClick={onOpen}
+              isDisabled={loading}
+            >
+              Cancel
+            </Button>
             <Button
               colorScheme="green"
               onClick={submitPW}
               ml={3}
               isLoading={loading}
+              loadingText="Creating..."
             >
               Create Password
             </Button>

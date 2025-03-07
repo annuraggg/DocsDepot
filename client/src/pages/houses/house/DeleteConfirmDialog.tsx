@@ -14,6 +14,7 @@ interface DeleteConfirmDialogProps {
   onConfirm: () => Promise<void>;
   title: string;
   description: string;
+  isLoading: boolean;
 }
 
 export const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({

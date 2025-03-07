@@ -71,6 +71,8 @@ const Students = () => {
   const isMobile = useBreakpointValue({ base: true, md: false });
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<ExtendedUser[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>({
     gender: [],
@@ -117,14 +119,15 @@ const Students = () => {
   const axios = useAxios();
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("/user/students")
       .then((res) => {
         setStudents(res.data.data);
       })
       .catch((err) => {
-        const errorMessage =
-          err.response?.data?.message || "Error fetching students";
+        console.error("Error fetching students:", err);
+        const errorMessage = err.response?.data?.message || "Something went wrong";
         toast({
           title: "Error",
           description: errorMessage,
@@ -195,6 +198,7 @@ const Students = () => {
   };
 
   const confirmDelete = async () => {
+    setIsDeleting(true);
     try {
       if (studentToDelete) {
         await axios.delete(`/user/${studentToDelete}`);
@@ -215,8 +219,8 @@ const Students = () => {
       setSelectedStudents([]);
       setStudentToDelete("");
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || "Something went wrong";
+      console.error("Error deleting students:", err);
+      const errorMessage = err.response?.data?.message || "Something went wrong";
       toast({
         title: "Error",
         description: errorMessage,
@@ -224,8 +228,10 @@ const Students = () => {
         duration: 2000,
         isClosable: true,
       });
+    } finally {
+      setIsDeleting(false);
+      onDeleteAlertClose();
     }
-    onDeleteAlertClose();
   };
 
   const openEdit = (mid: string) => {
@@ -242,36 +248,40 @@ const Students = () => {
     }
   };
 
-  const updateStudent = () => {
-    onEditClose();
-    axios
-      .put(`/user/${studentId}`, {
+  const updateStudent = async () => {
+    setIsUpdating(true);
+    try {
+      await axios.put(`/user/${studentId}`, {
         mid: moodleid,
         fname,
         lname,
         email,
         house,
         gender,
-      })
-      .then(() => {
-        toast({
-          title: "Success",
-          description: "Student Updated Successfully",
-          status: "success",
-          duration: 5000,
-          isClosable: true,
-        });
-        setUpdate(!update);
-      })
-      .catch((err) => {
-        toast({
-          title: "Error",
-          description: err.response?.data?.message || "Error updating student",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
       });
+
+      toast({
+        title: "Success",
+        description: "Student Updated Successfully",
+        status: "success",
+        duration: 2000,
+        isClosable: true,
+      });
+
+      setUpdate(!update);
+      onEditClose();
+    } catch (err: any) {
+      console.error("Error updating student:", err);
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Something went wrong",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const uniqueHouses = Array.from(
@@ -361,7 +371,6 @@ const Students = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             borderRadius="full"
-            bg="white"
             fontSize="sm"
           />
         </InputGroup>
@@ -472,15 +481,14 @@ const Students = () => {
             </SimpleGrid>
           ) : (
             <Box
-              bg="white"
               borderRadius="lg"
               boxShadow="sm"
               border="1px"
-              borderColor="gray.200"
+              borderColor="gray.200 dark:border-gray-700"
               overflowX="auto"
             >
               <Table variant="simple">
-                <Thead bg="gray.50">
+                <Thead>
                   <Tr>
                     {isBulkDelete && <Th width="5%"></Th>}
                     <Th width="15%">MOODLE ID</Th>
@@ -567,10 +575,16 @@ const Students = () => {
                   : `Are you sure you want to delete ${selectedStudents.length} students? This action cannot be undone.`}
               </AlertDialogBody>
               <AlertDialogFooter>
-                <Button ref={cancelRef} onClick={onDeleteAlertClose}>
+                <Button ref={cancelRef} onClick={onDeleteAlertClose} isDisabled={isDeleting}>
                   Cancel
                 </Button>
-                <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                <Button
+                  colorScheme="red"
+                  onClick={confirmDelete}
+                  ml={3}
+                  isLoading={isDeleting}
+                  loadingText="Deleting"
+                >
                   Delete
                 </Button>
               </AlertDialogFooter>
@@ -612,7 +626,12 @@ const Students = () => {
               </VStack>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="blue" onClick={updateStudent}>
+              <Button
+                colorScheme="blue"
+                onClick={updateStudent}
+                isLoading={isUpdating}
+                loadingText="Updating"
+              >
                 Update Student
               </Button>
             </ModalFooter>
@@ -655,7 +674,7 @@ const Students = () => {
                     <Stack direction="row" wrap="wrap">
                       {uniqueYears.map((year) => (
                         <Checkbox key={year} value={year}>
-                          {year} 
+                          {year}
                         </Checkbox>
                       ))}
                     </Stack>

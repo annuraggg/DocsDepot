@@ -22,6 +22,7 @@ interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: Partial<Event>) => Promise<void>;
+  isSubmitting: boolean;
 }
 
 interface FormData {

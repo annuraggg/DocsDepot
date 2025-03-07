@@ -10,7 +10,7 @@ import {
   Search,
   ChevronRightIcon,
 } from "lucide-react";
-import { Container, Heading } from "@chakra-ui/react";
+import { Container, Heading, Spinner } from "@chakra-ui/react";
 import { useToast } from "@chakra-ui/react";
 import useAxios from "@/config/axios";
 import Loader from "@/components/Loader";
@@ -27,6 +27,7 @@ interface Enrollment {
 const Enrollments: React.FC = () => {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buttonLoading, setButtonLoading] = useState(false);
   const [selectedEnrollment, setSelectedEnrollment] =
     useState<Enrollment | null>(null);
   const [update, setUpdate] = useState(0);
@@ -78,18 +79,19 @@ const Enrollments: React.FC = () => {
     axios
       .get("/enrollment")
       .then((res) => {
-        setLoading(false);
         setEnrollments(res.data.data);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error fetching enrollments:", err);
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: err.response?.data?.message || "Failed to fetch enrollments",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, [update]);
@@ -97,6 +99,7 @@ const Enrollments: React.FC = () => {
   const acceptDude = () => {
     if (!selectedEnrollment) return;
 
+    setButtonLoading(true);
     axios
       .post("/enrollment/accept", { id: selectedEnrollment._id })
       .then(() => {
@@ -104,21 +107,24 @@ const Enrollments: React.FC = () => {
         setSelectedEnrollment(null);
         toast({
           title: "Success",
-          description: "Enrollment accepted",
+          description: "Enrollment successfully accepted",
           status: "success",
           duration: 3000,
           isClosable: true,
         });
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error accepting enrollment:", err);
         toast({
           title: "Error",
-          description: "Something went wrong",
+          description: err.response?.data?.message || "Failed to accept enrollment",
           status: "error",
           duration: 5000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setButtonLoading(false);
       });
   };
 
@@ -309,10 +315,19 @@ const Enrollments: React.FC = () => {
                   </button>
                   <button
                     onClick={acceptDude}
-                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center text-sm md:text-base"
+                    disabled={buttonLoading}
+                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Accept
+                    {buttonLoading ? (
+                      <span className="flex items-center">
+                        <Spinner className="w-4 h-4 mr-2" /> Processing...
+                      </span>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Accept
+                      </>
+                    )}
                   </button>
                 </div>
               </motion.div>

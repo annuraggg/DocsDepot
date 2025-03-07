@@ -19,6 +19,7 @@ import {
   Building2,
   Calendar,
 } from "lucide-react";
+import { useToast } from "@chakra-ui/react";
 import useAxios from "@/config/axios";
 import { Certificate as ICertificate } from "@shared-types/Certificate";
 import { House as IHouse } from "@shared-types/House";
@@ -40,20 +41,28 @@ const FacultyDashboard: React.FC = () => {
   >("internal");
 
   const axios = useAxios();
+  const toast = useToast();
+
   useEffect(() => {
     const fetchDashboardData = async () => {
+      setLoading(true);
       try {
         const response = await axios.get("/dashboard/admin");
         setData(response.data.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching dashboard data:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.response?.data?.message || "Something went wrong while fetching dashboard data",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [toast]);
 
   const calculateHousePoints = (house: IHouse) => {
     return house.points.reduce((total, point) => total + point.points, 0);
@@ -199,11 +208,10 @@ const FacultyDashboard: React.FC = () => {
                 <button
                   key={type}
                   onClick={() => setActiveTab(type)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    activeTab === type
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${activeTab === type
                       ? "bg-blue-100 text-blue-800"
                       : "text-gray-600 hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </button>
@@ -270,9 +278,8 @@ const FacultyDashboard: React.FC = () => {
                         </td>
                         <td className="p-2 md:p-4">
                           <span
-                            className={`px-2 py-1 rounded-full text-xs ${
-                              getLevelProps(cert.level).className
-                            }`}
+                            className={`px-2 py-1 rounded-full text-xs ${getLevelProps(cert.level).className
+                              }`}
                           >
                             {cert.level.charAt(0).toUpperCase() +
                               cert.level.slice(1)}
@@ -280,9 +287,8 @@ const FacultyDashboard: React.FC = () => {
                         </td>
                         <td className="p-2 md:p-4">
                           <span
-                            className={`px-2 py-1 rounded-full text-xs ${
-                              getStatusProps(cert.status).className
-                            }`}
+                            className={`px-2 py-1 rounded-full text-xs ${getStatusProps(cert.status).className
+                              }`}
                           >
                             {cert.status.charAt(0).toUpperCase() +
                               cert.status.slice(1)}

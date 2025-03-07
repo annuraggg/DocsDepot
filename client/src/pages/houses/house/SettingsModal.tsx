@@ -39,6 +39,7 @@ interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
+  isLoading: boolean;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({

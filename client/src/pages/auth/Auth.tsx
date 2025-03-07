@@ -36,31 +36,49 @@ const Auth = () => {
     new URLSearchParams(window.location.search).get("redirect") || "/";
 
   useEffect(() => {
-    if (Cookie.get("blocked")) {
-      setDisabled(true);
+    try {
+      if (Cookie.get("blocked")) {
+        setDisabled(true);
+        setErr("Account temporarily blocked. Please try again later.");
+      }
+      localStorage.removeItem("chakra-ui-color-mode");
+    } catch (error) {
+      console.error("Error in initialization:", error);
+      setErr("An error occurred while initializing the application.");
     }
-    localStorage.removeItem("chakra-ui-color-mode");
   }, []);
 
   useEffect(() => {
-    if (attempts === 5) {
-      history.replaceState({}, "/auth", "/auth?err=max");
-      setErr("Too Many Attempts");
-      setDisabled(true);
-      const now = new Date();
-      const expirationTime = new Date(now.getTime() + 1000 * 60 * 2); // 2 minutes in milliseconds
-      document.cookie =
-        "blocked=true; expires=" + expirationTime.toUTCString() + "; path=/";
+    try {
+      if (attempts === 5) {
+        history.replaceState({}, "/auth", "/auth?err=max");
+        setErr("Too Many Attempts");
+        setDisabled(true);
 
-      toaster({
-        title: "Too many attempts",
-        description: "Please try again after some time.",
-        status: "error",
-      });
-      setTimeout(() => {
-        setDisabled(false);
-        history.replaceState({}, "/auth?err=max", "/auth");
-      }, 5000);
+        const now = new Date();
+        const expirationTime = new Date(now.getTime() + 1000 * 60 * 2);
+        Cookie.set("blocked", "true", {
+          expires: expirationTime,
+          path: "/"
+        });
+
+        toaster({
+          title: "Too many attempts",
+          description: "Please try again after 2 minutes.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+
+        setTimeout(() => {
+          setDisabled(false);
+          setErr("");
+          history.replaceState({}, "/auth?err=max", "/auth");
+        }, 120000); // 2 minutes
+      }
+    } catch (error) {
+      console.error("Error handling attempts:", error);
+      setErr("An error occurred while processing your request.");
     }
   }, [attempts]);
 
@@ -147,7 +165,6 @@ const Auth = () => {
     "A 'hackathon' is a coding event where programmers collaborate intensively on projects.",
     "The 'NaN' in programming stands for 'Not a Number.'",
     "The first computer programmer in space was a NASA astronaut, John Howard, who wrote code for Apollo missions.",
-    // ... (continuing with the list)
   ];
 
   useEffect(() => {
@@ -167,63 +184,83 @@ const Auth = () => {
   const validateAndSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const midField = document.querySelector("#mid");
-    const pwField = document.querySelector("#pw");
+    setErr("");
 
-    if (!midField || !pwField) {
-      setIsLoading(false);
-      setErr("Error occurred during authentication");
-      return;
-    }
+    try {
+      const midField = document.querySelector("#mid");
+      const pwField = document.querySelector("#pw");
 
-    const mid = (midField as HTMLInputElement).value;
-    const pwd = (pwField as HTMLInputElement).value;
-    setMid(mid);
+      if (!midField || !pwField) {
+        throw new Error("Error occurred during authentication");
+      }
 
-    const axios = useAxios();
-    axios
-      .post("/auth", { mid: mid.trim(), password: pwd.trim() })
-      .then((res) => {
-        setIsLoading(false);
-        if (res.status === 200) {
-          const response = res.data.data;
+      const mid = (midField as HTMLInputElement).value;
+      const pwd = (pwField as HTMLInputElement).value;
+      setMid(mid);
 
-          localStorage.setItem(
-            "chakra-ui-color-mode",
-            response?.colorMode ?? "light"
-          );
-
-          Cookie.set("token", response.token, { expires: 1 / 6 });
-
-          if (redirectURL !== "/") {
-            navigate(redirectURL);
-            return;
-          } else {
-            if (response.role === "A") {
-              window.location.href = "/admin";
-            } else if (response.role === "F") {
-              if (response.firstTime) {
-                onOpen();
-              } else {
-                window.location.href = "/faculty";
-              }
-            } else if (response.role === "S") {
-              if (response.firstTime) {
-                onOpen();
-              } else {
-                window.location.href = "/student";
-              }
-            }
-          }
-        } else {
-          setIsLoading(false);
-          setAttempts(attempts + 1);
-        }
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        setErr(err.response.data.message || "Network error occurred");
+      const axios = useAxios();
+      const res = await axios.post("/auth", {
+        mid: mid.trim(),
+        password: pwd.trim()
       });
+
+      if (res.status === 200) {
+        const response = res.data.data;
+
+        localStorage.setItem(
+          "chakra-ui-color-mode",
+          response?.colorMode ?? "light"
+        );
+
+        Cookie.set("token", response.token, { expires: 1 / 6 });
+
+        if (redirectURL !== "/") {
+          navigate(redirectURL);
+          return;
+        }
+
+        if (response.role === "A") {
+          window.location.href = "/admin";
+        } else if (response.role === "F") {
+          if (response.firstTime) {
+            onOpen();
+          } else {
+            window.location.href = "/faculty";
+          }
+        } else if (response.role === "S") {
+          if (response.firstTime) {
+            onOpen();
+          } else {
+            window.location.href = "/student";
+          }
+        }
+      } else {
+        setAttempts(attempts + 1);
+        throw new Error("Authentication failed");
+      }
+    } catch (err: any) {
+      console.error("Authentication error:", err);
+      if (!err.response) {
+        setErr("Network error occurred. Please check your connection.");
+        return;
+      }
+
+      const errorMessage = err.response?.data?.message || "Something went wrong";
+      setErr(errorMessage);
+
+      if (err.response?.status === 429) {
+        setDisabled(true);
+        toaster({
+          title: "Too many attempts",
+          description: "Please try again after some time.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

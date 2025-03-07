@@ -32,34 +32,40 @@ export const DeleteCertificateModal: React.FC<DeleteModalProps> = ({
 }) => {
   const axios = useAxios();
   const toast = useToast();
-  const [btnLoading, setBtnLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    setBtnLoading(true);
+    setIsDeleting(true);
 
     try {
-      await axios.delete(`/certificates/${certificate._id}`);
+      const response = await axios.delete(`/certificates/${certificate._id}`);
+      console.log('Certificate deleted successfully:', response.data);
+      
       toast({
-        title: "Success",
-        description: "Certificate deleted successfully",
+        title: "Certificate Deleted",
+        description: response.data?.message || "Certificate deleted successfully",
         status: "success",
-        duration: 5000,
+        duration: 3000,
         isClosable: true,
         position: "top-right",
       });
+      
       onDelete();
       onClose();
-    } catch (error) {
+    } catch (err: any) {
+      console.error('Error deleting certificate:', err);
+      
       toast({
-        title: "Error",
-        description: "Failed to delete certificate",
+        title: "Delete Failed",
+        description: err.response?.data?.message || 
+                    "Failed to delete certificate. Please try again.",
         status: "error",
         duration: 5000,
         isClosable: true,
         position: "top-right",
       });
     } finally {
-      setBtnLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -69,6 +75,8 @@ export const DeleteCertificateModal: React.FC<DeleteModalProps> = ({
       onClose={onClose}
       size="md"
       motionPreset="slideInBottom"
+      closeOnOverlayClick={!isDeleting}
+      closeOnEsc={!isDeleting}
     >
       <ModalOverlay backdropFilter="blur(8px)" />
       <ModalContent>
@@ -78,14 +86,14 @@ export const DeleteCertificateModal: React.FC<DeleteModalProps> = ({
             <Text>Delete Certificate</Text>
           </VStack>
         </ModalHeader>
-        <ModalCloseButton />
+        <ModalCloseButton disabled={isDeleting} />
 
         <ModalBody>
           <VStack spacing={4} textAlign="center">
             <Text fontWeight="bold">Are you sure?</Text>
             <Text>
-              You are about to delete the certificate: 
-              <Text as="span" color="blue.500" ml={1}>
+              You are about to delete the certificate:{" "}
+              <Text as="span" color="blue.500" fontWeight="medium">
                 {certificate.name}
               </Text>
             </Text>
@@ -96,13 +104,19 @@ export const DeleteCertificateModal: React.FC<DeleteModalProps> = ({
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
+          <Button 
+            variant="ghost" 
+            mr={3} 
+            onClick={onClose}
+            isDisabled={isDeleting}
+          >
             Cancel
           </Button>
           <Button
             colorScheme="red"
             onClick={handleDelete}
-            isLoading={btnLoading}
+            isLoading={isDeleting}
+            loadingText="Deleting..."
             leftIcon={<Trash2 />}
           >
             Delete Certificate

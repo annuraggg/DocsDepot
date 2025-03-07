@@ -1,10 +1,13 @@
 import { Button, Flex, Heading, Textarea, useToast } from "@chakra-ui/react";
 import React, { useState } from "react";
 import useAxios from "@/config/axios";
+import Loader from "@/components/Loader";
 
 const Feedback = () => {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
+  const [isLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleRating = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRating(parseInt(e.target.value));
@@ -22,14 +25,15 @@ const Feedback = () => {
       return;
     }
 
-    try {
-      const axios = useAxios();
-      const response = await axios.post("feedback", {
+    setIsSubmitting(true);
+    const axios = useAxios();
+    
+    axios
+      .post("feedback", {
         rating,
         review: feedback || "No feedback provided",
-      });
-
-      if (response.status === 200) {
+      })
+      .then(() => {
         toaster({
           title: "Feedback Submitted",
           description: "Your feedback has been submitted successfully",
@@ -37,18 +41,23 @@ const Feedback = () => {
         });
         setFeedback("");
         setRating(0);
-      } else {
-        throw new Error("Unexpected response status");
-      }
-    } catch (err) {
-      console.error(err);
-      toaster({
-        title: "Error",
-        description: "Something went wrong",
-        status: "error",
+      })
+      .catch((error) => {
+        console.error(error);
+        toaster({
+          title: "Error",
+          description: error.response?.data?.message || "Something went wrong",
+          status: "error",
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
-    }
   };
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <Flex
@@ -90,7 +99,13 @@ const Feedback = () => {
         value={feedback}
       ></Textarea>
 
-      <Button colorScheme="teal" variant="solid" onClick={sendFeedback}>
+      <Button 
+        colorScheme="teal" 
+        variant="solid" 
+        onClick={sendFeedback}
+        isLoading={isSubmitting}
+        loadingText="Submitting"
+      >
         Submit Feedback
       </Button>
     </Flex>

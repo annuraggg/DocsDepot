@@ -24,6 +24,7 @@ import { CertificateTable } from "./CertificateTable";
 import { ExtendedCertificate } from "@/types/ExtendedCertificate";
 import useAxios from "@/config/axios";
 import useUser from "@/config/user";
+import Loader from "@/components/Loader";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -82,25 +83,24 @@ const Certificates = () => {
 
   const fetchCertificates = async () => {
     const houseId = user?.house;
-    axios
-      .get(`/certificates/house/${houseId}`)
-      .then((res) => {
-        setCertificates(res.data.data);
-        setFilteredCertificates(res.data.data);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast({
-          title: "Error",
-          description: "Failed to fetch certificates",
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
-      })
-      .finally(() => {
-        setLoading(false);
+    setLoading(true);
+
+    try {
+      const response = await axios.get(`/certificates/house/${houseId}`);
+      setCertificates(response.data.data);
+      setFilteredCertificates(response.data.data);
+    } catch (error: any) {
+      console.error('Certificate fetch error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Something went wrong while fetching certificates",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
       });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const applyFilters = () => {
@@ -138,7 +138,7 @@ const Certificates = () => {
   }, [filters, searchTerm]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader />;
   }
 
   return (

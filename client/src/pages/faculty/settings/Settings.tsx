@@ -125,25 +125,54 @@ const Settings = () => {
   const setDark = () => {
     toggleColorMode();
 
+    setIsButtonLoading(true);
     axios
       .post("/auth/profile/theme", {
         colorMode: colorMode === "dark" ? "light" : "dark",
       })
       .then((res) => {
         const token = res.data.data;
-        if (!token) return;
-
+        if (!token) {
+          throw new Error("No token received");
+        }
         Cookies.set("token", token);
       })
       .catch((err) => {
-        console.log(err);
+        console.error("Error updating theme:", err);
+        toast({
+          title: "Theme Update Failed",
+          description: err?.response?.data?.message || "Failed to update theme preferences",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setIsButtonLoading(false);
       });
   };
 
   useEffect(() => {
-    setCertificateTheme(user?.certificateTheme || "classic");
-    setLoading(false);
-  }, []);
+    const initializeSettings = async () => {
+      setLoading(true);
+      try {
+        setCertificateTheme(user?.certificateTheme || "classic");
+      } catch (err: any) {
+        console.error("Error initializing settings:", err);
+        toast({
+          title: "Failed to Load Settings",
+          description: err?.response?.data?.message || "Could not load your settings",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeSettings();
+  }, [user]);
 
   useEffect(() => {
     if (toastDispatched) {
@@ -160,24 +189,40 @@ const Settings = () => {
 
   const updateCertificateTheme = (theme: string) => {
     setCertificateTheme(theme);
+    setIsButtonLoading(true);
+
     axios
       .post("/auth/profile/certificate-theme", {
         certificateTheme: theme,
       })
       .then((res) => {
         const token = res.data.data;
-        if (!token) return;
-
+        if (!token) {
+          throw new Error("No token received");
+        }
         Cookies.set("token", token);
+        toast({
+          title: "Theme Updated",
+          description: "Certificate theme has been updated successfully",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
       })
       .catch((err) => {
-        console.log(err);
+        console.error("Error updating certificate theme:", err);
         toast({
-          title: err?.response?.data.message || "Theme Change Failed!",
+          title: "Theme Update Failed",
+          description: err?.response?.data?.message || "Failed to update certificate theme",
           status: "error",
           duration: 3000,
           isClosable: true,
         });
+
+        setCertificateTheme(user?.certificateTheme || "classic");
+      })
+      .finally(() => {
+        setIsButtonLoading(false);
       });
   };
 
@@ -208,11 +253,10 @@ const Settings = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`p-2 rounded-lg ${
-                    colorMode === "dark"
-                      ? "bg-gray-700 hover:bg-gray-600"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
+                  className={`p-2 rounded-lg ${colorMode === "dark"
+                    ? "bg-gray-700 hover:bg-gray-600"
+                    : "bg-gray-100 hover:bg-gray-200"
+                    }`}
                   onClick={setDark}
                 >
                   {colorMode === "dark" ? (
@@ -225,9 +269,8 @@ const Settings = () => {
 
               <div className="space-y-6">
                 <div
-                  className={`border-t pt-6 ${
-                    colorMode === "dark" ? "border-gray-700" : "border-gray-200"
-                  }`}
+                  className={`border-t pt-6 ${colorMode === "dark" ? "border-gray-700" : "border-gray-200"
+                    }`}
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <Shield className="w-5 h-5 text-blue-500" />
@@ -247,11 +290,10 @@ const Settings = () => {
                         type={show1 ? "text" : "password"}
                         placeholder="Enter Old Password"
                         onChange={(e) => setOldPass(e.target.value)}
-                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          colorMode === "dark"
-                            ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
-                            : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${colorMode === "dark"
+                          ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                          : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
+                          }`}
                       />
                       <button
                         onClick={() => setShow1(!show1)}
@@ -259,19 +301,17 @@ const Settings = () => {
                       >
                         {show1 ? (
                           <EyeOff
-                            className={`w-5 h-5 ${
-                              colorMode === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
-                            }`}
+                            className={`w-5 h-5 ${colorMode === "dark"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                              }`}
                           />
                         ) : (
                           <Eye
-                            className={`w-5 h-5 ${
-                              colorMode === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
-                            }`}
+                            className={`w-5 h-5 ${colorMode === "dark"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                              }`}
                           />
                         )}
                       </button>
@@ -282,11 +322,10 @@ const Settings = () => {
                         type={show2 ? "text" : "password"}
                         placeholder="Enter New Password"
                         onChange={(e) => setNewPass(e.target.value)}
-                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          colorMode === "dark"
-                            ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
-                            : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${colorMode === "dark"
+                          ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                          : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
+                          }`}
                       />
                       <button
                         onClick={() => setShow2(!show2)}
@@ -294,19 +333,17 @@ const Settings = () => {
                       >
                         {show2 ? (
                           <EyeOff
-                            className={`w-5 h-5 ${
-                              colorMode === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
-                            }`}
+                            className={`w-5 h-5 ${colorMode === "dark"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                              }`}
                           />
                         ) : (
                           <Eye
-                            className={`w-5 h-5 ${
-                              colorMode === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
-                            }`}
+                            className={`w-5 h-5 ${colorMode === "dark"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                              }`}
                           />
                         )}
                       </button>
@@ -317,11 +354,10 @@ const Settings = () => {
                         type={show3 ? "text" : "password"}
                         placeholder="Confirm New Password"
                         onChange={(e) => validatePassMatch(e.target.value)}
-                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                          colorMode === "dark"
-                            ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
-                            : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
-                        }`}
+                        className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${colorMode === "dark"
+                          ? "border-gray-600 bg-gray-700 text-white placeholder-gray-400"
+                          : "border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500"
+                          }`}
                       />
                       <button
                         onClick={() => setShow3(!show3)}
@@ -329,19 +365,17 @@ const Settings = () => {
                       >
                         {show3 ? (
                           <EyeOff
-                            className={`w-5 h-5 ${
-                              colorMode === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
-                            }`}
+                            className={`w-5 h-5 ${colorMode === "dark"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                              }`}
                           />
                         ) : (
                           <Eye
-                            className={`w-5 h-5 ${
-                              colorMode === "dark"
-                                ? "text-gray-400"
-                                : "text-gray-500"
-                            }`}
+                            className={`w-5 h-5 ${colorMode === "dark"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                              }`}
                           />
                         )}
                       </button>
@@ -365,10 +399,9 @@ const Settings = () => {
                   disabled={!toastDispatched || isButtonLoading}
                   onClick={sendNewPass}
                   className={`flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-500 text-white rounded-lg font-medium transition-all duration-200
-                    ${
-                      isButtonLoading || !toastDispatched
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-blue-600"
+                    ${isButtonLoading || !toastDispatched
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-blue-600"
                     }`}
                 >
                   {isButtonLoading ? (

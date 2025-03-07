@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Container,
@@ -18,6 +18,7 @@ import {
   PopoverBody,
   PopoverFooter,
   ButtonGroup,
+  useToast,
 } from "@chakra-ui/react";
 import { FileBadge as CertIcon, Upload, Filter, Search } from "lucide-react";
 import { CertificateFilters } from "./CertificateFilters";
@@ -50,6 +51,8 @@ const itemVariants = {
 };
 
 const Certificates: React.FC = () => {
+  const toast = useToast();
+  const [isUploading, setIsUploading] = useState(false);
   const {
     isOpen: isUploadOpen,
     onOpen: onUploadOpen,
@@ -74,6 +77,38 @@ const Certificates: React.FC = () => {
   const hasActiveFilters = Object.values(filters).some((filter) =>
     Array.isArray(filter) ? filter.length > 0 : !!filter
   );
+
+  const handleUpload = async (formData: FormData) => {
+    setIsUploading(true);
+    const axios = useAxios();
+
+    try {
+      const res = await axios.post("/certificates", formData);
+      if (res.status === 200) {
+        toast({
+          title: "Success",
+          description: "Certificate uploaded successfully",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        refreshCertificates();
+        onUploadClose();
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || "Something went wrong";
+      console.error("Upload error:", error);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (loading) return <Loader />;
 
@@ -155,6 +190,8 @@ const Certificates: React.FC = () => {
                     colorScheme="green"
                     onClick={onUploadOpen}
                     className="shadow-lg hover:shadow-xl transition-all duration-300"
+                    isLoading={isUploading}
+                    loadingText="Uploading..."
                   >
                     Upload Certificate
                   </Button>
@@ -189,13 +226,7 @@ const Certificates: React.FC = () => {
         <UploadModal
           isOpen={isUploadOpen}
           onClose={onUploadClose}
-          onUpload={async (formData) => {
-            const axios = useAxios();
-            const res = await axios.post("/certificates", formData);
-            if (res.status === 200) {
-              refreshCertificates();
-            }
-          }}
+          onUpload={handleUpload}
         />
       </Container>
     </motion.div>

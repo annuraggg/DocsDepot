@@ -25,6 +25,7 @@ import Papa from "papaparse";
 import { useNavigate } from "react-router";
 import useAxios from "@/config/axios";
 import StudentAdd from "./StudentAdd";
+import Loader from "@/components/Loader";
 
 const MotionBox = motion(Box);
 
@@ -33,6 +34,7 @@ const StudentImport = () => {
   const [adding, setAdding] = useState(false);
   const [addIndividual, setAddIndividual] = useState(false);
   const [houses, setHouses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const toast = useToast();
   const bgColor = useColorModeValue("white", "gray.800");
@@ -41,7 +43,6 @@ const StudentImport = () => {
   const axios = useAxios();
 
   const isValidRow = (row: string[]) => {
-    // Check if row has any non-empty values and correct number of columns
     return row.length === 5 && row.some((cell) => cell.trim() !== "");
   };
 
@@ -51,7 +52,6 @@ const StudentImport = () => {
     const file = files[0];
     Papa.parse(file, {
       complete: (result) => {
-        // Filter out empty rows and trim whitespace from all cells
         const cleanedData = (result.data as string[][])
           .filter(isValidRow)
           .map((row) => row.map((cell) => cell.trim()));
@@ -63,7 +63,6 @@ const StudentImport = () => {
   const startImport = () => {
     setAdding(true);
 
-    // Validate all rows before proceeding with import
     const invalidRows = tableData.filter((row) => {
       const hasInvalidStudentId = row[0].length !== 8;
       const hasEmptyFields = row.some((cell) => cell.trim() === "");
@@ -88,37 +87,20 @@ const StudentImport = () => {
       .then((res) => {
         if (res.status === 200) {
           toast({
-            title: "Students Imported",
+            title: "Success",
             description: "Students have been successfully imported",
             status: "success",
             duration: 3000,
             isClosable: true,
           });
-
           navigate("/admin/student");
-        } else if (res.status === 409) {
-          toast({
-            title: "Error",
-            description: "Student ID already exists",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Error in importing students",
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
         }
       })
       .catch((err) => {
+        console.error("Error importing students:", err);
         toast({
           title: "Error",
-          description:
-            err.response?.data?.message || "Error in importing students",
+          description: err.response?.data?.message || "Failed to import students",
           status: "error",
           duration: 3000,
           isClosable: true,
@@ -131,26 +113,34 @@ const StudentImport = () => {
   };
 
   useEffect(() => {
+    setIsLoading(true);
     axios
       .get("/houses")
       .then((res) => {
         setHouses(res.data.data);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error fetching houses:", err);
         toast({
           title: "Error",
-          description: err.response?.data?.message || "Something went wrong",
+          description: err.response?.data?.message || "Failed to fetch houses",
           status: "error",
           duration: 3000,
           isClosable: true,
         });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
   const handleModal = (value: boolean) => {
     setAddIndividual(value);
   };
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <Container maxW="container.xl" py={8}>
