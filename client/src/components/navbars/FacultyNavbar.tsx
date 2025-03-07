@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Box,
@@ -125,8 +125,17 @@ const FacultyNavbar = () => {
   }
 
   const decoded = jwtDecode(token) as Token;
-  const hasHouseCoordinatorPerms =
-    (decoded?.house && decoded?.role === "F") || false;
+  console.log(decoded);
+
+  const [hasHouseCoordinatorPerms, setHasHouseCoordinatorPerms] =
+    useState(false);
+
+  useEffect(() => {
+    const hasHouseCoordinatorPerms =
+      (decoded?.house && decoded?.role === "F") || false;
+
+    setHasHouseCoordinatorPerms(hasHouseCoordinatorPerms);
+  }, [decoded]);
 
   const logout = () => {
     [
