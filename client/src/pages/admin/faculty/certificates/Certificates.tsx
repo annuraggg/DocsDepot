@@ -58,7 +58,7 @@ const FacultyCertificates = () => {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [filteredCertificates, setFilteredCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [update, setUpdate] = useState(false);
+  const [update, _setUpdate] = useState(false);
   const [selectedCertificate, setSelectedCertificate] = useState<string>("");
   const [action, setAction] = useState<string>("");
   const [comments, setComments] = useState<Comment[]>([]);

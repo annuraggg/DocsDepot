@@ -84,7 +84,7 @@ const Faculty = () => {
 
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
-  const [update, setUpdate] = useState(false);
+  const [update, _setUpdate] = useState(false);
 
   const paginatedFaculty = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;

@@ -35,9 +35,9 @@ export const House: React.FC = () => {
   const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
   const [updateImagesValue, setUpdateImagesValue] = React.useState(0);
 
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [_isLoading, setIsLoading] = React.useState(true);
   const [isUpdating, setIsUpdating] = React.useState(false);
-  const [isAddingMember, setIsAddingMember] = React.useState(false);
+  const [_isAddingMember, setIsAddingMember] = React.useState(false);
   const [isDeletingMember, setIsDeletingMember] = React.useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = React.useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = React.useState(false);
