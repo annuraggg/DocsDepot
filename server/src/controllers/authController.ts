@@ -92,7 +92,7 @@ const login = async (c: Context) => {
         token = jwt.sign(data, process.env.JWT_SECRET!);
       }
 
-      if (findUser.onboarding?.approved === false) {
+      if (findUser.onboarding?.approved === false && !findUser?.onboarding.firstTime) {
         return sendError(
           c,
           403,
