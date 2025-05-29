@@ -100,7 +100,7 @@ const AdminNavbar = () => {
     ].forEach((domain) => {
       Cookies.remove("token", { path: "/", domain });
     });
-    window.location.href = "/auth";
+    navigate("/auth");
   };
 
   const resetPassword = async () => {
@@ -233,7 +233,8 @@ const AdminNavbar = () => {
                 />*/}
                 <Box className="flex items-center justify-end bg-gray-100 dark:bg-gray-800 rounded-xl rounded-r-2xl">
                   <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
-                    {user?.fname}{user?.lname}
+                    {user?.fname}
+                    {user?.lname}
                   </Text>
                   <MenuButton value="profile">
                     <Avatar

@@ -220,18 +220,18 @@ const Auth = () => {
         }
 
         if (response.role === "A") {
-          window.location.href = "/admin";
+          navigate("/admin");
         } else if (response.role === "F") {
           if (response.firstTime) {
             onOpen();
           } else {
-            window.location.href = "/faculty";
+            navigate("/faculty");
           }
         } else if (response.role === "S") {
           if (response.firstTime) {
             onOpen();
           } else {
-            window.location.href = "/student";
+            navigate("/student");
           }
         }
       } else {

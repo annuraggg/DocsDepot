@@ -120,7 +120,7 @@ const FacultyNavbar = () => {
 
   const token = Cookies.get("token");
   if (!token) {
-    window.location.href = "/auth";
+    navigate("/auth");
     return null;
   }
 
@@ -144,7 +144,7 @@ const FacultyNavbar = () => {
     ].forEach((domain) => {
       Cookies.remove("token", { path: "/", domain });
     });
-    window.location.href = "/auth";
+    navigate("/auth");
   };
 
   const resetPassword = async () => {

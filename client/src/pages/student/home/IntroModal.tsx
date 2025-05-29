@@ -4,8 +4,10 @@ import Cookies from "js-cookie";
 import Logo from "@/assets/img/logo.png";
 import useAxios from "@/config/axios";
 import { Spinner, useToast } from "@chakra-ui/react";
+import { useNavigate } from "react-router";
 
 const IntroModal = () => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [formData, setFormData] = useState({
     about: "",
@@ -120,7 +122,7 @@ const IntroModal = () => {
 
   const logoutAndSave = () => {
     Cookies.remove("token");
-    window.location.href = "/auth";
+    navigate("/auth");
   };
 
   const pageVariants = {
