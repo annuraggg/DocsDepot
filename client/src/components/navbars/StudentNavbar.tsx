@@ -96,7 +96,7 @@ const StudentNavbar = ({ notifications = [] }: StudentNavbarProps) => {
     ].forEach((domain) => {
       Cookies.remove("token", { path: "/", domain });
     });
-    window.location.href = "/auth";
+    navigate("/auth")
   };
 
   return (

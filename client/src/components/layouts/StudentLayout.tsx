@@ -4,19 +4,21 @@ import { useEffect } from "react";
 import Cookies from "js-cookie";
 import { Token } from "@shared-types/Token";
 import useUser from "@/config/user";
+import { useNavigate } from "react-router";
 
 const StudentLayout = () => {
+  const navigate = useNavigate();
   // check if cookie exists, if not redirect to login with redirect to current page
   useEffect(() => {
     const cookie = Cookies.get("token") as Token | undefined;
     if (!cookie) {
-      window.location.href = "/auth?redirect=" + window.location.pathname;
+      navigate("/auth?redirect=" + window.location.pathname);
     }
 
     const user = useUser();
 
     if (user?.role !== "S") {
-      window.location.href = "/auth";
+      navigate("/auth");
     }
   }, []);
 

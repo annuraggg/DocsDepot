@@ -30,6 +30,7 @@ import useUser from "@/config/user";
 import Loader from "@/components/Loader";
 import { ExtendedHouse } from "@shared-types/ExtendedHouse";
 import AddUserModal from "./AddUserModal";
+import { useParams } from "react-router";
 
 export const House: React.FC = () => {
   const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
@@ -63,7 +64,7 @@ export const House: React.FC = () => {
   const toast = useToast();
   const axios = useAxios();
   const user = useUser();
-  const houseID = window.location.pathname.split("/")[2];
+  const { id: houseID } = useParams();
 
   const {
     isOpen: isSettingsOpen,
@@ -122,7 +123,8 @@ export const House: React.FC = () => {
     } catch (error: any) {
       toast(
         "Failed to fetch house data",
-        error.response?.data?.message || "Something went wrong while fetching house data",
+        error.response?.data?.message ||
+          "Something went wrong while fetching house data",
         "error"
       );
     } finally {
@@ -140,7 +142,11 @@ export const House: React.FC = () => {
         await fetchHouseData();
       }
     } catch (error: any) {
-      toast("Error", error.response?.data?.message || "Failed to update house", "error");
+      toast(
+        "Error",
+        error.response?.data?.message || "Failed to update house",
+        "error"
+      );
     } finally {
       setIsUpdating(false);
     }
@@ -159,7 +165,11 @@ export const House: React.FC = () => {
         await fetchHouseData();
       }
     } catch (error: any) {
-      toast("Error", error.response?.data?.message || "Failed to add member", "error");
+      toast(
+        "Error",
+        error.response?.data?.message || "Failed to add member",
+        "error"
+      );
       throw error;
     } finally {
       setIsAddingMember(false);
@@ -182,7 +192,11 @@ export const House: React.FC = () => {
         await fetchHouseData();
       }
     } catch (error: any) {
-      toast("Error", error.response?.data?.message || "Failed to remove member", "error");
+      toast(
+        "Error",
+        error.response?.data?.message || "Failed to remove member",
+        "error"
+      );
     } finally {
       setIsDeletingMember(false);
     }
@@ -233,7 +247,11 @@ export const House: React.FC = () => {
         refreshComponent();
       }
     } catch (error: any) {
-      toast("Error", error.response?.data?.message || "Failed to update logo", "error");
+      toast(
+        "Error",
+        error.response?.data?.message || "Failed to update logo",
+        "error"
+      );
     } finally {
       setIsUploadingLogo(false);
     }
@@ -264,7 +282,11 @@ export const House: React.FC = () => {
         refreshComponent();
       }
     } catch (error: any) {
-      toast("Error", error.response?.data?.message || "Failed to update banner", "error");
+      toast(
+        "Error",
+        error.response?.data?.message || "Failed to update banner",
+        "error"
+      );
     } finally {
       setIsUploadingBanner(false);
     }
@@ -274,9 +296,9 @@ export const House: React.FC = () => {
     setUpdateImagesValue((prev) => prev + 1);
   };
 
-  const calculatePoints = () => { };
+  const calculatePoints = () => {};
 
-  const sortMembers = () => { };
+  const sortMembers = () => {};
 
   if (!house) {
     return <Loader />;
@@ -323,8 +345,12 @@ export const House: React.FC = () => {
 
             <div className="pt-5 px-8 pb-8">
               <SocialLinks house={house} />
-              <h2 className="text-xl font-semibold mb-3">{house?.abstract || "No Abstract Provided."}</h2>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{house?.desc || "No Description Provided. "}</p>
+              <h2 className="text-xl font-semibold mb-3">
+                {house?.abstract || "No Abstract Provided."}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                {house?.desc || "No Description Provided. "}
+              </p>
             </div>
           </CardBody>
         </Card>

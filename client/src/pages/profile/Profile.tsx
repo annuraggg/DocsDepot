@@ -14,6 +14,7 @@ import { ImageUploadModal } from "./ImageUploadModal";
 import { User } from "@shared-types/User";
 import { House } from "@shared-types/House";
 import { Certificate } from "@shared-types/Certificate";
+import { useParams } from "react-router";
 
 const MotionFlex = motion(Flex);
 const MotionBox = motion(Box);
@@ -69,7 +70,7 @@ const Profile: React.FC = () => {
   }, [loading, user]);
 
   useEffect(() => {
-    let id = window.location.href.split("/").slice(4)[0];
+    let { id } = useParams(); // if your route is like "/admin/students/:id"
     if (!id) {
       try {
         id = user?.mid || "";
@@ -117,7 +118,8 @@ const Profile: React.FC = () => {
         console.error("Error fetching profile data:", error);
         toast({
           title: "Error",
-          description: error.response?.data?.message || "Error loading profile data",
+          description:
+            error.response?.data?.message || "Error loading profile data",
           status: "error",
           duration: 2000,
           isClosable: true,
@@ -133,11 +135,13 @@ const Profile: React.FC = () => {
   };
 
   const validateEmail = (email: string): boolean => {
-    return Boolean(String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      ));
+    return Boolean(
+      String(email)
+        .toLowerCase()
+        .match(
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        )
+    );
   };
 
   const handleEmailKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -374,7 +378,8 @@ const Profile: React.FC = () => {
       const err = error as { response?: { data?: { message?: string } } };
       toast({
         title: "Error",
-        description: err.response?.data?.message || "Error uploading profile picture",
+        description:
+          err.response?.data?.message || "Error uploading profile picture",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -393,11 +398,10 @@ const Profile: React.FC = () => {
     navigate(`/profile/${mid}/generate/report`);
   };
 
-
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 }
+    exit: { opacity: 0, y: -20 },
   };
 
   if (loading) {
@@ -457,11 +461,7 @@ const Profile: React.FC = () => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Charts
-          userHouse={userHouse}
-          houses={houses}
-          loading={loading}
-        />
+        <Charts userHouse={userHouse} houses={houses} loading={loading} />
         <CertificationsTable certifications={certifications} />
       </MotionFlex>
 

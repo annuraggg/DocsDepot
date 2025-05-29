@@ -45,6 +45,7 @@ import {
 import useAxios from "../../../config/axios";
 import { Download, UserMinus, UserPlus } from "lucide-react";
 import Loader from "@/components/Loader";
+import { useParams } from "react-router";
 
 const Event = () => {
   const navigate = useNavigate();
@@ -78,9 +79,21 @@ const Event = () => {
 
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { isOpen: isAllocateOpen, onOpen: onAllocateOpen, onClose: onAllocateClose } = useDisclosure();
-  const { isOpen: isParticipantsOpen, onOpen: onParticipantsOpen, onClose: onParticipantsClose } = useDisclosure();
-  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const {
+    isOpen: isAllocateOpen,
+    onOpen: onAllocateOpen,
+    onClose: onAllocateClose,
+  } = useDisclosure();
+  const {
+    isOpen: isParticipantsOpen,
+    onOpen: onParticipantsOpen,
+    onClose: onParticipantsClose,
+  } = useDisclosure();
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
 
   const cancelDeleteRef = useRef<HTMLButtonElement>(null);
   const allocateRef = useRef<HTMLButtonElement>(null);
@@ -111,10 +124,11 @@ const Event = () => {
   }, []);
 
   useEffect(() => {
-    const id = window.location.pathname.split("/")[2];
+    const { id } = useParams();
     setLoading(true);
 
-    axios.get(`/events/${id}`)
+    axios
+      .get(`/events/${id}`)
       .then((res) => {
         setEvent(res.data.data);
         setEventName(res.data.data.name);
@@ -129,29 +143,47 @@ const Event = () => {
 
         const eventStartsDate = new Date(res.data.data.eventTimeline.start);
         const eventEndsDate = new Date(res.data.data.eventTimeline.end);
-        const registerationStartsDate = new Date(res.data.data.registrationTimeline.start);
-        const registerationEndsDate = new Date(res.data.data.registrationTimeline.end);
+        const registerationStartsDate = new Date(
+          res.data.data.registrationTimeline.start
+        );
+        const registerationEndsDate = new Date(
+          res.data.data.registrationTimeline.end
+        );
 
-        [eventStartsDate, eventEndsDate, registerationStartsDate, registerationEndsDate].forEach((date) => {
+        [
+          eventStartsDate,
+          eventEndsDate,
+          registerationStartsDate,
+          registerationEndsDate,
+        ].forEach((date) => {
           date.setHours(date.getHours() + 5);
           date.setMinutes(date.getMinutes() + 30);
         });
 
         setEventStarts(eventStartsDate.toISOString().split("T")[0]);
         setEventEnds(eventEndsDate.toISOString().split("T")[0]);
-        setRegisterationStarts(registerationStartsDate.toISOString().split("T")[0]);
+        setRegisterationStarts(
+          registerationStartsDate.toISOString().split("T")[0]
+        );
         setRegisterationEnds(registerationEndsDate.toISOString().split("T")[0]);
 
-        setEventStartTime(eventStartsDate.toISOString().split("T")[1].slice(0, 5));
+        setEventStartTime(
+          eventStartsDate.toISOString().split("T")[1].slice(0, 5)
+        );
         setEventEndTime(eventEndsDate.toISOString().split("T")[1].slice(0, 5));
-        setRegisterationStartTime(registerationStartsDate.toISOString().split("T")[1].slice(0, 5));
-        setRegisterationEndTime(registerationEndsDate.toISOString().split("T")[1].slice(0, 5));
+        setRegisterationStartTime(
+          registerationStartsDate.toISOString().split("T")[1].slice(0, 5)
+        );
+        setRegisterationEndTime(
+          registerationEndsDate.toISOString().split("T")[1].slice(0, 5)
+        );
       })
       .catch((err) => {
         console.error(err);
         toast({
           title: "Error",
-          description: err.response?.data?.message || "Failed to fetch event details",
+          description:
+            err.response?.data?.message || "Failed to fetch event details",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -197,14 +229,15 @@ const Event = () => {
         start: new Date(`${eventStarts}T${eventStartTime}:00`).toISOString(),
         end: new Date(`${eventEnds}T${eventEndTime}:00`).toISOString(),
       },
-      
+
       registrationTimeline: {
         start: new Date(`${registerationStarts}T${registerationStartTime}:00`),
         end: new Date(`${registerationEnds}T${registerationEndTime}:00`),
       },
     };
 
-    axios.put(`/events/${event._id}`, { ...data })
+    axios
+      .put(`/events/${event._id}`, { ...data })
       .then(() => {
         toast({
           title: "Success",
@@ -233,7 +266,8 @@ const Event = () => {
 
   const deleteEvent = () => {
     setLoading(true);
-    axios.delete(`/events/${event._id}`)
+    axios
+      .delete(`/events/${event._id}`)
       .then(() => {
         toast({
           title: "Success",
@@ -261,7 +295,8 @@ const Event = () => {
 
   const register = () => {
     setRegisterLoading(true);
-    axios.post(`/events/${event._id}/register`)
+    axios
+      .post(`/events/${event._id}/register`)
       .then(() => {
         toast({
           title: "Success",
@@ -289,7 +324,8 @@ const Event = () => {
 
   const deregister = () => {
     setDeregisterLoading(true);
-    axios.post(`/events/${event._id}/deregister`)
+    axios
+      .post(`/events/${event._id}/deregister`)
       .then(() => {
         toast({
           title: "Success",
@@ -317,7 +353,8 @@ const Event = () => {
 
   const allocate = () => {
     setLoading(true);
-    axios.post(`/events/${event._id}/allocate`, { points: allocatePoints })
+    axios
+      .post(`/events/${event._id}/allocate`, { points: allocatePoints })
       .then(() => {
         toast({
           title: "Success",
@@ -333,7 +370,8 @@ const Event = () => {
         console.error(err);
         toast({
           title: "Error",
-          description: err.response?.data?.message || "Failed to allocate points",
+          description:
+            err.response?.data?.message || "Failed to allocate points",
           status: "error",
           duration: 5000,
           isClosable: true,
@@ -349,7 +387,9 @@ const Event = () => {
     const users = participants.map((participant) => ({
       name: `${participant?.user?.fname} ${participant?.user?.lname}`,
       email: participant?.user?.social?.email,
-      registeredAt: new Date(participant?.registeredAt || "").toLocaleDateString("en-US", dateOptions),
+      registeredAt: new Date(
+        participant?.registeredAt || ""
+      ).toLocaleDateString("en-US", dateOptions),
     }));
 
     const csv = papa.unparse(users);
@@ -572,7 +612,7 @@ const Event = () => {
                   isLoading={registerLoading}
                   isDisabled={
                     new Date(date) <
-                    new Date(event?.registrationTimeline?.start) ||
+                      new Date(event?.registrationTimeline?.start) ||
                     new Date(date) > new Date(event?.registrationTimeline?.end)
                   }
                   leftIcon={<UserPlus className="w-4 h-4" />}
@@ -584,10 +624,10 @@ const Event = () => {
 
               {new Date(date) <
                 new Date(event?.registrationTimeline?.start) && (
-                  <Text mt={4} color="red.500">
-                    Registration has not started yet
-                  </Text>
-                )}
+                <Text mt={4} color="red.500">
+                  Registration has not started yet
+                </Text>
+              )}
 
               {new Date(date) > new Date(event?.registrationTimeline?.end) && (
                 <Text mt={4} color="red.500">
