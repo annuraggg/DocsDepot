@@ -33,7 +33,18 @@ export const setMaintainanceMode = (mode: boolean) => {
 };
 
 app.use(prettyJSON());
-app.use(cors({ origin: ["http://localhost:5173", "https://docsdepot.anuragsawant.in"], credentials: true }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://docsdepot.anuragsawant.in",
+      "http://64.227.186.83:3000",
+      "http://139.59.93.136:3000",
+      "http://202.179.85.69:3000"
+    ],
+    credentials: true,
+  })
+);
 app.use(performanceMiddleware);
 app.use(attachAuth);
 
@@ -49,12 +60,12 @@ app.route("/certificates", certificateRoutes);
 app.route("/notifications", notificationRoutes);
 app.route("/feedback", feedbackRoutes);
 app.route("/dashboard", dashboardRoutes);
-app.route("/user", userRoutes)
-app.route("/logs", logRoutes)
-app.route("/maintainance", maintainanceRoute)
-app.route("/backup", backupRoute)
+app.route("/user", userRoutes);
+app.route("/logs", logRoutes);
+app.route("/maintainance", maintainanceRoute);
+app.route("/backup", backupRoute);
 
-app.use('/static/*', serveStatic({ root: './src/' }))
+app.use("/static/*", serveStatic({ root: "./src/" }));
 
 serve({ fetch: app.fetch, port: port });
 export default app;
