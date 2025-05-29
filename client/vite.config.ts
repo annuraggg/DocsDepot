@@ -4,5 +4,6 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: process.env.VITE_BASENAME || '/',
   plugins: [react(), tsconfigPaths()],
 })
