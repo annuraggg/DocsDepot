@@ -5,7 +5,7 @@ import logger from "./utils/logger.js";
 const port = parseInt(process.env.PORT!);
 
 app.get("/health", (c) => {
-  return c.json({ status: "ok", version: process.env.VERSION });
+  return c.json({ status: "ok", version: "1.0.0" });
 });
 
 app.get("/*", (c) => {
