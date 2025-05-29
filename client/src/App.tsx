@@ -82,55 +82,97 @@ function App() {
     { path: "/houses/:id", element: <House /> },
   ];
 
-  const router = createBrowserRouter([
-    { 
-      path: "*", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><FourZeroFour /></ErrorBoundary> 
-    },
-    { 
-      path: "/feedback", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><Feedback /></ErrorBoundary> 
-    },
-    { 
-      path: "/auth", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><Auth /></ErrorBoundary> 
-    },
-    { 
-      path: "/", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><Lander /></ErrorBoundary> 
-    },
-    { 
-      path: "/", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><SelectiveLayout /></ErrorBoundary>, 
-      children: selectiveRoutes 
-    },
-    { 
-      path: "/student", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><StudentLayout /></ErrorBoundary>, 
-      children: studentRoutes 
-    },
-    { 
-      path: "/admin", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><AdminLayout /></ErrorBoundary>, 
-      children: adminRoutes 
-    },
-    { 
-      path: "/faculty", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><FacultyLayout /></ErrorBoundary>, 
-      children: facultyRoutes 
-    },
-    { 
-      path: "/about", 
-      element: <ErrorBoundary FallbackComponent={ErrorPage}><About /></ErrorBoundary> 
-    },
-  ]);
+  const router = createBrowserRouter(
+    [
+      {
+        path: "*",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <FourZeroFour />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/feedback",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <Feedback />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/auth",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <Auth />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <Lander />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <SelectiveLayout />
+          </ErrorBoundary>
+        ),
+        children: selectiveRoutes,
+      },
+      {
+        path: "/student",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <StudentLayout />
+          </ErrorBoundary>
+        ),
+        children: studentRoutes,
+      },
+      {
+        path: "/admin",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <AdminLayout />
+          </ErrorBoundary>
+        ),
+        children: adminRoutes,
+      },
+      {
+        path: "/faculty",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <FacultyLayout />
+          </ErrorBoundary>
+        ),
+        children: facultyRoutes,
+      },
+      {
+        path: "/about",
+        element: (
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <About />
+          </ErrorBoundary>
+        ),
+      },
+    ],
+    { basename: import.meta.env.VITE_BASENAME || "/" }
+  );
 
-  const maintainanceModeRouter = createBrowserRouter([
-    { path: "*", element: <Maintainance /> },
-    { path: "/auth", element: <Auth /> },
-    { path: "/admin", element: <AdminLayout />, children: adminRoutes },
-    { path: "/about", element: <About /> },
-  ]);
+  const maintainanceModeRouter = createBrowserRouter(
+    [
+      { path: "*", element: <Maintainance /> },
+      { path: "/auth", element: <Auth /> },
+      { path: "/admin", element: <AdminLayout />, children: adminRoutes },
+      { path: "/about", element: <About /> },
+    ],
+    { basename: import.meta.env.VITE_BASENAME || "/" }
+  );
 
   const [maintainenaceMode, setMaintainenaceMode] = useState(false);
 
