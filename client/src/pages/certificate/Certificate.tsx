@@ -228,7 +228,7 @@ const Certificate = () => {
         {certificate?.uploadType === "url" && (
           <Button
             className="w-full mt-4"
-            onClick={() => window.open(certificate.url!)}
+            onClick={() => window.open(import.meta.env.VITE_BASENAME ? import.meta.env.VITE_BASENAME + certificate?.url : certificate?.url)}
             colorScheme="blue"
           >
             View Certificate
