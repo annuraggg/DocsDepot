@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Box,
   Button,
@@ -11,24 +11,63 @@ import {
   Thead,
   Tr,
   useToast,
-  Container,
   Heading,
   VStack,
   useColorModeValue,
   Text,
   HStack,
+  Card,
+  CardBody,
+  CardHeader,
+  Progress,
+  Badge,
+  SimpleGrid,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  Icon,
+  Center,
+  Skeleton,
+  SkeletonText,
+  AlertIcon,
+  AlertTitle,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  Divider,
+  Tooltip,
+  Flex,
+  Spinner,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router";
-import { motion } from "framer-motion";
-import { Upload, UserPlus, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Upload,
+  UserPlus,
+  FileSpreadsheet,
+  AlertTriangle,
+  Users,
+  CheckCircle,
+  FileText,
+  Download,
+  Eye,
+  Trash2,
+  RefreshCw,
+  Database,
+  ArrowLeft,
+} from "lucide-react";
 import Papa from "papaparse";
 import FacultyAdd from "./FacultyAdd";
 import { House } from "@shared-types/House";
-import Loader from "@/components/Loader";
-
-const MotionBox = motion(Box);
 import useAxios from "@/config/axios";
 
+// Enhanced interfaces
 interface FacultyMember {
   moodleId: string;
   firstName: string;
@@ -37,201 +76,637 @@ interface FacultyMember {
   email: string;
 }
 
-const FacultyImport = () => {
+interface ValidationError {
+  row: number;
+  field: string;
+  message: string;
+}
+
+interface ImportStats {
+  total: number;
+  valid: number;
+  invalid: number;
+  duplicates: number;
+}
+
+// Configuration constants
+const CONFIG = {
+  CSV: {
+    REQUIRED_COLUMNS: 5,
+    EXPECTED_HEADERS: [
+      "Moodle ID",
+      "First Name",
+      "Last Name",
+      "Gender",
+      "Email",
+    ],
+    MOODLE_ID_LENGTH: 3,
+    EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  },
+  VALIDATION: {
+    NAME_MIN_LENGTH: 2,
+    GENDER_OPTIONS: ["M", "F", "O"],
+  },
+  TOAST: {
+    DURATION: {
+      SUCCESS: 3000,
+      ERROR: 5000,
+    },
+    POSITION: "top-right" as const,
+  },
+  ANIMATION: {
+    DURATION: 0.3,
+    SPRING: { type: "spring", stiffness: 300, damping: 30 },
+  },
+} as const;
+
+// Enhanced components
+const MotionBox = motion(Box);
+const MotionCard = motion(Card);
+const MotionTr = motion(Tr);
+
+// Utility functions
+const isValidRow = (row: string[]): boolean => {
+  return row.some((cell) => cell.trim() !== "");
+};
+
+const validateRow = (row: string[], index: number): ValidationError[] => {
+  const errors: ValidationError[] = [];
+
+  if (row.length !== CONFIG.CSV.REQUIRED_COLUMNS) {
+    errors.push({
+      row: index + 1,
+      field: "structure",
+      message: `Row must have exactly ${CONFIG.CSV.REQUIRED_COLUMNS} columns`,
+    });
+    return errors;
+  }
+
+  // Validate Moodle ID
+  if (!row[0].trim()) {
+    errors.push({
+      row: index + 1,
+      field: "moodleId",
+      message: "Moodle ID is required",
+    });
+  } else if (row[0].trim().length !== CONFIG.CSV.MOODLE_ID_LENGTH) {
+    errors.push({
+      row: index + 1,
+      field: "moodleId",
+      message: `Moodle ID must be exactly ${CONFIG.CSV.MOODLE_ID_LENGTH} characters`,
+    });
+  } else if (!/^\d+$/.test(row[0].trim())) {
+    errors.push({
+      row: index + 1,
+      field: "moodleId",
+      message: "Moodle ID must contain only numbers",
+    });
+  }
+
+  // Validate First Name
+  if (!row[1].trim()) {
+    errors.push({
+      row: index + 1,
+      field: "firstName",
+      message: "First name is required",
+    });
+  } else if (row[1].trim().length < CONFIG.VALIDATION.NAME_MIN_LENGTH) {
+    errors.push({
+      row: index + 1,
+      field: "firstName",
+      message: "First name must be at least 2 characters",
+    });
+  }
+
+  // Validate Last Name
+  if (!row[2].trim()) {
+    errors.push({
+      row: index + 1,
+      field: "lastName",
+      message: "Last name is required",
+    });
+  } else if (row[2].trim().length < CONFIG.VALIDATION.NAME_MIN_LENGTH) {
+    errors.push({
+      row: index + 1,
+      field: "lastName",
+      message: "Last name must be at least 2 characters",
+    });
+  }
+
+  // Validate Gender
+  if (!row[3].trim()) {
+    errors.push({
+      row: index + 1,
+      field: "gender",
+      message: "Gender is required",
+    });
+  } else if (
+    !CONFIG.VALIDATION.GENDER_OPTIONS.includes(
+      row[3].trim().toUpperCase() as "M" | "F" | "O"
+    )
+  ) {
+    errors.push({
+      row: index + 1,
+      field: "gender",
+      message: "Gender must be M, F, or O",
+    });
+  }
+
+  // Validate Email
+  if (!row[4].trim()) {
+    errors.push({
+      row: index + 1,
+      field: "email",
+      message: "Email is required",
+    });
+  } else if (!CONFIG.CSV.EMAIL_REGEX.test(row[4].trim())) {
+    errors.push({
+      row: index + 1,
+      field: "email",
+      message: "Invalid email format",
+    });
+  }
+
+  return errors;
+};
+
+const convertTableDataToFacultyMembers = (
+  data: string[][]
+): FacultyMember[] => {
+  return data.map((row) => ({
+    moodleId: row[0].trim(),
+    firstName: row[1].trim(),
+    lastName: row[2].trim(),
+    gender: row[3].trim().toUpperCase(),
+    email: row[4].trim().toLowerCase(),
+  }));
+};
+
+const detectDuplicates = (data: string[][]): number[] => {
+  const seen = new Set<string>();
+  const duplicates: number[] = [];
+
+  data.forEach((row, index) => {
+    const identifier = `${row[0].trim()}-${row[4].trim().toLowerCase()}`;
+    if (seen.has(identifier)) {
+      duplicates.push(index);
+    } else {
+      seen.add(identifier);
+    }
+  });
+
+  return duplicates;
+};
+
+// Loading skeleton component
+const ImportSkeleton: React.FC = () => {
+  const cardBg = useColorModeValue("white", "gray.800");
+
+  return (
+    <VStack spacing={6} align="stretch">
+      <VStack spacing={4}>
+        <Skeleton height="32px" width="300px" />
+        <Skeleton height="20px" width="400px" />
+      </VStack>
+
+      <HStack spacing={4}>
+        <Skeleton height="40px" width="150px" />
+        <Skeleton height="40px" width="150px" />
+      </HStack>
+
+      <Card bg={cardBg} borderRadius="xl">
+        <CardBody p={6}>
+          <VStack spacing={4}>
+            <SkeletonText noOfLines={2} spacing="4" width="100%" />
+          </VStack>
+        </CardBody>
+      </Card>
+    </VStack>
+  );
+};
+
+// Main component
+const FacultyImport: React.FC = () => {
+  // State management
   const [tableData, setTableData] = useState<string[][]>([]);
-  const [adding, setAdding] = useState(false);
-  const [addIndividual, setAddIndividual] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
+  const [isImporting, setIsImporting] = useState<boolean>(false);
+  const [addIndividual, setAddIndividual] = useState<boolean>(false);
   const [houses, setHouses] = useState<House[]>([]);
-  const [isHousesLoading, setIsHousesLoading] = useState(true);
+  const [isHousesLoading, setIsHousesLoading] = useState<boolean>(true);
   const [facultyMembers, setFacultyMembers] = useState<FacultyMember[]>([]);
+  const [duplicateRows, setDuplicateRows] = useState<number[]>([]);
+  const [importProgress, setImportProgress] = useState<number>(0);
 
+  // Hooks
   const toast = useToast();
-  const bgColor = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const axios = useAxios();
   const navigate = useNavigate();
+  const axios = useAxios();
+  const {
+    isOpen: isValidationOpen,
+    onOpen: onValidationOpen,
+    onClose: onValidationClose,
+  } = useDisclosure();
 
-  const isValidRow = (row: string[]) => {
-    return row.some((cell) => cell.trim() !== "");
-  };
+  // Color mode values
+  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
 
-  const handleFileUpload = (
-    event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
-  ) => {
-    const input = event.target as HTMLInputElement;
-    const file = input.files ? input.files[0] : null;
-    if (file) {
+  // Memoized calculations
+  const importStats: ImportStats = useMemo(() => {
+    const total = tableData.length;
+    const invalid = validationErrors.length;
+    const duplicates = duplicateRows.length;
+    const valid =
+      total -
+      new Set([...validationErrors.map((e) => e.row - 1), ...duplicateRows])
+        .size;
+
+    return { total, valid, invalid, duplicates };
+  }, [tableData, validationErrors, duplicateRows]);
+
+  const canImport = useMemo(() => {
+    return (
+      tableData.length > 0 &&
+      validationErrors.length === 0 &&
+      duplicateRows.length === 0
+    );
+  }, [tableData, validationErrors, duplicateRows]);
+
+  // Event handlers
+  const handleFileUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith(".csv")) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a CSV file",
+          status: "error",
+          duration: CONFIG.TOAST.DURATION.ERROR,
+          isClosable: true,
+          position: CONFIG.TOAST.POSITION,
+        });
+        return;
+      }
+
       Papa.parse(file, {
         complete: (result) => {
-          const cleanedData = (result.data as string[][])
-            .filter(isValidRow)
-            .map((row) => row.map((cell) => cell.trim()));
-          setTableData(cleanedData);
+          try {
+            const cleanedData = (result.data as string[][])
+              .filter(isValidRow)
+              .map((row) => row.map((cell) => cell.trim()));
+
+            if (cleanedData.length === 0) {
+              toast({
+                title: "Empty File",
+                description:
+                  "The CSV file appears to be empty or contains no valid data",
+                status: "warning",
+                duration: CONFIG.TOAST.DURATION.ERROR,
+                isClosable: true,
+                position: CONFIG.TOAST.POSITION,
+              });
+              return;
+            }
+
+            setTableData(cleanedData);
+
+            // Validate all rows
+            const allErrors: ValidationError[] = [];
+            cleanedData.forEach((row, index) => {
+              const rowErrors = validateRow(row, index);
+              allErrors.push(...rowErrors);
+            });
+            setValidationErrors(allErrors);
+
+            // Detect duplicates
+            const duplicates = detectDuplicates(cleanedData);
+            setDuplicateRows(duplicates);
+
+            toast({
+              title: "File Uploaded",
+              description: `Processed ${cleanedData.length} rows with ${allErrors.length} validation errors`,
+              status: allErrors.length === 0 ? "success" : "warning",
+              duration: CONFIG.TOAST.DURATION.SUCCESS,
+              isClosable: true,
+              position: CONFIG.TOAST.POSITION,
+            });
+
+            if (allErrors.length > 0 || duplicates.length > 0) {
+              onValidationOpen();
+            }
+          } catch (error) {
+            console.error("CSV processing error:", error);
+            toast({
+              title: "Processing Error",
+              description: "Failed to process the CSV file",
+              status: "error",
+              duration: CONFIG.TOAST.DURATION.ERROR,
+              isClosable: true,
+              position: CONFIG.TOAST.POSITION,
+            });
+          }
         },
         error: (error) => {
           console.error("CSV parsing error:", error);
           toast({
-            title: "CSV Error",
-            description: "Failed to parse CSV file",
+            title: "CSV Parsing Error",
+            description:
+              "Failed to parse the CSV file. Please check the file format.",
             status: "error",
-            duration: 3000,
+            duration: CONFIG.TOAST.DURATION.ERROR,
             isClosable: true,
+            position: CONFIG.TOAST.POSITION,
           });
-        }
+        },
       });
-    }
-  };
 
-  const convertTableDataToFacultyMembers = (data: string[][]): FacultyMember[] => {
-    return data.map(row => ({
-      moodleId: row[0],
-      firstName: row[1],
-      lastName: row[2],
-      gender: row[3],
-      email: row[4]
-    }));
-  };
+      // Reset input
+      event.target.value = "";
+    },
+    [toast, onValidationOpen]
+  );
 
-  const handleModal = (value: boolean) => {
-    setAddIndividual(value);
-  };
-
-  const startImport = async () => {
-    setAdding(true);
-    const invalidRows = tableData.filter((row) => {
-      const hasInvalidLength = row.length !== 5;
-      const hasInvalidMoodleId = row[0].length !== 3;
-      const hasEmptyFields = row.some((cell) => cell.trim() === "");
-      return hasInvalidLength || hasInvalidMoodleId || hasEmptyFields;
-    });
-
-    if (invalidRows.length > 0) {
+  const startImport = useCallback(async () => {
+    if (!canImport) {
       toast({
-        title: "Validation Error",
-        description: "Some rows contain invalid data. Please check the format and ensure no fields are empty.",
+        title: "Cannot Import",
+        description: "Please fix all validation errors before importing",
         status: "error",
-        duration: 5000,
+        duration: CONFIG.TOAST.DURATION.ERROR,
         isClosable: true,
+        position: CONFIG.TOAST.POSITION,
       });
-      setAdding(false);
       return;
     }
 
+    setIsImporting(true);
+    setImportProgress(0);
+
     const newFacultyMembers = convertTableDataToFacultyMembers(tableData);
     const previousFacultyMembers = [...facultyMembers];
-    setFacultyMembers(prev => [...prev, ...newFacultyMembers]);
+
+    // Optimistic update
+    setFacultyMembers((prev) => [...prev, ...newFacultyMembers]);
 
     try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setImportProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return prev;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
       await axios.post("/user/faculty/bulk", { tableData });
+
+      clearInterval(progressInterval);
+      setImportProgress(100);
+
       toast({
-        title: "Faculty Imported",
-        description: "Faculty members have been successfully imported",
+        title: "Import Successful",
+        description: `Successfully imported ${tableData.length} faculty members`,
         status: "success",
-        duration: 3000,
+        duration: CONFIG.TOAST.DURATION.SUCCESS,
         isClosable: true,
+        position: CONFIG.TOAST.POSITION,
       });
-      setTableData([]);
-      navigate("/admin/faculty");
+
+      setTimeout(() => {
+        setTableData([]);
+        setValidationErrors([]);
+        setDuplicateRows([]);
+        navigate("/admin/faculty");
+      }, 1000);
     } catch (err: any) {
+      // Revert optimistic update
       setFacultyMembers(previousFacultyMembers);
+      setImportProgress(0);
+
       console.error("Bulk import error:", err);
-      const errorMessage = err.response?.data?.message || "Error in importing faculty";
+      const errorMessage =
+        err.response?.data?.message || "Failed to import faculty members";
+
       toast({
-        title: "Error",
+        title: "Import Failed",
         description: errorMessage,
         status: "error",
-        duration: 3000,
+        duration: CONFIG.TOAST.DURATION.ERROR,
         isClosable: true,
+        position: CONFIG.TOAST.POSITION,
       });
     } finally {
-      setAdding(false);
+      setIsImporting(false);
     }
-  };
+  }, [canImport, tableData, facultyMembers, axios, toast, navigate]);
 
-  useEffect(() => {
-    setIsHousesLoading(true);
-    axios
-      .get("/houses")
-      .then((res) => {
-        setHouses(res.data.data);
-      })
-      .catch((err) => {
-        console.error("Houses fetch error:", err);
-        toast({
-          title: "Error",
-          description: err.response?.data?.message || "Failed to fetch houses data",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      })
-      .finally(() => setIsHousesLoading(false));
+  const clearData = useCallback(() => {
+    setTableData([]);
+    setValidationErrors([]);
+    setDuplicateRows([]);
+    setImportProgress(0);
   }, []);
 
+  const downloadTemplate = useCallback(() => {
+    const templateData = [
+      ["123", "John", "Doe", "M", "john.doe@university.edu"],
+      ["124", "Jane", "Smith", "F", "jane.smith@university.edu"],
+      ["125", "Alex", "Johnson", "O", "alex.johnson@university.edu"],
+    ];
+
+    const csv = Papa.unparse(templateData, {
+      header: false,
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "faculty_import_template.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Template Downloaded",
+      description: "CSV template has been downloaded to your device",
+      status: "success",
+      duration: CONFIG.TOAST.DURATION.SUCCESS,
+      isClosable: true,
+      position: CONFIG.TOAST.POSITION,
+    });
+  }, [toast]);
+
+  // Effects
+  useEffect(() => {
+    const fetchHouses = async () => {
+      setIsHousesLoading(true);
+      try {
+        const response = await axios.get("/houses");
+        setHouses(response.data.data);
+      } catch (err: any) {
+        console.error("Houses fetch error:", err);
+        toast({
+          title: "Error Loading Houses",
+          description:
+            err.response?.data?.message || "Failed to fetch houses data",
+          status: "error",
+          duration: CONFIG.TOAST.DURATION.ERROR,
+          isClosable: true,
+          position: CONFIG.TOAST.POSITION,
+        });
+      } finally {
+        setIsHousesLoading(false);
+      }
+    };
+
+    fetchHouses();
+  }, []);
+
+  const handleModal = useCallback((value: boolean) => {
+    setAddIndividual(value);
+  }, []);
+
+  // Loading state
   if (isHousesLoading) {
-    return <Loader />;
+    return (
+      <Box bg={bgColor} minH="100vh" p={8}>
+        <ImportSkeleton />
+      </Box>
+    );
   }
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Box bg={bgColor} minH="100vh" p={8}>
       <MotionBox
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
+        maxW="7xl"
+        mx="auto"
       >
-        <VStack spacing={8} align="stretch">
-          <Box>
-            <Heading size="lg" mb={2}>
-              Faculty Management
-            </Heading>
-            <Text color="gray.600">
-              Import faculty members or add them individually to the system
-            </Text>
-          </Box>
-
-          <HStack spacing={4} justify="flex-start">
-            <Button
-              leftIcon={<UserPlus size={18} />}
-              colorScheme="blue"
-              onClick={() => setAddIndividual(true)}
-              size="md"
-              shadow="md"
-              _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-              transition="all 0.2s"
-              isLoading={isHousesLoading}
-              loadingText="Loading..."
-            >
-              Add Individual
-            </Button>
-            <Button
-              as="label"
-              htmlFor="file-upload"
-              leftIcon={<FileSpreadsheet size={18} />}
-              colorScheme="purple"
-              size="md"
-              shadow="md"
-              _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-              transition="all 0.2s"
-              cursor="pointer"
-              isDisabled={isHousesLoading}
-            >
-              Upload CSV
-            </Button>
-          </HStack>
-
-          <Alert
-            status="warning"
-            variant="left-accent"
-            borderRadius="md"
-            shadow="sm"
+        <VStack spacing={6} align="stretch">
+          {/* Header */}
+          <Card
+            bg={cardBg}
+            borderRadius="xl"
+            border="1px"
+            borderColor={borderColor}
           >
-            <AlertTriangle className="mr-3 text-orange-500" />
-            <AlertDescription>
-              Please upload a CSV file with columns in order: Moodle ID (3
-              digits), First Name, Last Name, Gender, Email. First row should
-              not contain column names. Empty rows will be automatically
-              removed.
-            </AlertDescription>
+            <CardBody p={6}>
+              <VStack spacing={4} align="stretch">
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  wrap="wrap"
+                  gap={4}
+                >
+                  <VStack align="start" spacing={2}>
+                    <HStack spacing={3}>
+                      <Icon as={Users} color="blue.500" boxSize={8} />
+                      <Heading size="xl" fontWeight="800">
+                        Faculty Import
+                      </Heading>
+                    </HStack>
+                    <Text color="gray.600" fontSize="lg">
+                      Import faculty members in bulk or add them individually
+                    </Text>
+                  </VStack>
+
+                  <Button
+                    leftIcon={<ArrowLeft size={18} />}
+                    variant="outline"
+                    onClick={() => navigate("/admin/faculty")}
+                    borderRadius="lg"
+                  >
+                    Back to Faculty
+                  </Button>
+                </Flex>
+
+                <Divider />
+
+                {/* Action Buttons */}
+                <HStack spacing={4} wrap="wrap" justify="center">
+                  <Button
+                    leftIcon={<UserPlus size={18} />}
+                    colorScheme="blue"
+                    onClick={() => setAddIndividual(true)}
+                    size="lg"
+                    borderRadius="xl"
+                    isDisabled={isHousesLoading}
+                    _hover={{ transform: "translateY(-2px)" }}
+                    transition="all 0.2s"
+                  >
+                    Add Individual Faculty
+                  </Button>
+
+                  <Button
+                    as="label"
+                    htmlFor="file-upload"
+                    leftIcon={<FileSpreadsheet size={18} />}
+                    colorScheme="purple"
+                    size="lg"
+                    borderRadius="xl"
+                    cursor="pointer"
+                    isDisabled={isHousesLoading}
+                    _hover={{ transform: "translateY(-2px)" }}
+                    transition="all 0.2s"
+                  >
+                    Upload CSV File
+                  </Button>
+
+                  <Button
+                    leftIcon={<Download size={18} />}
+                    variant="outline"
+                    onClick={downloadTemplate}
+                    size="lg"
+                    borderRadius="xl"
+                    _hover={{ transform: "translateY(-2px)" }}
+                    transition="all 0.2s"
+                  >
+                    Download Template
+                  </Button>
+                </HStack>
+              </VStack>
+            </CardBody>
+          </Card>
+
+          {/* Instructions */}
+          <Alert
+            status="info"
+            variant="left-accent"
+            borderRadius="xl"
+            bg={useColorModeValue("blue.50", "blue.900/20")}
+            border="1px"
+            borderColor="blue.200"
+          >
+            <AlertIcon as={FileText} />
+            <VStack align="start" spacing={2} flex={1}>
+              <AlertTitle fontSize="sm" fontWeight="600">
+                CSV Format Instructions
+              </AlertTitle>
+              <AlertDescription fontSize="sm" lineHeight="tall">
+                Upload a CSV file with exactly 5 columns in this order:
+                <strong>
+                  {" "}
+                  Moodle ID (3 digits), First Name, Last Name, Gender (M/F/O),
+                  Email
+                </strong>
+                .
+                <br />
+                Do not include column headers. Empty rows will be automatically
+                removed.
+              </AlertDescription>
+            </VStack>
           </Alert>
 
           <input
@@ -242,76 +717,504 @@ const FacultyImport = () => {
             style={{ display: "none" }}
           />
 
-          {tableData.length > 0 && (
-            <MotionBox
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              bg={bgColor}
-              borderRadius="lg"
-              shadow="xl"
-              overflow="hidden"
+          {/* Import Progress */}
+          {isImporting && (
+            <MotionCard
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              bg={cardBg}
+              borderRadius="xl"
               border="1px"
               borderColor={borderColor}
             >
-              <Box overflowX="auto">
-                <Table variant="simple">
-                  <Thead>
-                    <Tr bg={useColorModeValue("gray.50", "gray.900")}>
-                      <Th>Moodle ID</Th>
-                      <Th>First Name</Th>
-                      <Th>Last Name</Th>
-                      <Th>Gender</Th>
-                      <Th>Email</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {tableData.map((row, index) => (
-                      <motion.tr
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        {row.map((cell, cellIndex) => (
-                          <Td key={cellIndex}>{cell}</Td>
-                        ))}
-                      </motion.tr>
-                    ))}
-                  </Tbody>
-                </Table>
-              </Box>
-            </MotionBox>
+              <CardBody p={6}>
+                <VStack spacing={4}>
+                  <HStack spacing={3} w="full" justify="space-between">
+                    <HStack spacing={2}>
+                      <Spinner color="blue.500" />
+                      <Text fontWeight="600">Importing Faculty Members...</Text>
+                    </HStack>
+                    <Text fontSize="sm" color="gray.600">
+                      {importProgress}% Complete
+                    </Text>
+                  </HStack>
+                  <Progress
+                    value={importProgress}
+                    colorScheme="blue"
+                    size="lg"
+                    borderRadius="full"
+                    w="full"
+                    hasStripe
+                    isAnimated
+                  />
+                </VStack>
+              </CardBody>
+            </MotionCard>
           )}
 
+          {/* Statistics */}
           {tableData.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+            <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4}>
+              <Card
+                bg={cardBg}
+                borderRadius="xl"
+                border="1px"
+                borderColor={borderColor}
+              >
+                <CardBody p={4}>
+                  <Stat>
+                    <HStack justify="space-between" mb={2}>
+                      <StatLabel fontSize="sm">Total Rows</StatLabel>
+                      <Icon as={Database} color="blue.500" boxSize={4} />
+                    </HStack>
+                    <StatNumber fontSize="2xl" fontWeight="700">
+                      {importStats.total}
+                    </StatNumber>
+                    <StatHelpText mb={0}>From CSV file</StatHelpText>
+                  </Stat>
+                </CardBody>
+              </Card>
+
+              <Card
+                bg={cardBg}
+                borderRadius="xl"
+                border="1px"
+                borderColor={borderColor}
+              >
+                <CardBody p={4}>
+                  <Stat>
+                    <HStack justify="space-between" mb={2}>
+                      <StatLabel fontSize="sm">Valid</StatLabel>
+                      <Icon as={CheckCircle} color="green.500" boxSize={4} />
+                    </HStack>
+                    <StatNumber
+                      fontSize="2xl"
+                      fontWeight="700"
+                      color="green.500"
+                    >
+                      {importStats.valid}
+                    </StatNumber>
+                    <StatHelpText mb={0}>Ready to import</StatHelpText>
+                  </Stat>
+                </CardBody>
+              </Card>
+
+              <Card
+                bg={cardBg}
+                borderRadius="xl"
+                border="1px"
+                borderColor={borderColor}
+              >
+                <CardBody p={4}>
+                  <Stat>
+                    <HStack justify="space-between" mb={2}>
+                      <StatLabel fontSize="sm">Errors</StatLabel>
+                      <Icon as={AlertTriangle} color="red.500" boxSize={4} />
+                    </HStack>
+                    <StatNumber fontSize="2xl" fontWeight="700" color="red.500">
+                      {importStats.invalid}
+                    </StatNumber>
+                    <StatHelpText mb={0}>Need fixing</StatHelpText>
+                  </Stat>
+                </CardBody>
+              </Card>
+
+              <Card
+                bg={cardBg}
+                borderRadius="xl"
+                border="1px"
+                borderColor={borderColor}
+              >
+                <CardBody p={4}>
+                  <Stat>
+                    <HStack justify="space-between" mb={2}>
+                      <StatLabel fontSize="sm">Duplicates</StatLabel>
+                      <Icon as={AlertTriangle} color="orange.500" boxSize={4} />
+                    </HStack>
+                    <StatNumber
+                      fontSize="2xl"
+                      fontWeight="700"
+                      color="orange.500"
+                    >
+                      {importStats.duplicates}
+                    </StatNumber>
+                    <StatHelpText mb={0}>Need review</StatHelpText>
+                  </Stat>
+                </CardBody>
+              </Card>
+            </SimpleGrid>
+          )}
+
+          {/* Data Preview */}
+          {tableData.length > 0 && (
+            <Card
+              bg={cardBg}
+              borderRadius="xl"
+              border="1px"
+              borderColor={borderColor}
             >
-              <Box display="flex" justifyContent="flex-end">
-                <Button
-                  leftIcon={<Upload size={18} />}
-                  colorScheme="green"
-                  onClick={startImport}
-                  isLoading={adding}
-                  loadingText="Importing..."
-                  size="lg"
-                  shadow="md"
-                  _hover={{ transform: "translateY(-2px)", shadow: "lg" }}
-                  transition="all 0.2s"
+              <CardHeader>
+                <Flex justify="space-between" align="center">
+                  <VStack align="start" spacing={1}>
+                    <Text fontSize="lg" fontWeight="600">
+                      Data Preview
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Showing {Math.min(tableData.length, 10)} of{" "}
+                      {tableData.length} rows
+                    </Text>
+                  </VStack>
+
+                  <HStack spacing={2}>
+                    {(validationErrors.length > 0 ||
+                      duplicateRows.length > 0) && (
+                      <Button
+                        leftIcon={<Eye size={16} />}
+                        variant="outline"
+                        size="sm"
+                        onClick={onValidationOpen}
+                        borderRadius="lg"
+                      >
+                        View Issues (
+                        {validationErrors.length + duplicateRows.length})
+                      </Button>
+                    )}
+                    <Button
+                      leftIcon={<Trash2 size={16} />}
+                      variant="outline"
+                      colorScheme="red"
+                      size="sm"
+                      onClick={clearData}
+                      borderRadius="lg"
+                    >
+                      Clear Data
+                    </Button>
+                  </HStack>
+                </Flex>
+              </CardHeader>
+
+              <CardBody pt={0}>
+                <Box overflowX="auto">
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr bg={useColorModeValue("gray.50", "gray.700")}>
+                        <Th borderColor={borderColor}>Row</Th>
+                        <Th borderColor={borderColor}>Moodle ID</Th>
+                        <Th borderColor={borderColor}>First Name</Th>
+                        <Th borderColor={borderColor}>Last Name</Th>
+                        <Th borderColor={borderColor}>Gender</Th>
+                        <Th borderColor={borderColor}>Email</Th>
+                        <Th borderColor={borderColor}>Status</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      <AnimatePresence>
+                        {tableData.slice(0, 10).map((row, index) => {
+                          const hasErrors = validationErrors.some(
+                            (e) => e.row === index + 1
+                          );
+                          const isDuplicate = duplicateRows.includes(index);
+                          const hasIssues = hasErrors || isDuplicate;
+
+                          return (
+                            <MotionTr
+                              key={index}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              bg={
+                                hasIssues
+                                  ? useColorModeValue("red.50", "red.900/20")
+                                  : "transparent"
+                              }
+                            >
+                              <Td borderColor={borderColor}>
+                                <Badge
+                                  colorScheme={hasIssues ? "red" : "green"}
+                                  variant="subtle"
+                                  borderRadius="full"
+                                >
+                                  {index + 1}
+                                </Badge>
+                              </Td>
+                              {row.map((cell, cellIndex) => (
+                                <Td key={cellIndex} borderColor={borderColor}>
+                                  {cell || (
+                                    <Text color="gray.400" fontStyle="italic">
+                                      empty
+                                    </Text>
+                                  )}
+                                </Td>
+                              ))}
+                              <Td borderColor={borderColor}>
+                                {hasIssues ? (
+                                  <Tooltip
+                                    label={
+                                      hasErrors
+                                        ? "Has validation errors"
+                                        : "Duplicate entry"
+                                    }
+                                  >
+                                    <Badge
+                                      colorScheme="red"
+                                      variant="solid"
+                                      borderRadius="full"
+                                    >
+                                      {hasErrors ? "Error" : "Duplicate"}
+                                    </Badge>
+                                  </Tooltip>
+                                ) : (
+                                  <Badge
+                                    colorScheme="green"
+                                    variant="solid"
+                                    borderRadius="full"
+                                  >
+                                    Valid
+                                  </Badge>
+                                )}
+                              </Td>
+                            </MotionTr>
+                          );
+                        })}
+                      </AnimatePresence>
+                    </Tbody>
+                  </Table>
+                </Box>
+
+                {tableData.length > 10 && (
+                  <Center mt={4}>
+                    <Text fontSize="sm" color="gray.500">
+                      ... and {tableData.length - 10} more rows
+                    </Text>
+                  </Center>
+                )}
+              </CardBody>
+            </Card>
+          )}
+
+          {/* Import Action */}
+          {tableData.length > 0 && (
+            <Card
+              bg={cardBg}
+              borderRadius="xl"
+              border="1px"
+              borderColor={borderColor}
+            >
+              <CardBody p={6}>
+                <Flex
+                  justify="space-between"
+                  align="center"
+                  wrap="wrap"
+                  gap={4}
                 >
-                  Import Faculty
-                </Button>
-              </Box>
-            </motion.div>
+                  <VStack align="start" spacing={1}>
+                    <Text fontSize="lg" fontWeight="600">
+                      Ready to Import
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      {canImport
+                        ? `${importStats.valid} faculty members will be added to the system`
+                        : `Please fix ${
+                            validationErrors.length + duplicateRows.length
+                          } issues before importing`}
+                    </Text>
+                  </VStack>
+
+                  <HStack spacing={3}>
+                    <Button
+                      leftIcon={<RefreshCw size={16} />}
+                      variant="outline"
+                      onClick={clearData}
+                      isDisabled={isImporting}
+                      borderRadius="lg"
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      leftIcon={<Upload size={18} />}
+                      colorScheme="green"
+                      onClick={startImport}
+                      isLoading={isImporting}
+                      loadingText="Importing..."
+                      isDisabled={!canImport}
+                      size="lg"
+                      borderRadius="xl"
+                      _hover={{ transform: "translateY(-2px)" }}
+                      transition="all 0.2s"
+                    >
+                      Import {importStats.valid} Faculty Members
+                    </Button>
+                  </HStack>
+                </Flex>
+              </CardBody>
+            </Card>
           )}
         </VStack>
-      </MotionBox>
 
-      {addIndividual && <FacultyAdd setModal={handleModal} h={{ houses }} />}
-    </Container>
+        {/* Validation Issues Modal */}
+        <Modal
+          isOpen={isValidationOpen}
+          onClose={onValidationClose}
+          size="4xl"
+          scrollBehavior="inside"
+        >
+          <ModalOverlay backdropFilter="blur(8px)" />
+          <ModalContent borderRadius="xl" mx={4}>
+            <ModalHeader borderBottom="1px" borderColor={borderColor}>
+              <HStack spacing={3}>
+                <Icon as={AlertTriangle} color="red.500" boxSize={6} />
+                <VStack align="start" spacing={1}>
+                  <Text fontSize="lg" fontWeight="700">
+                    Validation Issues
+                  </Text>
+                  <Text fontSize="sm" color="gray.600" fontWeight="normal">
+                    {validationErrors.length + duplicateRows.length} issues
+                    found in your data
+                  </Text>
+                </VStack>
+              </HStack>
+            </ModalHeader>
+            <ModalCloseButton />
+
+            <ModalBody py={6}>
+              <VStack spacing={6} align="stretch">
+                {/* Validation Errors */}
+                {validationErrors.length > 0 && (
+                  <VStack spacing={4} align="stretch">
+                    <HStack spacing={3}>
+                      <Icon as={AlertTriangle} color="red.500" boxSize={5} />
+                      <Text fontSize="md" fontWeight="600">
+                        Validation Errors ({validationErrors.length})
+                      </Text>
+                    </HStack>
+
+                    <Card
+                      variant="outline"
+                      borderRadius="xl"
+                      borderColor="red.200"
+                    >
+                      <CardBody p={4}>
+                        <VStack spacing={3} align="stretch">
+                          {validationErrors.slice(0, 10).map((error, index) => (
+                            <Alert
+                              key={index}
+                              status="error"
+                              borderRadius="lg"
+                              variant="left-accent"
+                            >
+                              <AlertIcon />
+                              <VStack align="start" spacing={1} flex={1}>
+                                <Text fontSize="sm" fontWeight="600">
+                                  Row {error.row} - {error.field}
+                                </Text>
+                                <Text fontSize="sm">{error.message}</Text>
+                              </VStack>
+                            </Alert>
+                          ))}
+                          {validationErrors.length > 10 && (
+                            <Text
+                              fontSize="sm"
+                              color="gray.600"
+                              textAlign="center"
+                            >
+                              ... and {validationErrors.length - 10} more
+                              validation errors
+                            </Text>
+                          )}
+                        </VStack>
+                      </CardBody>
+                    </Card>
+                  </VStack>
+                )}
+
+                {/* Duplicate Entries */}
+                {duplicateRows.length > 0 && (
+                  <VStack spacing={4} align="stretch">
+                    <HStack spacing={3}>
+                      <Icon as={AlertTriangle} color="orange.500" boxSize={5} />
+                      <Text fontSize="md" fontWeight="600">
+                        Duplicate Entries ({duplicateRows.length})
+                      </Text>
+                    </HStack>
+
+                    <Card
+                      variant="outline"
+                      borderRadius="xl"
+                      borderColor="orange.200"
+                    >
+                      <CardBody p={4}>
+                        <VStack spacing={3} align="stretch">
+                          {duplicateRows.slice(0, 5).map((rowIndex, index) => (
+                            <Alert
+                              key={index}
+                              status="warning"
+                              borderRadius="lg"
+                              variant="left-accent"
+                            >
+                              <AlertIcon />
+                              <VStack align="start" spacing={1} flex={1}>
+                                <Text fontSize="sm" fontWeight="600">
+                                  Row {rowIndex + 1} - Duplicate Entry
+                                </Text>
+                                <Text fontSize="sm">
+                                  Moodle ID: {tableData[rowIndex]?.[0]} | Email:{" "}
+                                  {tableData[rowIndex]?.[4]}
+                                </Text>
+                              </VStack>
+                            </Alert>
+                          ))}
+                          {duplicateRows.length > 5 && (
+                            <Text
+                              fontSize="sm"
+                              color="gray.600"
+                              textAlign="center"
+                            >
+                              ... and {duplicateRows.length - 5} more duplicate
+                              entries
+                            </Text>
+                          )}
+                        </VStack>
+                      </CardBody>
+                    </Card>
+                  </VStack>
+                )}
+
+                {/* Instructions */}
+                <Alert status="info" borderRadius="xl" variant="left-accent">
+                  <AlertIcon />
+                  <VStack align="start" spacing={1} flex={1}>
+                    <AlertTitle fontSize="sm">How to Fix Issues</AlertTitle>
+                    <AlertDescription fontSize="sm">
+                      1. Download your original CSV file and fix the highlighted
+                      issues
+                      <br />
+                      2. Remove or correct duplicate entries
+                      <br />
+                      3. Re-upload the corrected CSV file
+                      <br />
+                      4. Ensure all required fields are filled and properly
+                      formatted
+                    </AlertDescription>
+                  </VStack>
+                </Alert>
+              </VStack>
+            </ModalBody>
+
+            <ModalFooter borderTop="1px" borderColor={borderColor} gap={3}>
+              <Button variant="outline" onClick={onValidationClose}>
+                Close
+              </Button>
+              <Button colorScheme="blue" onClick={onValidationClose}>
+                Fix Issues
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Add Individual Faculty Modal */}
+        {addIndividual && <FacultyAdd setModal={handleModal} h={{ houses }} />}
+      </MotionBox>
+    </Box>
   );
 };
 

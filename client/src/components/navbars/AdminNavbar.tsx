@@ -39,6 +39,7 @@ import {
   ChevronDown,
   User,
   Menu as MenuIcon,
+  Info,
 } from "lucide-react";
 import useUser from "@/config/user";
 import useAxios from "@/config/axios";
@@ -131,7 +132,7 @@ const AdminNavbar = () => {
   };
 
   return (
-    <div className="border-b border-gray-600">
+    <div className="border-b border-zinc-300">
       <div className="w-full px-5 mx-auto">
         <div className="flex justify-between items-center h-16">
           <div className="md:hidden flex items-center">
@@ -224,18 +225,27 @@ const AdminNavbar = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 max-w-[300px] w-full justify-end">
             <Menu>
               <Box className="flex items-center gap-5">
                 {/* <Bell
                   size={20}
                   className="cursor-pointer"
                 />*/}
-                <Box className="flex items-center justify-end bg-gray-100 dark:bg-gray-800 rounded-xl rounded-r-2xl">
-                  <Text className="text-text px-3 py-1 rounded-full h-8 flex items-center text-sm">
-                    {user?.fname}
-                    {user?.lname}
-                  </Text>
+                <Box className="flex justify-start items-center bg-gray-100 dark:bg-gray-800 rounded-xl rounded-r-2xl h-10 pl-3">
+                  <VStack spacing={0} align="start" className="mr-2">
+                    <Text
+                      fontSize="sm"
+                      fontWeight="600"
+                      lineHeight="1.2"
+                      className="w-full"
+                    >
+                      {user?.fname} {user?.lname}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500" lineHeight="1.2">
+                      Administrator
+                    </Text>
+                  </VStack>
                   <MenuButton value="profile">
                     <Avatar
                       size="sm"
@@ -257,6 +267,12 @@ const AdminNavbar = () => {
                   <MenuItem value="settings">
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
+                  </MenuItem>
+                </Link>
+                <Link to="/about">
+                  <MenuItem value="about">
+                    <Info className="w-4 h-4 mr-2" />
+                    About
                   </MenuItem>
                 </Link>
                 <MenuDivider />

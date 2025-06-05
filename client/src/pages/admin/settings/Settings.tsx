@@ -1,28 +1,54 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  useColorMode,
-  useToast,
+  Box,
+  Button,
   Card,
   CardBody,
-  Container,
   Switch,
   FormControl,
   FormLabel,
   Alert,
   AlertIcon,
+  AlertTitle,
+  AlertDescription,
   Tabs,
   TabList,
   TabPanels,
   Tab,
   TabPanel,
-  Button,
   Divider,
   RadioGroup,
   Radio,
   Progress,
-  Stack,
+  VStack,
+  HStack,
   useBreakpointValue,
+  Input,
+  InputGroup,
+  InputRightElement,
+  IconButton,
+  Text,
+  Heading,
+  useToast,
+  useColorMode,
+  useColorModeValue,
+  Badge,
+  Flex,
+  Image,
+  Skeleton,
+  SkeletonText,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Spinner,
+  CircularProgress,
+  CircularProgressLabel,
 } from "@chakra-ui/react";
 import {
   Moon,
@@ -35,112 +61,417 @@ import {
   Server,
   Database,
   PaintRoller,
+  Lock,
+  Download,
+  AlertTriangle,
+  Wrench,
+  Palette,
+  FileText,
 } from "lucide-react";
-import Loader from "../../../components/Loader";
 import { useNavigate } from "react-router";
 import useAxios from "@/config/axios";
 import ClassicCert from "@/assets/img/classic-cert.png";
 import GreenCert from "@/assets/img/green-cert.png";
 import Cookies from "js-cookie";
 
-const Settings = () => {
-  const [toastDispatched, setToastDispatched] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
-  const [maintenanceMode, setMaintenanceMode] = React.useState(false);
-  const [certificateTheme, setCertificateTheme] = React.useState("classic");
+// Enhanced interfaces and types
+interface PasswordStrength {
+  score: number;
+  feedback: string[];
+  color: string;
+  label: string;
+}
+
+interface BackupProgress {
+  progress: number;
+  status: "idle" | "started" | "processing" | "completed" | "error";
+  message?: string;
+  fileName?: string;
+  fileData?: string;
+  error?: string;
+}
+
+// Configuration constants
+const CONFIG = {
+  PASSWORD: {
+    MIN_LENGTH: 9,
+    REQUIREMENTS: {
+      UPPERCASE: /[A-Z]/,
+      LOWERCASE: /[a-z]/,
+      NUMBER: /\d/,
+      SPECIAL: /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/,
+    },
+  },
+  TOAST: {
+    DURATION: {
+      SUCCESS: 3000,
+      ERROR: 5000,
+      WARNING: 4000,
+    },
+    POSITION: "top-right" as const,
+  },
+  ANIMATION: {
+    DURATION: 0.3,
+    SPRING: { type: "spring", stiffness: 300, damping: 30 },
+  },
+} as const;
+
+// Enhanced utility functions
+const validatePasswordStrength = (password: string): PasswordStrength => {
+  let score = 0;
+  const feedback: string[] = [];
+
+  if (password.length >= CONFIG.PASSWORD.MIN_LENGTH) {
+    score += 1;
+  } else {
+    feedback.push(`Must be at least ${CONFIG.PASSWORD.MIN_LENGTH} characters`);
+  }
+
+  if (CONFIG.PASSWORD.REQUIREMENTS.UPPERCASE.test(password)) {
+    score += 1;
+  } else {
+    feedback.push("Add uppercase letters");
+  }
+
+  if (CONFIG.PASSWORD.REQUIREMENTS.LOWERCASE.test(password)) {
+    score += 1;
+  } else {
+    feedback.push("Add lowercase letters");
+  }
+
+  if (CONFIG.PASSWORD.REQUIREMENTS.NUMBER.test(password)) {
+    score += 1;
+  } else {
+    feedback.push("Add numbers");
+  }
+
+  if (CONFIG.PASSWORD.REQUIREMENTS.SPECIAL.test(password)) {
+    score += 1;
+  } else {
+    feedback.push("Add special characters");
+  }
+
+  const strengthLevels = [
+    { score: 0, label: "Very Weak", color: "red" },
+    { score: 1, label: "Weak", color: "red" },
+    { score: 2, label: "Fair", color: "orange" },
+    { score: 3, label: "Good", color: "yellow" },
+    { score: 4, label: "Strong", color: "green" },
+    { score: 5, label: "Very Strong", color: "green" },
+  ];
+
+  const strength = strengthLevels[score] || strengthLevels[0];
+
+  return {
+    score,
+    feedback,
+    color: strength.color,
+    label: strength.label,
+  };
+};
+
+// Enhanced PasswordInput component
+interface PasswordInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  showStrength?: boolean;
+  error?: string;
+}
+
+const PasswordInput: React.FC<PasswordInputProps> = ({
+  value,
+  onChange,
+  placeholder,
+  showStrength = false,
+  error,
+}) => {
+  const [show, setShow] = useState(false);
+  const strength = useMemo(() => validatePasswordStrength(value), [value]);
+
+  const borderColor = useColorModeValue("gray.200", "gray.600");
+  const focusBorderColor = error ? "red.500" : "blue.500";
+
+  return (
+    <VStack spacing={2} align="stretch">
+      <InputGroup size="lg">
+        <Input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          borderColor={error ? "red.500" : borderColor}
+          _focus={{
+            borderColor: focusBorderColor,
+            boxShadow: `0 0 0 1px ${focusBorderColor}`,
+          }}
+          _hover={{
+            borderColor: error ? "red.500" : "gray.300",
+          }}
+          borderRadius="xl"
+          fontSize="md"
+        />
+        <InputRightElement>
+          <IconButton
+            aria-label={show ? "Hide password" : "Show password"}
+            icon={show ? <EyeOff size={18} /> : <Eye size={18} />}
+            onClick={() => setShow(!show)}
+            variant="ghost"
+            size="sm"
+            borderRadius="lg"
+          />
+        </InputRightElement>
+      </InputGroup>
+
+      {showStrength && value && (
+        <VStack spacing={2} align="stretch">
+          <HStack justify="space-between">
+            <Text fontSize="sm" color="gray.600">
+              Password Strength
+            </Text>
+            <Badge
+              colorScheme={strength.color}
+              variant="subtle"
+              borderRadius="full"
+            >
+              {strength.label}
+            </Badge>
+          </HStack>
+          <Progress
+            value={(strength.score / 5) * 100}
+            colorScheme={strength.color}
+            size="sm"
+            borderRadius="full"
+            bg={useColorModeValue("gray.100", "gray.700")}
+          />
+          {strength.feedback.length > 0 && (
+            <VStack spacing={1} align="start">
+              {strength.feedback.map((item, index) => (
+                <Text key={index} fontSize="xs" color="gray.500">
+                  • {item}
+                </Text>
+              ))}
+            </VStack>
+          )}
+        </VStack>
+      )}
+
+      {error && (
+        <Text color="red.500" fontSize="sm">
+          {error}
+        </Text>
+      )}
+    </VStack>
+  );
+};
+
+// Enhanced BackupProgress component
+interface BackupProgressProps {
+  progress: BackupProgress;
+  isVisible: boolean;
+}
+
+const BackupProgress: React.FC<BackupProgressProps> = ({
+  progress,
+  isVisible,
+}) => {
+  if (!isVisible) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={CONFIG.ANIMATION.SPRING}
+    >
+      <Card variant="outline" borderRadius="xl">
+        <CardBody p={6}>
+          <VStack spacing={4}>
+            <HStack spacing={3} w="full" justify="space-between">
+              <HStack spacing={2}>
+                <Box
+                  color={progress.status === "error" ? "red.500" : "blue.500"}
+                >
+                  {progress.status === "error" ? (
+                    <AlertTriangle size={20} />
+                  ) : (
+                    <Database size={20} />
+                  )}
+                </Box>
+                <Text fontWeight="600">
+                  {progress.status === "error"
+                    ? "Backup Failed"
+                    : "Creating Backup"}
+                </Text>
+              </HStack>
+              <CircularProgress
+                value={progress.progress}
+                color={progress.status === "error" ? "red.500" : "blue.500"}
+                size="40px"
+                thickness="8px"
+              >
+                <CircularProgressLabel fontSize="xs" fontWeight="600">
+                  {progress.progress}%
+                </CircularProgressLabel>
+              </CircularProgress>
+            </HStack>
+
+            <Progress
+              value={progress.progress}
+              colorScheme={progress.status === "error" ? "red" : "blue"}
+              size="lg"
+              borderRadius="full"
+              bg={useColorModeValue("gray.100", "gray.700")}
+              w="full"
+            />
+
+            {progress.message && (
+              <Text fontSize="sm" color="gray.600" textAlign="center">
+                {progress.message}
+              </Text>
+            )}
+          </VStack>
+        </CardBody>
+      </Card>
+    </motion.div>
+  );
+};
+
+// Main Settings Component
+const Settings: React.FC = () => {
+  // State management
+  const [loading, setLoading] = useState<boolean>(true);
+  const [maintenanceMode, setMaintenanceMode] = useState<boolean>(false);
+  const [certificateTheme, setCertificateTheme] = useState<string>("classic");
+
+  // Password form state
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordError, setPasswordError] = useState<string>("");
+  const [isPasswordLoading, setIsPasswordLoading] = useState<boolean>(false);
+
+  // Backup state
+  const [backupProgress, setBackupProgress] = useState<BackupProgress>({
+    progress: 0,
+    status: "idle",
+  });
+
+  // Hooks
   const toast = useToast();
   const navigate = useNavigate();
-  const isMobile = useBreakpointValue({ base: true, md: false });
-
-  const [show1, setShow1] = React.useState(false);
-  const [show2, setShow2] = React.useState(false);
-  const [show3, setShow3] = React.useState(false);
-
-  const [oldPass, setOldPass] = React.useState("");
-  const [newPass, setNewPass] = React.useState("");
-  const [confirmPass, setConfirmPass] = React.useState("");
-  const [err, setErr] = React.useState("");
-  const [isButtonLoading, setIsButtonLoading] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
-  const [isLoading, setIsLoading] = React.useState(false);
   const axios = useAxios();
-
   const { colorMode, toggleColorMode } = useColorMode();
+  const {
+    isOpen: isMaintenanceModalOpen,
+    onOpen: onMaintenanceModalOpen,
+    onClose: onMaintenanceModalClose,
+  } = useDisclosure();
 
-  const sendNewPass = () => {
-    if (oldPass === "" || newPass === "" || confirmPass === "") {
-      setErr("Please fill all the fields");
-      setToastDispatched(false);
-    } else if (newPass !== confirmPass) {
-      setErr("Passwords do not match");
-      setToastDispatched(false);
-    } else if (newPass === oldPass) {
-      setErr("New Password cannot be same as Old Password");
-      setToastDispatched(false);
-    } else {
-      setErr("");
-      setIsButtonLoading(true);
+  // Responsive values
+  const isMobile = useBreakpointValue({ base: true, md: false });
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const bgColor = useColorModeValue("gray.50", "gray.900");
 
-      function isPasswordValid(password: string) {
-        if (password.length < 9) return false;
-        if (!/[A-Z]/.test(password)) return false;
-        if (!/[a-z]/.test(password)) return false;
-        if (!/[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(password)) return false;
-        if (!/\d/.test(password)) return false;
-        return true;
-      }
+  // Memoized password validation
+  const passwordValidation = useMemo(() => {
+    const { oldPassword, newPassword, confirmPassword } = passwordForm;
 
-      if (!isPasswordValid(newPass)) {
-        setErr(
-          "Password must contain at least 1 uppercase, 1 lowercase, 1 number, 1 special character and must be at least 9 characters long"
-        );
-        setToastDispatched(false);
-        setIsButtonLoading(false);
-        return;
-      }
-
-      axios
-        .post("/auth/profile/password", {
-          oldPass: oldPass.toString(),
-          newPass: newPass.toString(),
-        })
-        .then(() => {
-          toast({
-            title: "Password Changed Successfully!",
-            status: "success",
-            duration: 3000,
-            isClosable: true,
-          });
-          setOldPass("");
-          setNewPass("");
-          setConfirmPass("");
-          setToastDispatched(false);
-        })
-        .catch((err) => {
-          const errorMessage =
-            err?.response?.data?.message || "Something went wrong";
-          console.error("Password change error:", errorMessage);
-          toast({
-            title: "Error",
-            description: errorMessage,
-            status: "error",
-            duration: 3000,
-            isClosable: true,
-          });
-        })
-        .finally(() => {
-          setIsButtonLoading(false);
-        });
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return { isValid: false, error: "" };
     }
-  };
 
-  const generateBackup = async () => {
+    if (newPassword === oldPassword) {
+      return {
+        isValid: false,
+        error: "New password cannot be the same as current password",
+      };
+    }
+
+    if (newPassword !== confirmPassword) {
+      return { isValid: false, error: "Passwords do not match" };
+    }
+
+    const strength = validatePasswordStrength(newPassword);
+    if (strength.score < 3) {
+      return { isValid: false, error: "Password is too weak" };
+    }
+
+    return { isValid: true, error: "" };
+  }, [passwordForm]);
+
+  // API functions
+  const fetchMaintenanceStatus = useCallback(async () => {
     try {
-      setIsLoading(true);
-      setProgress(0);
+      await axios.get("/maintainance");
+      setMaintenanceMode(false);
+    } catch (err: any) {
+      if (err.response?.status === 503) {
+        setMaintenanceMode(true);
+      }
+    }
+  }, [axios]);
+
+  const updatePassword = useCallback(async () => {
+    if (!passwordValidation.isValid) {
+      setPasswordError(passwordValidation.error);
+      return;
+    }
+
+    setIsPasswordLoading(true);
+    setPasswordError("");
+
+    try {
+      await axios.post("/auth/profile/password", {
+        oldPass: passwordForm.oldPassword,
+        newPass: passwordForm.newPassword,
+      });
+
+      toast({
+        title: "Password Updated Successfully",
+        description: "Your password has been changed",
+        status: "success",
+        duration: CONFIG.TOAST.DURATION.SUCCESS,
+        isClosable: true,
+        position: CONFIG.TOAST.POSITION,
+      });
+
+      setPasswordForm({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Failed to update password";
+      setPasswordError(errorMessage);
+
+      toast({
+        title: "Password Update Failed",
+        description: errorMessage,
+        status: "error",
+        duration: CONFIG.TOAST.DURATION.ERROR,
+        isClosable: true,
+        position: CONFIG.TOAST.POSITION,
+      });
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  }, [passwordForm, passwordValidation, axios, toast]);
+
+  const generateBackup = useCallback(async () => {
+    try {
+      setBackupProgress({ progress: 0, status: "started" });
 
       if ("EventSource" in window) {
-        const token = Cookies.get("token")!;
+        const token = Cookies.get("token");
+        if (!token) {
+          throw new Error("Authentication token not found");
+        }
+
         const url = `${
           import.meta.env.VITE_API_URL
         }/backup/backup-with-progress/${encodeURIComponent(token)}`;
@@ -148,437 +479,742 @@ const Settings = () => {
 
         eventSource.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          setProgress(data.progress);
+
+          setBackupProgress({
+            progress: data.progress,
+            status: data.status,
+            message: data.message,
+            fileName: data.fileName,
+            fileData: data.fileData,
+            error: data.error,
+          });
 
           switch (data.status) {
             case "started":
               toast({
-                title: "Creating Backup",
-                description: "Please wait while we prepare your backup...",
+                title: "Backup Started",
+                description: "Creating your backup file...",
                 status: "info",
-                duration: 3000,
+                duration: CONFIG.TOAST.DURATION.SUCCESS,
                 isClosable: true,
+                position: CONFIG.TOAST.POSITION,
               });
               break;
 
             case "completed":
               eventSource.close();
+
               if (data.fileData && data.fileName) {
-                const binaryData = atob(data.fileData);
-                const bytes = new Uint8Array(binaryData.length);
-                for (let i = 0; i < binaryData.length; i++) {
-                  bytes[i] = binaryData.charCodeAt(i);
+                try {
+                  const binaryData = atob(data.fileData);
+                  const bytes = new Uint8Array(binaryData.length);
+                  for (let i = 0; i < binaryData.length; i++) {
+                    bytes[i] = binaryData.charCodeAt(i);
+                  }
+                  const blob = new Blob([bytes], { type: "application/zip" });
+
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = data.fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(url);
+
+                  toast({
+                    title: "Backup Complete",
+                    description: "Your backup has been downloaded successfully",
+                    status: "success",
+                    duration: CONFIG.TOAST.DURATION.SUCCESS,
+                    isClosable: true,
+                    position: CONFIG.TOAST.POSITION,
+                  });
+                } catch (downloadError) {
+                  console.error("Download error:", downloadError);
+                  toast({
+                    title: "Download Failed",
+                    description: "Failed to download the backup file",
+                    status: "error",
+                    duration: CONFIG.TOAST.DURATION.ERROR,
+                    isClosable: true,
+                    position: CONFIG.TOAST.POSITION,
+                  });
                 }
-                const blob = new Blob([bytes], { type: "application/zip" });
-
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = data.fileName;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-
-                toast({
-                  title: "Backup Downloaded!",
-                  status: "success",
-                  duration: 3000,
-                  isClosable: true,
-                });
               }
-              setIsLoading(false);
-              setProgress(0);
+
+              setTimeout(() => {
+                setBackupProgress({ progress: 0, status: "idle" });
+              }, 2000);
               break;
 
             case "error":
               eventSource.close();
-              const errorMessage = data.error || "An error occurred while creating the backup";
-              console.error("Backup error:", errorMessage);
+              const errorMessage = data.error || "Backup creation failed";
+
               toast({
                 title: "Backup Failed",
                 description: errorMessage,
                 status: "error",
-                duration: 5000,
+                duration: CONFIG.TOAST.DURATION.ERROR,
                 isClosable: true,
+                position: CONFIG.TOAST.POSITION,
               });
-              setIsLoading(false);
-              setProgress(0);
+
+              setTimeout(() => {
+                setBackupProgress({ progress: 0, status: "idle" });
+              }, 2000);
               break;
           }
         };
 
         eventSource.onerror = () => {
           eventSource.close();
-          const errorMessage = "Failed to connect to backup service";
-          console.error("Backup connection error:", errorMessage);
           toast({
             title: "Connection Error",
-            description: errorMessage,
+            description: "Failed to connect to backup service",
             status: "error",
-            duration: 5000,
+            duration: CONFIG.TOAST.DURATION.ERROR,
             isClosable: true,
+            position: CONFIG.TOAST.POSITION,
           });
-          setIsLoading(false);
-          setProgress(0);
+
+          setBackupProgress({ progress: 0, status: "idle" });
         };
       } else {
-        const errorMessage = "Your browser doesn't support automatic progress tracking";
-        console.error("Backup error:", errorMessage);
-        toast({
-          title: "Browser Not Supported",
-          description: errorMessage,
-          status: "warning",
-          duration: 5000,
-          isClosable: true,
-        });
-        setIsLoading(false);
+        throw new Error(
+          "Your browser doesn't support automatic progress tracking"
+        );
       }
-    } catch (error) {
-      const errorMessage = "An error occurred while creating the backup";
-      console.error("Backup error:", errorMessage, error);
+    } catch (error: any) {
       toast({
         title: "Backup Failed",
-        description: errorMessage,
+        description:
+          error.message || "An error occurred while creating the backup",
         status: "error",
-        duration: 5000,
+        duration: CONFIG.TOAST.DURATION.ERROR,
         isClosable: true,
+        position: CONFIG.TOAST.POSITION,
       });
-      setIsLoading(false);
-      setProgress(0);
-    }
-  };
 
-  const toggleMaintenanceMode = (mode: boolean) => {
-    axios
-      .post("/maintainance", { mode })
-      .then((res) => {
+      setBackupProgress({ progress: 0, status: "idle" });
+    }
+  }, [toast]);
+
+  const toggleMaintenanceMode = useCallback(
+    async (mode: boolean) => {
+      try {
+        const response = await axios.post("/maintainance", { mode });
+
         setMaintenanceMode(mode);
+
         toast({
-          title: res.data.message || "Maintenance Mode Toggled!",
-          status: res.status === 200 ? "success" : "error",
-          duration: 3000,
+          title: mode
+            ? "Maintenance Mode Enabled"
+            : "Maintenance Mode Disabled",
+          description:
+            response.data.message || "Maintenance mode status updated",
+          status: "success",
+          duration: CONFIG.TOAST.DURATION.SUCCESS,
           isClosable: true,
+          position: CONFIG.TOAST.POSITION,
         });
-      })
-      .catch((err) => {
+
+        onMaintenanceModalClose();
+      } catch (err: any) {
         const errorMessage =
-          err?.response?.data?.message || "Something went wrong";
-        console.error("Maintenance mode toggle error:", errorMessage);
+          err.response?.data?.message || "Failed to toggle maintenance mode";
+
         toast({
           title: "Error",
           description: errorMessage,
           status: "error",
-          duration: 3000,
+          duration: CONFIG.TOAST.DURATION.ERROR,
           isClosable: true,
+          position: CONFIG.TOAST.POSITION,
         });
-      });
-  };
+      }
+    },
+    [axios, toast, onMaintenanceModalClose]
+  );
 
-  const setDark = () => {
+  const toggleTheme = useCallback(async () => {
+    const newColorMode = colorMode === "dark" ? "light" : "dark";
+
     toggleColorMode();
 
-    axios
-      .post("/auth/profile/theme", {
-        colorMode: colorMode === "dark" ? "light" : "dark",
-      })
-      .then((res) => {
-        const token = res.data.data;
-        if (!token) return;
-
-        Cookies.set("token", token);
-      })
-      .catch((err) => {
-        const errorMessage =
-          err?.response?.data?.message || "Something went wrong";
-        console.error("Theme toggle error:", errorMessage);
+    try {
+      const response = await axios.post("/auth/profile/theme", {
+        colorMode: newColorMode,
       });
-  };
 
-  useEffect(() => {
-    setLoading(false);
-    axios
-      .get("/maintainance")
-      .then(() => {
-        setMaintenanceMode(false);
-      })
-      .catch((err) => {
-        if (err.response.status === 503) {
-          setMaintenanceMode(true);
-          return;
+      const token = response.data.data;
+      if (token) {
+        Cookies.set("token", token);
+      }
+    } catch (err: any) {
+      console.error(
+        "Theme toggle error:",
+        err.response?.data?.message || "Failed to update theme"
+      );
+    }
+  }, [colorMode, toggleColorMode, axios]);
+
+  const updateCertificateTheme = useCallback(
+    async (theme: string) => {
+      const previousTheme = certificateTheme;
+      setCertificateTheme(theme);
+
+      try {
+        const response = await axios.post("/auth/profile/certificate-theme", {
+          certificateTheme: theme,
+        });
+
+        const token = response.data.data;
+        if (token) {
+          Cookies.set("token", token);
         }
-      });
-  }, []);
 
-  const updateCertificateTheme = (theme: string) => {
-    setCertificateTheme(theme);
-    axios
-      .post("/auth/profile/certificate-theme", {
-        certificateTheme: theme,
-      })
-      .then((res) => {
-        const token = res.data.data;
-        if (!token) return;
+        toast({
+          title: "Certificate Theme Updated",
+          description: `Switched to ${theme} theme`,
+          status: "success",
+          duration: CONFIG.TOAST.DURATION.SUCCESS,
+          isClosable: true,
+          position: CONFIG.TOAST.POSITION,
+        });
+      } catch (err: any) {
+        // Revert on error
+        setCertificateTheme(previousTheme);
 
-        Cookies.set("token", token);
-      })
-      .catch((err) => {
         const errorMessage =
-          err?.response?.data?.message || "Something went wrong";
-        console.error("Certificate theme update error:", errorMessage);
+          err.response?.data?.message || "Failed to update certificate theme";
+
         toast({
           title: "Error",
           description: errorMessage,
           status: "error",
-          duration: 3000,
+          duration: CONFIG.TOAST.DURATION.ERROR,
           isClosable: true,
+          position: CONFIG.TOAST.POSITION,
         });
-      });
-  };
+      }
+    },
+    [certificateTheme, axios, toast]
+  );
 
+  const handleViewLogs = useCallback(() => {
+    navigate("/admin/logs");
+  }, [navigate]);
+
+  // Effects
   useEffect(() => {
-    setErr("");
-    if (oldPass !== "" || newPass !== "" || confirmPass !== "") {
-      if (newPass !== "" && newPass === oldPass) {
-        setErr("New Password cannot be same as Old Password");
-        setToastDispatched(false);
-        return;
-      }
+    const initializeSettings = async () => {
+      setLoading(true);
+      await fetchMaintenanceStatus();
+      setLoading(false);
+    };
 
-      if (confirmPass !== "" && newPass !== confirmPass) {
-        setErr("Passwords do not match");
-        setToastDispatched(false);
-        return;
-      }
+    initializeSettings();
+  }, []);
 
-      if (oldPass !== "" && newPass !== "" && confirmPass !== "") {
-        setToastDispatched(true);
-      } else {
-        setToastDispatched(false);
-      }
-    } else {
-      setToastDispatched(false);
-    }
-  }, [oldPass, newPass, confirmPass]);
+  // Update password error when form changes
+  useEffect(() => {
+    setPasswordError(passwordValidation.error);
+  }, [passwordValidation.error]);
 
-  if (loading) return <Loader />;
+  // Loading state
+  if (loading) {
+    return (
+      <Box bg={bgColor} minH="100vh" p={8}>
+        <Card
+          bg={cardBg}
+          borderRadius="xl"
+          border="1px"
+          borderColor={borderColor}
+        >
+          <CardBody p={8}>
+            <VStack spacing={6} align="stretch">
+              <HStack justify="space-between">
+                <VStack align="start" spacing={2}>
+                  <Skeleton height="32px" width="200px" />
+                  <Skeleton height="20px" width="300px" />
+                </VStack>
+                <Skeleton height="40px" width="40px" borderRadius="lg" />
+              </HStack>
+              <Divider />
+              <VStack spacing={4} align="stretch">
+                <Skeleton height="24px" width="150px" />
+                <SkeletonText noOfLines={3} spacing="4" />
+                <Skeleton height="40px" width="200px" />
+              </VStack>
+            </VStack>
+          </CardBody>
+        </Card>
+      </Box>
+    );
+  }
 
   return (
-    <Container 
-      maxW={{ base: "95%", md: "container.md", lg: "container.lg" }} 
-      py={{ base: 4, md: 8 }}
-    >
+    <Box bg={bgColor} minH="100vh" p={8}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="w-full shadow-xl rounded-xl">
-          <CardBody className={`${isMobile ? "p-4" : "p-8"}`}>
-            <Stack direction={{ base: "column", md: "row" }} justifyContent="space-between" mb={6}>
-              <div className="flex items-center gap-3 mb-4 md:mb-0">
-                <Settings2 className="w-6 h-6 text-blue-500" />
-                <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="self-start p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-                onClick={setDark}
+        <VStack spacing={6} align="stretch" maxW="4xl" mx="auto">
+          {/* Header */}
+          <Card
+            bg={cardBg}
+            borderRadius="xl"
+            border="1px"
+            borderColor={borderColor}
+          >
+            <CardBody p={6}>
+              <Flex justify="space-between" align="center" wrap="wrap" gap={4}>
+                <HStack spacing={3}>
+                  <Box color="blue.500">
+                    <Settings2 size={24} />
+                  </Box>
+                  <Heading size="lg">Settings</Heading>
+                </HStack>
+
+                <HStack spacing={3}>
+                  <IconButton
+                    aria-label="Toggle color mode"
+                    icon={
+                      colorMode === "dark" ? (
+                        <Sun size={20} />
+                      ) : (
+                        <Moon size={20} />
+                      )
+                    }
+                    onClick={toggleTheme}
+                    variant="outline"
+                    borderRadius="xl"
+                    colorScheme={colorMode === "dark" ? "yellow" : "gray"}
+                  />
+
+                  {maintenanceMode && (
+                    <Badge
+                      colorScheme="orange"
+                      variant="solid"
+                      borderRadius="full"
+                      px={3}
+                      py={1}
+                    >
+                      <HStack spacing={1}>
+                        <Wrench size={12} />
+                        <Text fontSize="xs">Maintenance</Text>
+                      </HStack>
+                    </Badge>
+                  )}
+                </HStack>
+              </Flex>
+            </CardBody>
+          </Card>
+
+          {/* Main Settings */}
+          <Card
+            bg={cardBg}
+            borderRadius="xl"
+            border="1px"
+            borderColor={borderColor}
+          >
+            <CardBody p={6}>
+              <Tabs
+                variant="soft-rounded"
+                colorScheme="blue"
+                isFitted={isMobile}
               >
-                {colorMode === "dark" ? (
-                  <Sun className="w-6 h-6 text-yellow-500" />
-                ) : (
-                  <Moon className="w-6 h-6 text-gray-600" />
-                )}
-              </motion.button>
-            </Stack>
+                <TabList
+                  mb={6}
+                  bg={useColorModeValue("gray.50", "gray.700")}
+                  p={2}
+                  borderRadius="xl"
+                >
+                  <Tab borderRadius="lg" fontSize={{ base: "sm", md: "md" }}>
+                    <HStack spacing={2}>
+                      <Shield size={16} />
+                      <Text display={{ base: "none", md: "block" }}>
+                        Security
+                      </Text>
+                    </HStack>
+                  </Tab>
+                  <Tab borderRadius="lg" fontSize={{ base: "sm", md: "md" }}>
+                    <HStack spacing={2}>
+                      <Palette size={16} />
+                      <Text display={{ base: "none", md: "block" }}>
+                        Appearance
+                      </Text>
+                    </HStack>
+                  </Tab>
+                  <Tab borderRadius="lg" fontSize={{ base: "sm", md: "md" }}>
+                    <HStack spacing={2}>
+                      <Server size={16} />
+                      <Text display={{ base: "none", md: "block" }}>
+                        System
+                      </Text>
+                    </HStack>
+                  </Tab>
+                </TabList>
 
-            <Tabs variant="enclosed" isFitted={isMobile}>
-              <TabList mb={4} className="flex-wrap">
-                <Tab fontSize={{ base: "sm", md: "md" }}>
-                  <Shield className="w-4 h-4 mr-2" />
-                  {!isMobile && "Admin Settings"}
-                </Tab>
-                <Tab fontSize={{ base: "sm", md: "md" }}>
-                  <Server className="w-4 h-4 mr-2" />
-                  {!isMobile && "Server Settings"}
-                </Tab>
-              </TabList>
+                <TabPanels>
+                  {/* Security Tab */}
+                  <TabPanel p={0}>
+                    <VStack spacing={8} align="stretch">
+                      {/* Change Password Section */}
+                      <VStack spacing={6} align="stretch">
+                        <HStack spacing={3}>
+                          <Box color="blue.500">
+                            <Lock size={20} />
+                          </Box>
+                          <Heading size="md">Change Password</Heading>
+                        </HStack>
 
-              <TabPanels>
-                <TabPanel>
-                  <div className="space-y-6">
-                    <Divider />
+                        <VStack spacing={4} align="stretch">
+                          <PasswordInput
+                            value={passwordForm.oldPassword}
+                            onChange={(value) =>
+                              setPasswordForm((prev) => ({
+                                ...prev,
+                                oldPassword: value,
+                              }))
+                            }
+                            placeholder="Current password"
+                            error={
+                              passwordError && passwordForm.oldPassword
+                                ? passwordError
+                                : undefined
+                            }
+                          />
 
-                    <div className="space-y-4">
-                      <h2 className="text-xl font-semibold flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-blue-500" />
-                        Change Password
-                      </h2>
+                          <PasswordInput
+                            value={passwordForm.newPassword}
+                            onChange={(value) =>
+                              setPasswordForm((prev) => ({
+                                ...prev,
+                                newPassword: value,
+                              }))
+                            }
+                            placeholder="New password"
+                            showStrength={true}
+                          />
 
-                      <Stack spacing={4}>
-                        {[show1, show2, show3].map((showState, index) => {
-                          const labels = [
-                            "Old Password",
-                            "New Password",
-                            "Confirm Password",
-                          ];
-                          const setters = [setOldPass, setNewPass, setConfirmPass];
-                          const showSetters = [setShow1, setShow2, setShow3];
-                          
-                          return (
-                            <div key={index} className="relative">
-                              <input
-                                type={showState ? "text" : "password"}
-                                placeholder={`Enter ${labels[index]}`}
-                                value={[oldPass, newPass, confirmPass][index]}
-                                onChange={(e) => setters[index](e.target.value)}
-                                className="w-full px-4 py-2 md:py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm md:text-base"
-                              />
-                              <button
-                                onClick={() => showSetters[index](!showState)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2"
-                              >
-                                {showState ? (
-                                  <EyeOff className="w-5 h-5 text-gray-500" />
-                                ) : (
-                                  <Eye className="w-5 h-5 text-gray-500" />
-                                )}
-                              </button>
-                            </div>
-                          );
-                        })}
+                          <PasswordInput
+                            value={passwordForm.confirmPassword}
+                            onChange={(value) =>
+                              setPasswordForm((prev) => ({
+                                ...prev,
+                                confirmPassword: value,
+                              }))
+                            }
+                            placeholder="Confirm new password"
+                          />
 
-                        {err && (
-                          <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-red-500 text-sm"
+                          <Button
+                            leftIcon={
+                              isPasswordLoading ? (
+                                <Spinner size="sm" />
+                              ) : (
+                                <Save size={18} />
+                              )
+                            }
+                            colorScheme="blue"
+                            size="lg"
+                            onClick={updatePassword}
+                            isDisabled={
+                              !passwordValidation.isValid || isPasswordLoading
+                            }
+                            isLoading={isPasswordLoading}
+                            loadingText="Updating..."
+                            borderRadius="xl"
                           >
-                            {err}
-                          </motion.p>
-                        )}
-                      </Stack>
+                            Update Password
+                          </Button>
+                        </VStack>
+                      </VStack>
+                    </VStack>
+                  </TabPanel>
 
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        disabled={!toastDispatched || isButtonLoading}
-                        onClick={sendNewPass}
-                        className="flex items-center justify-center gap-2 w-full py-2 md:py-3 px-4 bg-blue-500 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors text-sm md:text-base"
-                      >
-                        {isButtonLoading ? (
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4 md:w-5 md:h-5" />
-                            Save Changes
-                          </>
-                        )}
-                      </motion.button>
-                    </div>
+                  {/* Appearance Tab */}
+                  <TabPanel p={0}>
+                    <VStack spacing={8} align="stretch">
+                      <HStack spacing={3}>
+                        <Box color="blue.500">
+                          <PaintRoller size={20} />
+                        </Box>
+                        <Heading size="md">Certificate Theme</Heading>
+                      </HStack>
 
-                    <div className="py-3 mt-5">
-                      <div className="flex items-center gap-3 mb-6">
-                        <PaintRoller className="w-5 h-5 text-blue-500" />
-                        <h2 className="text-xl font-semibold">
-                          Certificate Theme
-                        </h2>
-                      </div>
                       <RadioGroup
-                        className="flex flex-col md:flex-row gap-6 md:gap-8"
                         onChange={updateCertificateTheme}
                         value={certificateTheme}
                       >
-                        <div className="flex flex-col items-center">
-                          <img
-                            src={ClassicCert}
-                            alt="Classic Theme"
-                            className="mb-2 w-48 h-auto md:w-64"
-                          />
-                          <Radio value="classic">Classic Theme</Radio>
-                        </div>
-                        <div className="flex flex-col items-center">
-                          <img
-                            src={GreenCert}
-                            alt="Green Theme"
-                            className="mb-2 w-48 h-auto md:w-64"
-                          />
-                          <Radio value="green">Green Theme</Radio>
-                        </div>
+                        <VStack spacing={6} align="stretch">
+                          <HStack spacing={6} justify="center" wrap="wrap">
+                            <VStack spacing={4}>
+                              <Card
+                                variant="outline"
+                                borderRadius="xl"
+                                overflow="hidden"
+                                borderColor={
+                                  certificateTheme === "classic"
+                                    ? "blue.500"
+                                    : borderColor
+                                }
+                                borderWidth={
+                                  certificateTheme === "classic" ? "2px" : "1px"
+                                }
+                                _hover={{ borderColor: "blue.300" }}
+                                transition="all 0.2s"
+                                cursor="pointer"
+                                onClick={() =>
+                                  updateCertificateTheme("classic")
+                                }
+                              >
+                                <Image
+                                  src={ClassicCert}
+                                  alt="Classic Theme"
+                                  w="280px"
+                                  h="200px"
+                                  objectFit="cover"
+                                />
+                              </Card>
+                              <Radio
+                                value="classic"
+                                size="lg"
+                                colorScheme="blue"
+                              >
+                                <Text fontWeight="600">Classic Theme</Text>
+                              </Radio>
+                            </VStack>
+
+                            <VStack spacing={4}>
+                              <Card
+                                variant="outline"
+                                borderRadius="xl"
+                                overflow="hidden"
+                                borderColor={
+                                  certificateTheme === "green"
+                                    ? "green.500"
+                                    : borderColor
+                                }
+                                borderWidth={
+                                  certificateTheme === "green" ? "2px" : "1px"
+                                }
+                                _hover={{ borderColor: "green.300" }}
+                                transition="all 0.2s"
+                                cursor="pointer"
+                                onClick={() => updateCertificateTheme("green")}
+                              >
+                                <Image
+                                  src={GreenCert}
+                                  alt="Green Theme"
+                                  w="280px"
+                                  h="200px"
+                                  objectFit="cover"
+                                />
+                              </Card>
+                              <Radio
+                                value="green"
+                                size="lg"
+                                colorScheme="green"
+                              >
+                                <Text fontWeight="600">Green Theme</Text>
+                              </Radio>
+                            </VStack>
+                          </HStack>
+                        </VStack>
                       </RadioGroup>
-                    </div>
-                  </div>
-                </TabPanel>
+                    </VStack>
+                  </TabPanel>
 
-                <TabPanel>
-                  <Stack spacing={6}>
-                    <Button
-                      leftIcon={<Server className="w-4 h-4 md:w-5 md:h-5" />}
-                      colorScheme="blue"
-                      onClick={() => navigate("/admin/logs")}
-                      size={{ base: "sm", md: "md" }}
-                    >
-                      Check Server Logs
-                    </Button>
+                  {/* System Tab */}
+                  <TabPanel p={0}>
+                    <VStack spacing={8} align="stretch">
+                      {/* System Actions */}
+                      <VStack spacing={6} align="stretch">
+                        <HStack spacing={3}>
+                          <Box color="blue.500">
+                            <Server size={20} />
+                          </Box>
+                          <Heading size="md">System Management</Heading>
+                        </HStack>
 
-                    <Button
-                      leftIcon={<Database className="w-4 h-4 md:w-5 md:h-5" />}
-                      colorScheme="green"
-                      onClick={generateBackup}
-                      isLoading={isLoading}
-                      size={{ base: "sm", md: "md" }}
-                    >
-                      Generate Backup
-                    </Button>
+                        <VStack spacing={4} align="stretch">
+                          <Button
+                            leftIcon={<FileText size={18} />}
+                            colorScheme="blue"
+                            size="lg"
+                            onClick={handleViewLogs}
+                            borderRadius="xl"
+                            variant="outline"
+                          >
+                            View Server Logs
+                          </Button>
 
-                    {isLoading && (
-                      <div className="mt-4">
-                        <Progress
-                          value={progress}
-                          size="lg"
-                          colorScheme="blue"
-                          borderRadius="lg"
-                          hasStripe
-                          isAnimated
+                          <Button
+                            leftIcon={<Download size={18} />}
+                            colorScheme="green"
+                            size="lg"
+                            onClick={generateBackup}
+                            isDisabled={backupProgress.status !== "idle"}
+                            borderRadius="xl"
+                            variant="outline"
+                          >
+                            {backupProgress.status === "idle"
+                              ? "Generate Backup"
+                              : "Creating Backup..."}
+                          </Button>
+                        </VStack>
+
+                        {/* Backup Progress */}
+                        <BackupProgress
+                          progress={backupProgress}
+                          isVisible={backupProgress.status !== "idle"}
                         />
-                        <p className="text-sm mt-2 text-center">{`${progress}% completed`}</p>
-                      </div>
-                    )}
+                      </VStack>
 
-                    <Divider />
+                      <Divider />
 
-                    <FormControl display="flex" alignItems="center" flexDirection={{ base: "column", md: "row" }}>
-                      <FormLabel htmlFor="maintenance-mode" mb={{ base: 2, md: 0 }}>
-                        Maintenance Mode
-                      </FormLabel>
-                      <Switch
-                        id="maintenance-mode"
-                        isChecked={maintenanceMode}
-                        onChange={(e) => toggleMaintenanceMode(e.target.checked)}
-                      />
-                    </FormControl>
+                      {/* Maintenance Mode */}
+                      <VStack spacing={6} align="stretch">
+                        <HStack spacing={3}>
+                          <Box color="orange.500">
+                            <Wrench size={20} />
+                          </Box>
+                          <Heading size="md">Maintenance Mode</Heading>
+                        </HStack>
 
-                    <Alert status="error" className="mt-4" variant="left-accent">
-                      <AlertIcon />
-                      <div className="flex flex-col">
-                        <span className="font-medium">Warning!</span>
-                        <span className="text-sm">
-                          Enabling maintenance mode will make the site
-                          inaccessible to regular users. Only use this during
-                          system maintenance or updates.
-                        </span>
-                      </div>
-                    </Alert>
-                  </Stack>
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
-          </CardBody>
-        </Card>
+                        <Card
+                          variant="outline"
+                          borderRadius="xl"
+                          borderColor="orange.200"
+                        >
+                          <CardBody p={6}>
+                            <VStack spacing={4} align="stretch">
+                              <FormControl
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="space-between"
+                              >
+                                <VStack align="start" spacing={1} flex={1}>
+                                  <FormLabel
+                                    htmlFor="maintenance-mode"
+                                    mb={0}
+                                    fontWeight="600"
+                                  >
+                                    Enable Maintenance Mode
+                                  </FormLabel>
+                                  <Text fontSize="sm" color="gray.600">
+                                    Temporarily disable access for regular users
+                                  </Text>
+                                </VStack>
+                                <Switch
+                                  id="maintenance-mode"
+                                  isChecked={maintenanceMode}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      onMaintenanceModalOpen();
+                                    } else {
+                                      toggleMaintenanceMode(false);
+                                    }
+                                  }}
+                                  colorScheme="orange"
+                                  size="lg"
+                                />
+                              </FormControl>
+
+                              <Alert
+                                status="warning"
+                                borderRadius="xl"
+                                variant="left-accent"
+                              >
+                                <AlertIcon />
+                                <VStack align="start" spacing={1}>
+                                  <AlertTitle fontSize="sm">
+                                    Warning!
+                                  </AlertTitle>
+                                  <AlertDescription fontSize="sm">
+                                    Enabling maintenance mode will make the site
+                                    inaccessible to regular users. Only use this
+                                    during system maintenance or updates.
+                                  </AlertDescription>
+                                </VStack>
+                              </Alert>
+                            </VStack>
+                          </CardBody>
+                        </Card>
+                      </VStack>
+                    </VStack>
+                  </TabPanel>
+                </TabPanels>
+              </Tabs>
+            </CardBody>
+          </Card>
+        </VStack>
       </motion.div>
-    </Container>
+
+      {/* Maintenance Mode Confirmation Modal */}
+      <Modal
+        isOpen={isMaintenanceModalOpen}
+        onClose={onMaintenanceModalClose}
+        motionPreset="slideInBottom"
+      >
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent borderRadius="xl" mx={4}>
+          <ModalHeader borderBottom="1px" borderColor={borderColor}>
+            <HStack spacing={3}>
+              <Box color="orange.500">
+                <AlertTriangle size={24} />
+              </Box>
+              <Text>Enable Maintenance Mode?</Text>
+            </HStack>
+          </ModalHeader>
+          <ModalCloseButton />
+
+          <ModalBody py={6}>
+            <VStack spacing={4} align="start">
+              <Text>
+                This will temporarily disable access to the platform for all
+                regular users. Only administrators will be able to access the
+                system.
+              </Text>
+
+              <Alert status="warning" borderRadius="xl">
+                <AlertIcon />
+                <VStack align="start" spacing={1}>
+                  <AlertTitle fontSize="sm">Important</AlertTitle>
+                  <AlertDescription fontSize="sm">
+                    Make sure to communicate with your users about the scheduled
+                    maintenance before enabling this mode.
+                  </AlertDescription>
+                </VStack>
+              </Alert>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter borderTop="1px" borderColor={borderColor} gap={3}>
+            <Button
+              variant="outline"
+              onClick={onMaintenanceModalClose}
+              borderRadius="lg"
+            >
+              Cancel
+            </Button>
+            <Button
+              colorScheme="orange"
+              onClick={() => toggleMaintenanceMode(true)}
+              leftIcon={<Wrench size={16} />}
+              borderRadius="lg"
+            >
+              Enable Maintenance Mode
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Box>
   );
 };
 
