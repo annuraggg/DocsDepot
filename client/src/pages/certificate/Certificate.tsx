@@ -47,9 +47,9 @@ const Certificate = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { targetRef } = usePDF({ filename: "page.pdf" });
   const navigate = useNavigate();
+  const { id } = useParams();
 
   useEffect(() => {
-    const { id } = useParams();
     setLoading(true);
     axios
       .get(`/certificates/${id}`)

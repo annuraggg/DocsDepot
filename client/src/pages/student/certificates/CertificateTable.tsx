@@ -233,7 +233,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                 <Td py={4} px={6}>
                   <Button
                     as="a"
-                    href={`/certificates/${cert?._id}`}
+                    href={`${import.meta.env.VITE_BASENAME ? import.meta.env.VITE_BASENAME : ""}/certificates/${cert?._id}`}
                     size="sm"
                     variant="ghost"
                     colorScheme="lightblue"
