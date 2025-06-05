@@ -408,7 +408,7 @@ const getStudentCertificates = async (c: Context) => {
     }
 
     const studentCertificates = certificates.filter(
-      (certificate: any) => (certificate.user as User).role === "S"
+      (certificate: any) => (certificate.user as User)?.role === "S"
     );
 
     return sendSuccess(
@@ -431,7 +431,7 @@ const getFacultyCertificates = async (c: Context) => {
     }
 
     const facultyCertificates = certificates.filter(
-      (certificate: any) => (certificate.user as User).role === "F"
+      (certificate: any) => (certificate.user as User)?.role === "F"
     );
 
     return sendSuccess(

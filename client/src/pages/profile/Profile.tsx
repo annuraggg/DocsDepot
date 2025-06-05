@@ -69,8 +69,8 @@ const Profile: React.FC = () => {
     }
   }, [loading, user]);
 
+  let { id } = useParams(); // if your route is like "/admin/students/:id"
   useEffect(() => {
-    let { id } = useParams(); // if your route is like "/admin/students/:id"
     if (!id) {
       try {
         id = user?.mid || "";

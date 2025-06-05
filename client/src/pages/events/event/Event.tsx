@@ -123,8 +123,8 @@ const Event = () => {
     }
   }, []);
 
+  const { id } = useParams();
   useEffect(() => {
-    const { id } = useParams();
     setLoading(true);
 
     axios
