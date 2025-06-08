@@ -5,16 +5,22 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const performanceStats = {
-  endpointHits: {},
-  responseTimes: []
+  endpointHits: {} as { [key: string]: number },
+  responseTimes: [] as Array<{
+    path: string;
+    method: string;
+    responseTime: number;
+    status: number;
+    authenticated: boolean;
+  }>
 };
 
-async function updatePerformanceStats(statsData) {
+async function updatePerformanceStats(statsData: typeof performanceStats) {
   try {
     const statsPath = path.join(process.cwd(), 'performance-stats.json');
     await fs.writeFile(statsPath, JSON.stringify(statsData, null, 2));
   } catch (error) {
-    logger.error('Failed to update performance stats', error);
+    logger.error('Failed to update performance stats: ' + error);
   }
 }
 

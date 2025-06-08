@@ -8,6 +8,7 @@
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
     "@hono/node-server": "^1.13.7",
+    "@types/archiver": "^6.0.3",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^1.4.12",

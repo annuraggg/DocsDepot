@@ -25,13 +25,13 @@ interface Hashes {
 }
 
 interface Certificate {
-  _id: string
+  _id?: string
   user: string;
   name: string;
   issuingOrganization: string;
   issueDate: IssueDate;
   expires: boolean;
-  expirationDate: ExpirationDate;
+  expirationDate?: ExpirationDate;
   type: CertificateType;
   level: CertificateLevel;
   uploadType: UploadType;
@@ -40,9 +40,9 @@ interface Certificate {
   status: string;
   earnedXp: number;
   comments: Comment[];
-  hashes: Hashes;
-  createdAt: Date;
-  updatedAt: Date;
+  hashes?: Hashes;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type {

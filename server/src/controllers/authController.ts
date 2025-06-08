@@ -4,7 +4,7 @@ import User from "../models/User.js";
 import logger from "../utils/logger.js";
 import type { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse.js";
-import { Token } from "docsdepot-types/Token.js";
+import { type Token } from "docsdepot-types/Token.js";
 import House from "../models/House.js";
 import Certificate from "../models/Certificate.js";
 
@@ -36,7 +36,7 @@ const login = async (c: Context) => {
         certificateTheme: findUser.settings?.certificateLayout || "classic",
         theme: findUser.settings?.colorMode || "light",
       };
-      token = jwt.sign(data, process.env.JWT_SECRET!);
+      token = jwt.sign(data, process.env["JWT_SECRET"]!);
     } else if (findUser.role === "F") {
       const firstTime = findUser.onboarding?.defaultPW;
       if (firstTime) {
@@ -64,7 +64,7 @@ const login = async (c: Context) => {
           certificateTheme: findUser.settings?.certificateLayout || "classic",
           theme: findUser.settings?.colorMode || "light",
         };
-        token = jwt.sign(data, process.env.JWT_SECRET!);
+        token = jwt.sign(data, process.env["JWT_SECRET"]!);
       }
     } else if (findUser.role === "S") {
       const firstTime = findUser.onboarding?.defaultPW;
@@ -89,7 +89,7 @@ const login = async (c: Context) => {
           certificateTheme: findUser.settings?.certificateLayout || "classic",
           theme: findUser.settings?.colorMode || "light",
         };
-        token = jwt.sign(data, process.env.JWT_SECRET!);
+        token = jwt.sign(data, process.env["JWT_SECRET"]!);
       }
 
       if (findUser.onboarding?.approved === false && !findUser?.onboarding.firstTime) {
@@ -100,8 +100,6 @@ const login = async (c: Context) => {
         );
       }
     }
-
-    const expirationTime = 4 * 60 * 60 * 1000;
 
     const roleName =
       findUser.role === "A"
@@ -120,7 +118,7 @@ const login = async (c: Context) => {
     });
   } catch (err) {
     console.error(err);
-    sendError(c, 500, "Something went wrong");
+    return sendError(c, 500, "Something went wrong");
   }
 };
 
@@ -155,8 +153,7 @@ const firstTimePassword = async (c: Context) => {
           certificateTheme: user.settings?.certificateLayout || "classic",
           theme: user.settings?.colorMode || "light",
         };
-        const token = jwt.sign(data, process.env.JWT_SECRET!);
-        const expirationTime = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+        const token = jwt.sign(data, process.env["JWT_SECRET"]!);
 
         return sendSuccess(c, 200, "Password Set Successfully", {
           role: user.role,
@@ -321,7 +318,7 @@ const updateTheme = async (c: Context) => {
         certificateTheme: user.settings?.certificateLayout || "classic",
         theme: colorMode,
       },
-      process.env.JWT_SECRET!
+      process.env["JWT_SECRET"]!
     );
 
     return sendSuccess(c, 200, "Theme updated successfully", newToken);
@@ -362,7 +359,7 @@ const updateCertificateTheme = async (c: Context) => {
         certificateTheme,
         theme: user.settings?.colorMode || "light",
       },
-      process.env.JWT_SECRET!
+      process.env["JWT_SECRET"]!
     );
 
     return sendSuccess(

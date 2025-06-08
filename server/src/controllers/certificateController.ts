@@ -5,12 +5,11 @@ import type { Context } from "hono";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { Token } from "docsdepot-types/Token.js";
-import { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
-import { User } from "docsdepot-types/User.js";
+import { type Token } from "docsdepot-types/Token.js";
+import { type Certificate as ICertificate } from "docsdepot-types/Certificate.js";
+import { type User } from "docsdepot-types/User.js";
 import House from "../models/House.js";
 import UserModel from "../models/User.js";
-import { Point } from "docsdepot-types/House.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

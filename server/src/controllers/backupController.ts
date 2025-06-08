@@ -1,20 +1,19 @@
-import { Context } from "hono";
-import { stream, streamSSE } from "hono/streaming";
+import type { Context } from "hono";
+import { streamSSE } from "hono/streaming";
 import path from "path";
 import archiver from "archiver";
 import { mkdir, access, unlink } from "fs/promises";
 import { createWriteStream, createReadStream } from "fs";
 import { format } from "date-fns";
-import User from "../models/User";
-import Certificate from "../models/Certificate";
-import Enrollment from "../models/Enrollment";
-import Event from "../models/Event";
-import Feedback from "../models/Feedback";
-import House from "../models/House";
-import Notification from "../models/Notification";
-import { Stream } from "stream";
-import { Token } from "docsdepot-types/Token";
-import logger from "../utils/logger";
+import User from "../models/User.js";
+import Certificate from "../models/Certificate.js";
+import Enrollment from "../models/Enrollment.js";
+import Event from "../models/Event.js";
+import Feedback from "../models/Feedback.js";
+import House from "../models/House.js";
+import Notification from "../models/Notification.js";
+import { type Token } from "docsdepot-types/Token.js";
+import logger from "../utils/logger.js";
 import jwt from "jsonwebtoken";
 
 // Types and Interfaces
@@ -33,13 +32,6 @@ interface BackupMetadata {
 interface BackupResult {
   filePath: string;
   fileName: string;
-}
-
-interface ProgressData {
-  status: "started" | "completed" | "error";
-  progress: number;
-  downloadUrl?: string;
-  error?: string;
 }
 
 const BACKUP_CONFIG = {
@@ -191,8 +183,8 @@ const createBackupWithProgress = async (c: Context): Promise<Response> => {
 };
 
 async function isAuthorized(c: Context): Promise<boolean> {
-  const tokenString = c.req.param().token;
-  const jwtSecret = process.env.JWT_SECRET;
+  const tokenString = c.req.param()["token"];
+  const jwtSecret = process.env["JWT_SECRET"];
 
   if (!tokenString || !jwtSecret) {
     return false;

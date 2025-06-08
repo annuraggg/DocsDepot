@@ -1,6 +1,6 @@
-import { Context } from "hono";
+import { type Context } from "hono";
 import fs from "fs";
-import { sendError, sendSuccess } from "../utils/sendResponse";
+import { sendError, sendSuccess } from "../utils/sendResponse.js";
 
 const logFile = "server.log";
 

@@ -1,13 +1,13 @@
-import { Token } from "docsdepot-types/Token";
-import { User } from "docsdepot-types/User";
+import { type Token } from "docsdepot-types/Token.js";
+import { type User } from "docsdepot-types/User.js";
 
 class UserKeeper {
   token: Token;
   user: User;
 
-  constructor(token: Token, User) {
+  constructor(token: Token, user: User) {
     this.token = token;
-    this.user = User;
+    this.user = user;
     if (!this.token) throw new Error("Token not found");
   }
 

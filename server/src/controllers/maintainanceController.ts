@@ -1,7 +1,7 @@
-import { Context } from "hono";
-import { maintainanceMode, setMaintainanceMode } from "../config/init";
-import { sendError, sendSuccess } from "../utils/sendResponse";
-import { Token } from "docsdepot-types/Token";
+import { type Context } from "hono";
+import { maintainanceMode, setMaintainanceMode } from "../config/init.js";
+import { sendError, sendSuccess } from "../utils/sendResponse.js";
+import {type Token } from "docsdepot-types/Token.js";
 
 const toggleMaintainance = async (c: Context) => {
   try {

@@ -1,6 +1,5 @@
 import House from "../models/House.js";
 import User from "../models/User.js";
-import jwt from "jsonwebtoken";
 import type { Context } from "hono";
 import { sendError, sendSuccess } from "../utils/sendResponse.js";
 import fs from "fs";
@@ -8,7 +7,6 @@ import path from "path";
 
 // Define storage path for logos and banners
 const __dirname = path.resolve();
-const storagePath = path.join(__dirname, "../uploads");
 
 export const getHouse = async (c: Context) => {
   const { id } = c.req.param();
@@ -105,7 +103,7 @@ if (!fs.existsSync(bannerPath)) {
 export const uploadLogo = async (c: Context) => {
   const houseId = c.req.param("id");
   const formData = await c.req.parseBody();
-  const image: File = formData.image as File;
+  const image: File = formData["image"] as File;
   console.log(image);
 
   const house = await House.findById(houseId);
@@ -132,7 +130,7 @@ export const uploadLogo = async (c: Context) => {
 export const uploadBanner = async (c: Context) => {
   const houseId = c.req.param("id");
   const formData = await c.req.parseBody();
-  const image: File = formData.image as File;
+  const image: File = formData["image"] as File;
   console.log(image);
 
   const house = await House.findById(houseId);

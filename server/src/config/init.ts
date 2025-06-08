@@ -5,7 +5,7 @@ import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 
-import "./db";
+import "./db.js";
 
 import performanceMiddleware from "../middlewares/performanceMiddleware.js";
 import { attachAuth } from "../middlewares/authenticatorMiddleware.js";
@@ -24,7 +24,7 @@ import maintainanceRoute from "../routes/maintainanceRoute.js";
 import backupRoute from "../routes/backupRoute.js";
 
 const app = new Hono();
-const port = parseInt(process.env.PORT!);
+const port = parseInt(process.env["PORT"]!);
 
 // Maintainance mode
 export let maintainanceMode = false;
@@ -49,7 +49,7 @@ app.use(performanceMiddleware);
 app.use(attachAuth);
 
 app.post("/", (c) => {
-  return c.json({ status: "ok", version: process.env.VERSION });
+  return c.json({ status: "ok", version: process.env["VERSION"] });
 });
 
 app.route("/auth", authRoutes);

@@ -1,12 +1,10 @@
-import { ObjectId } from "mongodb";
 import { sendSuccess, sendError } from "../utils/sendResponse.js";
-import logger from "../utils/logger.js";
 import Event from "../models/Event.js";
 import User from "../models/User.js";
 import type { Context } from "hono";
 import type { Token } from "docsdepot-types/Token.js";
 import House from "../models/House.js";
-import { House as IHouse } from "docsdepot-types/House.js";
+import { type House as IHouse } from "docsdepot-types/House.js";
 import type { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
 import Certificate from "../models/Certificate.js";
 
@@ -176,7 +174,7 @@ const getMonthInThreeLetter = () => {
     "Nov",
     "Dec",
   ];
-  return months[new Date().getMonth()];
+  return months[new Date().getMonth()] || "Jan";
 };
 
 const allocatePoints = async (c: Context) => {
@@ -194,18 +192,18 @@ const allocatePoints = async (c: Context) => {
 
     const houseMap = allHouses.reduce((map, house) => {
       house.members.forEach((memberId) => {
-        map.set(memberId.toString(), house);
+        map.set(memberId.toString(), house as unknown as IHouse);
       });
       return map;
-    }, new Map<string, House>());
+    }, new Map<string, IHouse>());
 
     // Fetch all participants' users in parallel
     const userIds = event.participants.map((p) => p.user);
     const users = await User.find({ _id: { $in: userIds } });
 
     // Create certificates and update points in parallel
-    const certificatePromises = [];
-    const houseUpdatePromises = [];
+    const certificatePromises: Promise<any>[] = [];
+    const houseUpdatePromises: Promise<unknown>[] = [];
 
     users.forEach((user) => {
       const house = houseMap.get(user._id.toString());
@@ -215,7 +213,7 @@ const allocatePoints = async (c: Context) => {
       const certificate: ICertificate = {
         name: event.name,
         issuingOrganization: "A.P. Shah Institute of Technology",
-        user: user._id as ObjectId,
+        user: user._id?.toString(),
         issueDate: {
           month: getMonthInThreeLetter(),
           year: new Date().getFullYear(),
@@ -225,6 +223,8 @@ const allocatePoints = async (c: Context) => {
         uploadType: "print",
         status: "approved",
         earnedXp: points,
+        expires: false,
+        comments: [],
       };
 
       const certificateDocument = new Certificate(certificate);

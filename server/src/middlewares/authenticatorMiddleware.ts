@@ -1,4 +1,4 @@
-import { Token } from "docsdepot-types/Token.js";
+import { type Token } from "docsdepot-types/Token.js";
 import { createMiddleware } from "hono/factory";
 import jwt from "jsonwebtoken";
 
@@ -41,11 +41,12 @@ const ensureAuth = createMiddleware(async (c, next) => {
   }
 
   await next();
+  return;
 });
 
 const verifyToken = (token: string): Token => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET!) as Token;
+    return jwt.verify(token, process.env["JWT_SECRET"]!) as Token;
   } catch (error) {
     throw new Error("Token verification failed");
   }

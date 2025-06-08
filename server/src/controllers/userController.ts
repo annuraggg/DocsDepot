@@ -1,11 +1,11 @@
-import { Context } from "hono";
-import { sendError, sendSuccess } from "../utils/sendResponse";
-import User from "../models/User";
-import House from "../models/House";
+import { type Context } from "hono";
+import { sendError, sendSuccess } from "../utils/sendResponse.js";
+import User from "../models/User.js";
+import House from "../models/House.js";
 import bcrypt from "bcrypt";
-import { User as IUser } from "docsdepot-types/User";
-import UserKeeper from "../gatekeepers/userKeeper";
-import { Token } from "docsdepot-types/Token";
+import { type User as IUser } from "docsdepot-types/User.js";
+import UserKeeper from "../gatekeepers/userKeeper.js";
+import { type Token } from "docsdepot-types/Token.js";
 
 const getAllUsers = async (c: Context) => {
   try {
@@ -104,7 +104,7 @@ const updateUser = async (c: Context) => {
       (perm: string) => !perm.startsWith("H")
     );
 
-    const gate = new UserKeeper(token, user);
+    const gate = new UserKeeper(token, user as unknown as IUser);
     await gate.update();
 
     if (user?.role === "F" && !body.permissions.includes("UFC")) {
@@ -137,7 +137,7 @@ const deleteUser = async (c: Context) => {
     const user = await User.findById(id);
     if (!user) return sendError(c, 404, "User not found");
 
-    const gate = new UserKeeper(token, user);
+    const gate = new UserKeeper(token, user as unknown as IUser);
     await gate.delete();
 
     await User.findByIdAndDelete(id);
@@ -159,7 +159,7 @@ const createStudent = async (c: Context) => {
       role: "S",
       house,
       onboarding: { firstTime, approved: !firstTime, defaultPW: true },
-      password: bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10),
+      password: bcrypt.hashSync(process.env["DEFAULT_STUDENT_PASSWORD"]!, 10),
       academicDetails: {
         admissionYear: body.mid.slice(0, 2),
         isDSE: body.mid.slice(2, 3) === "2",
@@ -169,7 +169,7 @@ const createStudent = async (c: Context) => {
       social: { email: body.email, github: "", linkedin: "" },
     });
 
-    const gate = new UserKeeper(token, user);
+    const gate = new UserKeeper(token, user  as unknown as IUser);
     await gate.create();
     await user.save();
 
@@ -196,7 +196,7 @@ const bulkCreateStudents = async (c: Context) => {
         gender:
           student[3] === "Male" ? "M" : student[3] === "Female" ? "F" : "O",
         social: { email: student[4], github: "", linkedin: "" },
-        password: bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10),
+        password: bcrypt.hashSync(process.env["DEFAULT_STUDENT_PASSWORD"]!, 10),
         academicDetails: {
           admissionYear: student[0].slice(0, 2),
           isDSE: student[0].slice(2, 3) === "2",
@@ -205,7 +205,7 @@ const bulkCreateStudents = async (c: Context) => {
         },
       });
 
-      const gate = new UserKeeper(token, user);
+      const gate = new UserKeeper(token, user  as unknown as IUser);
       await gate.create();
       await user.save();
 
@@ -221,7 +221,7 @@ const bulkCreateStudents = async (c: Context) => {
 
 const createUser = async (userData: any, token: Token) => {
   // Hashing the password
-  const password = bcrypt.hashSync(process.env.DEFAULT_FACULTY_PASSWORD!, 10);
+  const password = bcrypt.hashSync(process.env["DEFAULT_FACULTY_PASSWORD"]!, 10);
   userData.password = password;
 
   console.log(userData)
@@ -263,7 +263,7 @@ const createUser = async (userData: any, token: Token) => {
   console.log(user);
 
   // Create User and save it
-  const gate = new UserKeeper(token, user);
+  const gate = new UserKeeper(token, user  as unknown as IUser);
   await gate.create();
   await user.save();
 
@@ -278,7 +278,7 @@ const createFaculty = async (c: Context) => {
     const user = await createUser(body, token);
     return sendSuccess(c, 200, "User created", user);
   } catch (err) {
-    if (err.code === 11000) {
+    if (typeof err === "object" && err !== null && "code" in err && (err as any).code === 11000) {
       return sendError(c, 409, "User already exists");
     }
     console.error(err);
@@ -307,7 +307,7 @@ const bulkCreateFaculty = async (c: Context) => {
 
     return sendSuccess(c, 200, "Faculty created", faculty);
   } catch (err) {
-    if (err.code === 11000) {
+    if (typeof err === "object" && err !== null && "code" in err && (err as any).code === 11000) {
       return sendError(c, 409, "User already exists");
     }
 
@@ -322,7 +322,7 @@ const bulkDeleteUsers = async (c: Context) => {
   try {
     const users = await User.find({ _id: { $in: ids } });
     for (const user of users) {
-      const gate = new UserKeeper(token, user);
+      const gate = new UserKeeper(token, user  as unknown as IUser);
       await gate.delete();
     }
     const deleted = await User.deleteMany({ _id: { $in: ids } });
@@ -341,10 +341,10 @@ const resetPassword = async (c: Context) => {
     const user = await User.findOne({ mid });
     if (!user) return sendError(c, 404, "User not found");
 
-    const gate = new UserKeeper(token, user);
+    const gate = new UserKeeper(token, user  as unknown as IUser);
     await gate.reset();
 
-    const password = bcrypt.hashSync(process.env.DEFAULT_STUDENT_PASSWORD!, 10);
+    const password = bcrypt.hashSync(process.env["DEFAULT_STUDENT_PASSWORD"]!, 10);
     user.password = password;
     user.onboarding = user?.onboarding
       ? { ...user.onboarding, defaultPW: true }

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import backupController from "../controllers/backupController";
+import backupController from "../controllers/backupController.js";
 
 const app = new Hono();
 

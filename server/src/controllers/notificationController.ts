@@ -32,11 +32,11 @@ const receiveNotifications = async (c: Context) => {
       ...houseNotification,
       ...eventNotification,
     ];
-    sendSuccess(c, 200, "Notifications received successfully", {
+    return sendSuccess(c, 200, "Notifications received successfully", {
       notifications: notificationsArr,
     });
   } catch (err) {
-    sendError(c, 500, "Failed to receive notifications");
+    return sendError(c, 500, "Failed to receive notifications");
   }
 };
 
