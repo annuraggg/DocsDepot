@@ -121,7 +121,7 @@ export const useCertificates = () => {
         filtered = filtered.filter(
           (cert) =>
             cert.expires &&
-            filters.expiryYears.includes((cert.expirationDate.year || "").toString())
+            filters.expiryYears.includes((cert.expirationDate?.year || "").toString())
         );
       }
 

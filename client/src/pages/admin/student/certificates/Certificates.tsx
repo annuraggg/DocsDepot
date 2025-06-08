@@ -326,7 +326,7 @@ const CertificateCard: React.FC<CertificateCardProps> = ({
               <MenuList borderRadius="xl">
                 <MenuItem
                   icon={<Eye size={16} />}
-                  onClick={() => onView(cert._id)}
+                  onClick={() => onView(cert?._id!)}
                 >
                   View Details
                 </MenuItem>
@@ -391,7 +391,7 @@ const CertificateCard: React.FC<CertificateCardProps> = ({
             leftIcon={<Eye size={16} />}
             variant="outline"
             size="sm"
-            onClick={() => onView(cert._id)}
+            onClick={() => onView(cert?._id!)}
             borderRadius="lg"
             width="full"
           >
@@ -582,7 +582,7 @@ const CertificateTable: React.FC<CertificateTableProps> = ({
                           variant="ghost"
                           colorScheme="blue"
                           borderRadius="lg"
-                          onClick={() => onView(cert._id)}
+                          onClick={() => onView(cert?._id!)}
                         />
                       </Tooltip>
                     </Td>
