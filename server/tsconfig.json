@@ -32,12 +32,13 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true,
-    "outDir": "./dist",               // Output folder for compiled JS
+    "outDir": "./dist", // Output folder for compiled JS
     "incremental": false,
     "jsxImportSource": "hono/jsx",
     "paths": {
       "@shared-types/*": ["../common/types/*"]
     }
   },
-  "include": ["../common/types/*"]
+
+  "include": ["./src/**/*", "../common/types/**/*"]
 }
