@@ -23,10 +23,11 @@
       "../node_modules/@types",
       "../../node_modules/@types"
     ],
+    "rootDir": "..",
     "jsx": "react-jsx",
     "moduleDetection": "force",
     "isolatedModules": true,
-    "baseUrl": ".",
+    "baseUrl": "./",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -40,5 +41,5 @@
     }
   },
 
-  "include": ["./src/**/*", "../common/types/**/*"]
+  "include": ["./src/**/*"]
 }
