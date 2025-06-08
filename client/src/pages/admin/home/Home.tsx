@@ -895,7 +895,7 @@ export default function Dashboard(): JSX.Element {
                                       {cert.name}
                                     </Text>
                                     <Text fontSize="xs" color="gray.500">
-                                      ID: {cert._id.slice(-6)}
+                                      ID: {cert._id?.slice(-6)}
                                     </Text>
                                   </VStack>
                                 </HStack>
