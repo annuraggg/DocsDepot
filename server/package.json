@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "node check-types.js"
+    "build": "node check-types.js && tsc"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
