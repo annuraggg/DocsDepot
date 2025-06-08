@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import Certificate from "../models/Certificate.js";
 import { sendSuccess, sendError } from "../utils/sendResponse.js";
 import type { Context } from "hono";
-import { type Token } from "docsdepot-types/Token.js";
+import { type Token } from "@shared-types/Token.js";
 
 const getStudentDashboard = async (c: Context) => {
   const { mid } = (await c.get("user")) as Token;

@@ -2,7 +2,7 @@ import type { Context } from "hono";
 import Enrollment from "../models/Enrollment.js";
 import User from "../models/User.js";
 import { sendError, sendSuccess } from "../utils/sendResponse.js";
-import { type Token } from "docsdepot-types/Token.js";
+import { type Token } from "@shared-types/Token.js";
 import House from "../models/House.js";
 
 export const createEnrollment = async (c: Context) => {

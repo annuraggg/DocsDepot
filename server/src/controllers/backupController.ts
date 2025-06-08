@@ -12,7 +12,7 @@ import Event from "../models/Event.js";
 import Feedback from "../models/Feedback.js";
 import House from "../models/House.js";
 import Notification from "../models/Notification.js";
-import { type Token } from "docsdepot-types/Token.js";
+import { type Token } from "@shared-types/Token.js";
 import logger from "../utils/logger.js";
 import jwt from "jsonwebtoken";
 

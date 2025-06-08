@@ -1,5 +1,5 @@
-import { type Token } from "docsdepot-types/Token.js";
-import { type User } from "docsdepot-types/User.js";
+import { type Token } from "@shared-types/Token.js";
+import { type User } from "@shared-types/User.js";
 
 class UserKeeper {
   token: Token;

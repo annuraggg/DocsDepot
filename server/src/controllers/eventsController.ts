@@ -2,10 +2,10 @@ import { sendSuccess, sendError } from "../utils/sendResponse.js";
 import Event from "../models/Event.js";
 import User from "../models/User.js";
 import type { Context } from "hono";
-import type { Token } from "docsdepot-types/Token.js";
+import type { Token } from "@shared-types/Token.js";
 import House from "../models/House.js";
-import { type House as IHouse } from "docsdepot-types/House.js";
-import type { Certificate as ICertificate } from "docsdepot-types/Certificate.js";
+import { type House as IHouse } from "@shared-types/House.js";
+import type { Certificate as ICertificate } from "@shared-types/Certificate.js";
 import Certificate from "../models/Certificate.js";
 
 const getAllEvents = async (c: Context) => {

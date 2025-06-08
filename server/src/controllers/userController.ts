@@ -3,9 +3,9 @@ import { sendError, sendSuccess } from "../utils/sendResponse.js";
 import User from "../models/User.js";
 import House from "../models/House.js";
 import bcrypt from "bcrypt";
-import { type User as IUser } from "docsdepot-types/User.js";
+import { type User as IUser } from "@shared-types/User.js";
 import UserKeeper from "../gatekeepers/userKeeper.js";
-import { type Token } from "docsdepot-types/Token.js";
+import { type Token } from "@shared-types/Token.js";
 
 const getAllUsers = async (c: Context) => {
   try {

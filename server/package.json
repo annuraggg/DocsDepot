@@ -17,7 +17,6 @@
     "chalk": "^5.4.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
-    "docsdepot-types": "file:../common/types",
     "dotenv": "^16.4.7",
     "hono": "^4.6.16",
     "jsonwebtoken": "^9.0.2",

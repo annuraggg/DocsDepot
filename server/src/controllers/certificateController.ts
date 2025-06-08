@@ -5,9 +5,9 @@ import type { Context } from "hono";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { type Token } from "docsdepot-types/Token.js";
-import { type Certificate as ICertificate } from "docsdepot-types/Certificate.js";
-import { type User } from "docsdepot-types/User.js";
+import { type Token } from "@shared-types/Token.js";
+import { type Certificate as ICertificate } from "@shared-types/Certificate.js";
+import { type User } from "@shared-types/User.js";
 import House from "../models/House.js";
 import UserModel from "../models/User.js";
 

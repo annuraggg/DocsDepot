@@ -1,4 +1,4 @@
-import { type Token } from "docsdepot-types/Token.js";
+import { type Token } from "@shared-types/Token.js";
 import { createMiddleware } from "hono/factory";
 import jwt from "jsonwebtoken";
 

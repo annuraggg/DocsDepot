@@ -1,4 +1,4 @@
-import { type Token } from "docsdepot-types/Token.js";
+import { type Token } from "@shared-types/Token.js";
 
 class AdminKeeper {
   token: Token;
