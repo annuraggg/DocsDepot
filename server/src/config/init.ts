@@ -40,7 +40,8 @@ app.use(
       "https://docsdepot.anuragsawant.in",
       "http://64.227.186.83:3000",
       "http://139.59.93.136:3000",
-      "http://202.179.85.69:3000"
+      "http://202.179.85.69:3000",
+      "http://docsdepot.apsit.edu.in/auth",
     ],
     credentials: true,
   })
