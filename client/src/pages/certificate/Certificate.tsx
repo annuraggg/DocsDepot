@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   Button,
@@ -34,12 +34,9 @@ import {
   Code,
   List,
   ListItem,
-  ListIcon,
   useBreakpointValue,
   ScaleFade,
   Fade,
-  Spinner,
-  Progress,
 } from "@chakra-ui/react";
 import {
   Printer,
@@ -53,13 +50,10 @@ import {
   XCircle,
   Clock,
   AlertCircle,
-  FileText,
   Hash,
-  Eye,
   ArrowLeft,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
-import Loader from "@/components/Loader";
 import useAxios from "@/config/axios";
 import useUser from "@/config/user";
 import type { ExtendedCertificate as ICertificate } from "@/types/ExtendedCertificate";
@@ -162,8 +156,6 @@ const Certificate: React.FC = () => {
   } = useDisclosure();
   const { targetRef } = usePDF({ filename: `certificate-${id}.pdf` });
 
-  // Responsive values
-  const isMobile = useBreakpointValue({ base: true, lg: false });
   const cardDirection = useBreakpointValue({ base: "column", xl: "row" }) as
     | "column"
     | "row";
@@ -237,7 +229,7 @@ const Certificate: React.FC = () => {
         description: "This certificate has been rejected",
       },
     };
-    return state.certificate?.status
+    return state.certificate?.status //@ts-ignore
       ? config[state.certificate.status]
       : config.pending;
   }, [
