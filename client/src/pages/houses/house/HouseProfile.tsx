@@ -22,7 +22,7 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
   house,
   refreshImages,
 }) => {
-  const fileInputRef = React?.useRef<HTMLInputElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleCameraClick = () => {
     fileInputRef?.current?.click();
@@ -97,7 +97,8 @@ export const HouseProfile: React.FC<HouseProfileProps> = ({
               className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
               onClick={() => navigateToProfile(house?.facultyCordinator?.mid)}
             >
-              {house.facultyCordinator && `@${house?.facultyCordinator?.fname} ${house?.facultyCordinator?.lname}`}
+              {house.facultyCordinator &&
+                `@${house?.facultyCordinator?.fname} ${house?.facultyCordinator?.lname}`}
             </Button>
           </div>
         </div>

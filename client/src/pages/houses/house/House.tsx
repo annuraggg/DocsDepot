@@ -1,21 +1,26 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import {
   Button,
   Card,
   CardBody,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   useDisclosure,
+  useToast as chakraToast,
+  Box,
+  Text,
+  Tooltip,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
 } from "@chakra-ui/react";
-import { useToast } from "../../../components/useToast";
 import useAxios from "@/config/axios";
+import useUser from "@/config/user";
+import Loader from "@/components/Loader";
 import { HouseBanner } from "./HouseBanner";
 import { HouseProfile } from "./HouseProfile";
 import { SocialLinks } from "./SocialLinks";
@@ -26,11 +31,26 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import AvatarEditor from "react-avatar-editor";
 import { User } from "@shared-types/User";
 import { UserPlus } from "lucide-react";
-import useUser from "@/config/user";
-import Loader from "@/components/Loader";
 import { ExtendedHouse } from "@shared-types/ExtendedHouse";
 import AddUserModal from "./AddUserModal";
-import { useParams } from "react-router";
+
+// --- Custom Toast Handler ---
+const useToast = () => {
+  const toast = chakraToast();
+  return (
+    title: string,
+    description: string,
+    status: "success" | "error" | "info"
+  ) =>
+    toast({
+      title,
+      description,
+      status,
+      duration: 4000,
+      isClosable: true,
+      position: "top-right",
+    });
+};
 
 export const House: React.FC = () => {
   const [house, setHouse] = React.useState<ExtendedHouse | null>(null);
@@ -38,7 +58,7 @@ export const House: React.FC = () => {
 
   const [_isLoading, setIsLoading] = React.useState(true);
   const [isUpdating, setIsUpdating] = React.useState(false);
-  const [_isAddingMember, setIsAddingMember] = React.useState(false);
+  const [isAddingMember, setIsAddingMember] = React.useState(false);
   const [isDeletingMember, setIsDeletingMember] = React.useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = React.useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = React.useState(false);
@@ -50,8 +70,8 @@ export const House: React.FC = () => {
   const [editPrivilege, setEditPrivilege] = React.useState(false);
 
   // Image editing state
-  const [logo, setLogo] = React.useState<File | null>(null);
-  const [banner, setBanner] = React.useState<File | null>(null);
+  const [logo, setLogo] = React.useState<File | string | null>(null);
+  const [banner, setBanner] = React.useState<File | string | null>(null);
   const [logoZoom, setLogoZoom] = React.useState(1);
   const [bannerZoom, setBannerZoom] = React.useState(1);
 
@@ -90,26 +110,7 @@ export const House: React.FC = () => {
     onClose: onDeleteClose,
   } = useDisclosure();
 
-  useEffect(() => {
-    fetchHouseData();
-  }, []);
-
-  useEffect(() => {
-    if (house) {
-      calculatePoints();
-      sortMembers();
-
-      if (user?.role === "A") {
-        setEditPrivilege(true);
-      }
-
-      if (user?.role === "F" && house?.facultyCordinator?._id === user?._id) {
-        setEditPrivilege(true);
-      }
-    }
-  }, [house]);
-
-  // Functions
+  // Fetch house data
   const fetchHouseData = async () => {
     setIsLoading(true);
     try {
@@ -132,6 +133,53 @@ export const House: React.FC = () => {
     }
   };
 
+  // Privilege & Data Loader
+  useEffect(() => {
+    fetchHouseData();
+    // eslint-disable-next-line
+  }, [houseID]);
+
+  useEffect(() => {
+    if (house) {
+      if (user?.role === "A") setEditPrivilege(true);
+      if (user?.role === "F" && house?.facultyCordinator?._id === user?._id)
+        setEditPrivilege(true);
+    }
+  }, [house, user]);
+
+  // Edge: Defensive fallback for points/members
+  const getTopMembers = (members: User[], limit?: number) => {
+    if (!house?.points) return members.slice(0, limit || members.length);
+    const sortedMembers = [...members].sort((a, b) => {
+      const aPoints = house.points.reduce(
+        (sum, pt) => (pt.userId === a._id ? sum + pt.points : sum),
+        0
+      );
+      const bPoints = house.points.reduce(
+        (sum, pt) => (pt.userId === b._id ? sum + pt.points : sum),
+        0
+      );
+      return bPoints - aPoints;
+    });
+    return limit ? sortedMembers.slice(0, limit) : sortedMembers;
+  };
+
+  // --- UI/UX: Smart Loader ---
+  if (!house) {
+    return (
+      <Box
+        w="100vw"
+        h="80vh"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Loader />
+      </Box>
+    );
+  }
+
+  // --- Handlers ---
   const handleUpdateHouse = async () => {
     setIsUpdating(true);
     try {
@@ -158,7 +206,6 @@ export const House: React.FC = () => {
       const response = await axios.post(`/houses/${houseID}/member`, {
         _id: userId,
       });
-
       if (response.status === 200) {
         toast("Success", "Member added successfully", "success");
         setIsAddMemberOpen(false);
@@ -185,7 +232,6 @@ export const House: React.FC = () => {
           mid: selectedMember._id,
         },
       });
-
       if (response.status === 200) {
         toast("Success", "Member removed successfully", "success");
         onDeleteClose();
@@ -202,30 +248,9 @@ export const House: React.FC = () => {
     }
   };
 
-  const getTopMembers = (members: User[], limit?: number) => {
-    const sortedMembers = [...members].sort((a, b) => {
-      const aMemberPoints =
-        house?.points?.reduce(
-          (sum, point) => (point.userId === a._id ? sum + point.points : sum),
-          0
-        ) || 0;
-
-      const bMemberPoints =
-        house?.points?.reduce(
-          (sum, point) => (point.userId === b._id ? sum + point.points : sum),
-          0
-        ) || 0;
-
-      return bMemberPoints - aMemberPoints || 0;
-    });
-
-    return limit ? sortedMembers.slice(0, limit) : sortedMembers;
-  };
-
   const handleSaveLogo = async () => {
     if (!logoRef.current) return;
     setIsUploadingLogo(true);
-
     try {
       const canvasBlob = await new Promise((resolve, reject) => {
         logoRef?.current?.getImage().toBlob((blob) => {
@@ -233,9 +258,7 @@ export const House: React.FC = () => {
           else reject(new Error("Failed to create blob"));
         });
       });
-
       if (!canvasBlob) throw new Error("Failed to create image blob");
-
       const formData = new FormData();
       formData.append("image", canvasBlob as Blob);
 
@@ -260,7 +283,6 @@ export const House: React.FC = () => {
   const handleSaveBanner = async () => {
     if (!bannerRef.current) return;
     setIsUploadingBanner(true);
-
     try {
       const canvasBlob = await new Promise((resolve, reject) => {
         bannerRef?.current?.getImage().toBlob((blob) => {
@@ -268,7 +290,6 @@ export const House: React.FC = () => {
           else reject(new Error("Failed to create blob"));
         });
       });
-
       if (!canvasBlob) throw new Error("Failed to create image blob");
 
       const formData = new FormData();
@@ -292,17 +313,10 @@ export const House: React.FC = () => {
     }
   };
 
-  const refreshComponent = () => {
-    setUpdateImagesValue((prev) => prev + 1);
-  };
+  const refreshComponent = () => setUpdateImagesValue((prev) => prev + 1);
 
-  const calculatePoints = () => {};
-
-  const sortMembers = () => {};
-
-  if (!house) {
-    return <Loader />;
-  }
+  // --- Edge: Defensive fallback for table ---
+  const membersToShow = getTopMembers(house?.members || [], 3);
 
   return (
     <motion.div
@@ -312,6 +326,7 @@ export const House: React.FC = () => {
       className="min-h-screen"
     >
       <div className="max-w-7xl mx-auto">
+        {/* House Banner + Profile */}
         <Card className="w-full shadow-xl">
           <CardBody className="p-0">
             <div className="relative">
@@ -326,7 +341,6 @@ export const House: React.FC = () => {
                   onBannerOpen();
                 }}
               />
-
               <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2">
                 <HouseProfile
                   refreshImages={updateImagesValue}
@@ -342,14 +356,13 @@ export const House: React.FC = () => {
                 />
               </div>
             </div>
-
             <div className="pt-5 px-8 pb-8">
               <SocialLinks house={house} />
               <h2 className="text-xl font-semibold mb-3">
                 {house?.abstract || "No Abstract Provided."}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                {house?.desc || "No Description Provided. "}
+                {house?.desc || "No Description Provided."}
               </p>
             </div>
           </CardBody>
@@ -363,26 +376,31 @@ export const House: React.FC = () => {
                   <h3 className="text-xl font-semibold">Top Members</h3>
                   <div className="space-x-2">
                     {editPrivilege && (
+                      <Tooltip label="Add new member">
+                        <Button
+                          size="sm"
+                          leftIcon={<UserPlus size={16} />}
+                          onClick={() => setIsAddMemberOpen(true)}
+                          isLoading={isAddingMember}
+                        >
+                          Add Member
+                        </Button>
+                      </Tooltip>
+                    )}
+                    <Tooltip label="Show all members">
                       <Button
                         size="sm"
-                        leftIcon={<UserPlus size={16} />}
-                        onClick={() => setIsAddMemberOpen(true)}
+                        variant="outline"
+                        onClick={() => setIsViewAllMembersOpen(true)}
                       >
-                        Add Member
+                        View All
                       </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setIsViewAllMembersOpen(true)}
-                    >
-                      View All
-                    </Button>
+                    </Tooltip>
                   </div>
                 </div>
                 <MembersTable
                   house={house!}
-                  members={getTopMembers(house?.members || [], 3)}
+                  members={membersToShow}
                   onMemberClick={(id) => navigate(`/profile/${id}`)}
                   onDeleteClick={(member) => {
                     setSelectedMember(member);
@@ -390,17 +408,13 @@ export const House: React.FC = () => {
                   }}
                   editPrivilege={editPrivilege}
                 />
+                {membersToShow.length === 0 && (
+                  <Text color="gray.500" fontSize="sm" mt={4}>
+                    No members found for this house.
+                  </Text>
+                )}
               </CardBody>
             </Card>
-          </div>
-
-          <div>
-            {/* <HouseStats
-              totalPoints={totalPoints}
-              internalPoints={internalPoints}
-              externalPoints={externalPoints}
-              eventPoints={eventPoints}
-            /> */}
           </div>
         </div>
       </div>
@@ -452,67 +466,72 @@ export const House: React.FC = () => {
         isLoading={isDeletingMember}
       />
 
-      <Modal
-        isOpen={isViewAllMembersOpen}
-        onClose={() => setIsViewAllMembersOpen(false)}
-        size="4xl"
-      >
-        <ModalOverlay backdropFilter="blur(10px)" />
-        <ModalContent>
-          <ModalHeader>All Members</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <MembersTable
-              house={house!}
-              members={getTopMembers(house?.members || [])}
-              onMemberClick={(id) => navigate(`/profile/${id}`)}
-              onDeleteClick={(member) => {
-                setSelectedMember(member);
-                onDeleteOpen();
-              }}
-              editPrivilege={editPrivilege}
-            />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-
-      <Modal
-        isOpen={isAddMemberOpen}
-        onClose={() => setIsAddMemberOpen(false)}
-        scrollBehavior="inside"
-        size="4xl"
-      >
-        <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
-        <ModalContent
-          as={motion.div}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.3 } as any}
-          mx={4}
-        >
-          <ModalHeader fontSize="2xl">Add New Student</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <AddUserModal addUser={addUserToHouse} />
-          </ModalBody>
-
-          <ModalFooter gap={3}>
-            <Button variant="ghost" onClick={() => setIsAddMemberOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              colorScheme="blue"
-              onClick={() => {
-                setIsAddMemberOpen(false);
-              }}
-              leftIcon={<UserPlus size={18} />}
+      {/* View All Members Modal */}
+      <Box as="section">
+        <motion.div>
+          <Box>
+            <Modal
+              isOpen={isViewAllMembersOpen}
+              onClose={() => setIsViewAllMembersOpen(false)}
+              size="4xl"
             >
-              Add Student
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+              <ModalOverlay backdropFilter="blur(10px)" />
+              <ModalContent>
+                <ModalHeader>All Members</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                  <MembersTable
+                    house={house!}
+                    members={getTopMembers(house?.members || [])}
+                    onMemberClick={(id) => navigate(`/profile/${id}`)}
+                    onDeleteClick={(member) => {
+                      setSelectedMember(member);
+                      onDeleteOpen();
+                    }}
+                    editPrivilege={editPrivilege}
+                  />
+                </ModalBody>
+              </ModalContent>
+            </Modal>
+          </Box>
+        </motion.div>
+      </Box>
+
+      {/* Add Member Modal */}
+      <Box as="section">
+        <motion.div>
+          <Modal
+            isOpen={isAddMemberOpen}
+            onClose={() => setIsAddMemberOpen(false)}
+            scrollBehavior="inside"
+            size="4xl"
+          >
+            <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+            <ModalContent
+              as={motion.div}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 } as any}
+              mx={4}
+            >
+              <ModalHeader fontSize="2xl">Add New Student</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <AddUserModal addUser={addUserToHouse} />
+              </ModalBody>
+              <ModalFooter gap={3}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsAddMemberOpen(false)}
+                >
+                  Cancel
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
+        </motion.div>
+      </Box>
     </motion.div>
   );
 };

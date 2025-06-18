@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardBody } from '@chakra-ui/react';
-import { Doughnut } from 'react-chartjs-2';
+import React from "react";
+import { motion } from "framer-motion";
+import { Card, CardBody } from "@chakra-ui/react";
+import { Doughnut } from "react-chartjs-2";
 
 interface HouseStatsProps {
   totalPoints: number;
@@ -17,11 +17,11 @@ export const HouseStats: React.FC<HouseStatsProps> = ({
   eventPoints,
 }) => {
   const data = {
-    labels: ['Internal Points', 'External Points', 'Event Points'],
+    labels: ["Internal Points", "External Points", "Event Points"],
     datasets: [
       {
         data: [internalPoints, externalPoints, eventPoints],
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
         borderWidth: 0,
       },
     ],
@@ -33,7 +33,7 @@ export const HouseStats: React.FC<HouseStatsProps> = ({
     plugins: {
       legend: {
         display: true,
-        position: 'bottom' as const,
+        position: "bottom" as const,
       },
     },
   };

@@ -16,6 +16,7 @@ export const getHouse = async (c: Context) => {
       .populate("members")
       .populate("facultyCordinator")
       .populate("studentCordinator")
+      .populate("points.certificateId")
       .lean();
 
     if (!house) {

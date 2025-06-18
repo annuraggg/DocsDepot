@@ -610,10 +610,7 @@ const Certificate: React.FC = () => {
                         colorScheme="blue"
                         variant="outline"
                         onClick={() => {
-                          const url = import.meta.env.VITE_BASENAME
-                            ? import.meta.env.VITE_BASENAME +
-                              state.certificate?.url
-                            : state.certificate?.url;
+                          const url = state.certificate?.url!;
                           window.open(url, "_blank");
                         }}
                       >

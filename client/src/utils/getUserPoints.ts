@@ -35,7 +35,9 @@ const getUserPoints = (userId: string, house: ExtendedHouse): PointsResult => {
   console.log(house)
 
   // Filter points for the specific user
-  const userPoints = house.points.filter((point) => point.userId === userId);
+  const userPoints = house.points.filter((point) => point.userId?.toString() === userId?.toString());
+
+  console.log("User Points:", userPoints)
 
   // Calculate points by certificate type
   userPoints.forEach((point) => {
