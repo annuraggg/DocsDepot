@@ -540,6 +540,7 @@ export const EditCertificateModal: React.FC<EditModalProps> = ({
             mr={3}
             onClick={onClose}
             isDisabled={isUpdating}
+            colorScheme="gray"
           >
             Cancel
           </Button>

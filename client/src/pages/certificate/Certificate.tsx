@@ -7,7 +7,6 @@ import {
   VStack,
   HStack,
   Text,
-  Badge,
   Divider,
   Card,
   CardBody,
@@ -66,7 +65,6 @@ import DeleteCertificateModal from "./DeleteCertificateModal";
 import EditCertificateModal from "./EditCertificateModal";
 import generatePDF, { usePDF } from "react-to-pdf";
 
-// Enhanced interfaces
 interface ExtendedComment extends Omit<Comment, "user"> {
   user: User | string;
 }
@@ -99,11 +97,9 @@ interface CertificateAction {
   payload?: any;
 }
 
-// Constants
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 2000;
 
-// State reducer for better state management
 const certificateReducer = (
   state: CertificatePageState,
   action: CertificateAction
@@ -143,7 +139,6 @@ const certificateReducer = (
 };
 
 const Certificate: React.FC = () => {
-  // Hooks
   const axios = useAxios();
   const user = useUser();
   const toast = useToast();
@@ -160,12 +155,8 @@ const Certificate: React.FC = () => {
     | "column"
     | "row";
 
-  // Color mode values
   const bgColor = useColorModeValue("gray.50", "gray.900");
-  const cardBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.600");
 
-  // State management with reducer
   const [state, dispatch] = React.useReducer(certificateReducer, {
     certificate: null,
     loading: true,
@@ -182,7 +173,6 @@ const Certificate: React.FC = () => {
     retryCount: 0,
   });
 
-  // Memoized values
   const canEdit = useMemo(() => {
     return state.editPrivilege && state.certificate?.status !== "approved";
   }, [state.editPrivilege, state.certificate?.status]);
@@ -190,18 +180,13 @@ const Certificate: React.FC = () => {
   const canApprove = useMemo(() => {
     if (!user || !state.certificate || state.certificate.status !== "pending")
       return false;
-
-    // Admin can approve faculty certificates
     if (user.role === "A" && state.certificate.user?.role === "F") return true;
-
-    // Faculty can approve student certificates from same house
     if (
       user.role === "F" &&
       state.certificate.user?.role === "S" &&
       user.house === state.certificate.user?.house
     )
       return true;
-
     return false;
   }, [user, state.certificate]);
 
@@ -238,7 +223,6 @@ const Certificate: React.FC = () => {
     state.certificate?.user?.role,
   ]);
 
-  // Enhanced certificate fetching with retry logic
   const fetchCertificate = useCallback(
     async (retryAttempt = 0) => {
       if (!id) {
@@ -301,12 +285,10 @@ const Certificate: React.FC = () => {
     [id, axios, user?._id, toast]
   );
 
-  // Initial load
   useEffect(() => {
     fetchCertificate();
-  }, [fetchCertificate]);
+  }, []);
 
-  // Enhanced handlers
   const handleCopy = useCallback(
     async (text: string, label = "Text") => {
       try {
@@ -319,7 +301,6 @@ const Certificate: React.FC = () => {
           isClosable: true,
         });
       } catch (error) {
-        // Fallback for older browsers
         const textArea = document.createElement("textarea");
         textArea.value = text;
         document.body.appendChild(textArea);
@@ -484,7 +465,6 @@ const Certificate: React.FC = () => {
           isClosable: true,
         });
 
-        // Refresh certificate data to get updated comments
         fetchCertificate();
       } catch (error: any) {
         console.error("Error posting comment:", error);
@@ -501,15 +481,12 @@ const Certificate: React.FC = () => {
     [state.certificate, axios, toast, fetchCertificate]
   );
 
-  // Loading skeleton
   const renderLoadingSkeleton = () => (
     <Container maxW="8xl" py={8}>
       <VStack spacing={6} align="stretch">
         <Skeleton height="40px" />
+        <Skeleton height="600px" borderRadius="lg" />
         <Flex direction={cardDirection} gap={8}>
-          <Box flex="2">
-            <Skeleton height="600px" borderRadius="lg" />
-          </Box>
           <Box flex="1">
             <VStack spacing={4} align="stretch">
               <Skeleton height="50px" />
@@ -523,7 +500,6 @@ const Certificate: React.FC = () => {
     </Container>
   );
 
-  // Error state
   const renderErrorState = () => (
     <Container maxW="4xl" py={8}>
       <Alert
@@ -535,8 +511,9 @@ const Certificate: React.FC = () => {
         textAlign="center"
         height="200px"
         borderRadius="lg"
+        colorScheme="red"
       >
-        <AlertIcon boxSize="40px" mr={0} />
+        <AlertIcon />
         <AlertTitle mt={4} mb={1} fontSize="lg">
           {state.error?.includes("not found")
             ? "Certificate Not Found"
@@ -565,7 +542,6 @@ const Certificate: React.FC = () => {
     </Container>
   );
 
-  // Main render
   if (state.loading) return renderLoadingSkeleton();
   if (state.error) return renderErrorState();
   if (!state.certificate) return null;
@@ -573,262 +549,251 @@ const Certificate: React.FC = () => {
   return (
     <Box bg={bgColor} minH="100vh">
       <Container maxW="8xl" py={8}>
-        <VStack spacing={6} align="stretch">
-          {/* Header */}
-          <Flex align="center" justify="space-between" wrap="wrap" gap={4}>
-            <HStack spacing={4}>
-              <IconButton
-                aria-label="Back to certificates"
-                icon={<ArrowLeft size={20} />}
-                variant="ghost"
-                onClick={() => navigate("/certificates")}
-              />
-              <Box>
-                <Heading size="lg" color="gray.700">
-                  {state.certificate.name}
-                </Heading>
-                <Text color="gray.500" fontSize="sm">
-                  Certificate Details
-                </Text>
-              </Box>
-            </HStack>
-
-            <HStack spacing={2}>
-              <Badge
-                colorScheme={statusConfig.color}
-                variant="subtle"
-                px={3}
-                py={1}
-                borderRadius="full"
-                fontSize="sm"
-              >
-                <HStack spacing={1}>
-                  <statusConfig.icon size={14} />
-                  <Text>{statusConfig.text}</Text>
-                </HStack>
-              </Badge>
-            </HStack>
+        <VStack spacing={10} align="stretch">
+          {/* Centered Certificate Preview */}
+          <Flex justify="center" align="center" w="100%">
+            <Box
+              id="certificate-print-area"
+              position="relative"
+              overflow="hidden"
+              borderRadius="none"
+              bg="transparent"
+              p={0}
+              m={0}
+              boxShadow="none"
+              ref={targetRef}
+              width={{ base: "100%", md: "auto" }}
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              flexDirection="column"
+            >
+              {user?.certificateTheme === "classic" ? (
+                <ClassicTheme certificate={state.certificate} ref={targetRef} />
+              ) : (
+                <GreenTheme certificate={state.certificate} ref={targetRef} />
+              )}
+            </Box>
           </Flex>
 
-          {/* Main Content */}
-          <Flex direction={cardDirection} gap={8} align="flex-start">
-            {/* Certificate Preview */}
-            <Card flex="2" bg={cardBg} borderColor={borderColor} shadow="lg">
-              <CardBody p={0}>
-                <Box
-                  id="certificate-print-area"
-                  position="relative"
-                  overflow="hidden"
-                  borderRadius="lg"
-                >
-                  {user?.certificateTheme === "classic" ? (
-                    <ClassicTheme
-                      certificate={state.certificate}
-                      ref={targetRef}
-                    />
-                  ) : (
-                    <GreenTheme
-                      certificate={state.certificate}
-                      ref={targetRef}
-                    />
-                  )}
-                </Box>
-              </CardBody>
-            </Card>
-
+          {/* Main Actions & Comments Panel */}
+          <Flex
+            direction={{ base: "column", xl: "row" }}
+            gap={8}
+            align="flex-start"
+            w="100%"
+          >
             {/* Actions Panel */}
-            <Card flex="1" bg={cardBg} borderColor={borderColor} shadow="lg">
-              <CardHeader>
-                <Heading size="md">Actions</Heading>
-              </CardHeader>
-              <CardBody>
-                <VStack spacing={4} align="stretch">
-                  {/* Print/Download */}
-                  <Button
-                    leftIcon={<Printer size={18} />}
-                    colorScheme="green"
-                    size="lg"
-                    onClick={handlePrint}
-                    isLoading={state.buttonLoading.print}
-                    loadingText="Generating PDF..."
-                    _hover={{ transform: "translateY(-2px)" }}
-                    transition="all 0.2s"
-                  >
-                    Print / Download PDF
-                  </Button>
-
-                  {/* View Certificate (URL) */}
-                  {state.certificate.uploadType === "url" && (
+            <Box flex="1" minW={0}>
+              <Card bg="transparent" border="none" p={0} m={0} boxShadow="none">
+                <CardHeader>
+                  <Heading size="md">Actions</Heading>
+                </CardHeader>
+                <CardBody>
+                  <VStack spacing={4} align="stretch">
                     <Button
-                      leftIcon={<ExternalLink size={18} />}
-                      colorScheme="blue"
-                      variant="outline"
-                      onClick={() => {
-                        const url = import.meta.env.VITE_BASENAME
-                          ? import.meta.env.VITE_BASENAME +
-                            state.certificate?.url
-                          : state.certificate?.url;
-                        window.open(url, "_blank");
-                      }}
+                      leftIcon={<Printer size={18} />}
+                      colorScheme="green"
+                      size="lg"
+                      onClick={handlePrint}
+                      isLoading={state.buttonLoading.print}
+                      loadingText="Generating PDF..."
+                      _hover={{ transform: "translateY(-2px)" }}
+                      transition="all 0.2s"
                     >
-                      View Original Certificate
+                      Print / Download PDF
                     </Button>
-                  )}
 
-                  {/* Download Original (File) */}
-                  {state.certificate.uploadType === "file" && (
-                    <Button
-                      leftIcon={<Download size={18} />}
-                      colorScheme="blue"
-                      variant="outline"
-                      onClick={handleDownload}
-                      isLoading={state.buttonLoading.download}
-                      loadingText="Downloading..."
+                    {state.certificate.uploadType === "url" && (
+                      <Button
+                        leftIcon={<ExternalLink size={18} />}
+                        colorScheme="blue"
+                        variant="outline"
+                        onClick={() => {
+                          const url = import.meta.env.VITE_BASENAME
+                            ? import.meta.env.VITE_BASENAME +
+                              state.certificate?.url
+                            : state.certificate?.url;
+                          window.open(url, "_blank");
+                        }}
+                      >
+                        View Original Certificate
+                      </Button>
+                    )}
+
+                    {state.certificate.uploadType === "file" && (
+                      <Button
+                        leftIcon={<Download size={18} />}
+                        colorScheme="blue"
+                        variant="outline"
+                        onClick={handleDownload}
+                        isLoading={state.buttonLoading.download}
+                        loadingText="Downloading..."
+                      >
+                        Download Original
+                      </Button>
+                    )}
+
+                    {(state.certificate.hashes?.sha256 ||
+                      state.certificate.hashes?.md5) && (
+                      <Button
+                        leftIcon={<Hash size={18} />}
+                        colorScheme="teal"
+                        variant="outline"
+                        onClick={onHashModalOpen}
+                      >
+                        Verify Integrity
+                      </Button>
+                    )}
+
+                    <Divider />
+
+                    <Alert
+                      status={"info"}
+                      borderRadius="md"
+                      colorScheme="yellow"
+                      bg="yellow.50"
                     >
-                      Download Original
-                    </Button>
-                  )}
+                      <AlertIcon />
+                      <Box>
+                        <AlertTitle fontSize="sm">
+                          {statusConfig.text}
+                        </AlertTitle>
+                        <AlertDescription fontSize="xs">
+                          {statusConfig.description}
+                        </AlertDescription>
+                      </Box>
+                    </Alert>
 
-                  {/* Verify Hashes */}
-                  {(state.certificate.hashes?.sha256 ||
-                    state.certificate.hashes?.md5) && (
-                    <Button
-                      leftIcon={<Hash size={18} />}
-                      colorScheme="teal"
-                      variant="outline"
-                      onClick={onHashModalOpen}
-                    >
-                      Verify Integrity
-                    </Button>
-                  )}
-
-                  <Divider />
-
-                  {/* Status Information */}
-                  <Alert status={statusConfig.color as any} borderRadius="md">
-                    <AlertIcon as={statusConfig.icon} />
-                    <Box>
-                      <AlertTitle fontSize="sm">{statusConfig.text}</AlertTitle>
-                      <AlertDescription fontSize="xs">
-                        {statusConfig.description}
-                      </AlertDescription>
-                    </Box>
-                  </Alert>
-
-                  {/* Admin/Faculty Controls */}
-                  {canApprove && (
-                    <ScaleFade initialScale={0.9} in={true}>
-                      <Card variant="outline" borderColor="red.200">
-                        <CardHeader pb={2}>
-                          <Text fontSize="sm" fontWeight="bold" color="red.600">
-                            {user?.role === "A"
-                              ? "Admin Controls"
-                              : "House Coordinator Controls"}
-                          </Text>
-                        </CardHeader>
-                        <CardBody pt={0}>
-                          <HStack spacing={3}>
-                            <Button
-                              leftIcon={<CheckCircle size={16} />}
-                              colorScheme="green"
-                              size="sm"
-                              flex="1"
-                              onClick={() => handleStatusChange("approve")}
-                              isLoading={state.buttonLoading.approve}
-                              loadingText="Approving..."
+                    {canApprove && (
+                      <ScaleFade initialScale={0.9} in={true}>
+                        <Card
+                          variant="outline"
+                          borderColor="red.200"
+                          bg="transparent"
+                          boxShadow="none"
+                        >
+                          <CardHeader pb={2}>
+                            <Text
+                              fontSize="sm"
+                              fontWeight="bold"
+                              color="red.600"
                             >
-                              Approve
-                            </Button>
-                            <Button
-                              leftIcon={<XCircle size={16} />}
-                              colorScheme="red"
-                              size="sm"
-                              flex="1"
-                              onClick={() => handleStatusChange("reject")}
-                              isLoading={state.buttonLoading.reject}
-                              loadingText="Rejecting..."
-                            >
-                              Reject
-                            </Button>
-                          </HStack>
-                        </CardBody>
-                      </Card>
-                    </ScaleFade>
-                  )}
-
-                  {/* Edit Controls */}
-                  {state.editPrivilege && (
-                    <ScaleFade initialScale={0.9} in={true}>
-                      <Card variant="outline" borderColor="blue.200">
-                        <CardHeader pb={2}>
-                          <Text
-                            fontSize="sm"
-                            fontWeight="bold"
-                            color="blue.600"
-                          >
-                            Certificate Controls
-                          </Text>
-                        </CardHeader>
-                        <CardBody pt={0}>
-                          <VStack spacing={3}>
-                            <Button
-                              leftIcon={<Edit size={16} />}
-                              colorScheme="blue"
-                              variant="outline"
-                              size="sm"
-                              w="full"
-                              isDisabled={!canEdit}
-                              onClick={() =>
-                                dispatch({
-                                  type: "SET_MODAL_STATE",
-                                  payload: { isEditModalOpen: true },
-                                })
-                              }
-                            >
-                              Edit Certificate
-                            </Button>
-                            <Button
-                              leftIcon={<Trash2 size={16} />}
-                              colorScheme="red"
-                              variant="outline"
-                              size="sm"
-                              w="full"
-                              isDisabled={!canEdit}
-                              onClick={() =>
-                                dispatch({
-                                  type: "SET_MODAL_STATE",
-                                  payload: { isDeleteModalOpen: true },
-                                })
-                              }
-                            >
-                              Delete Certificate
-                            </Button>
-                            {!canEdit && (
-                              <Text
-                                fontSize="xs"
-                                color="gray.500"
-                                textAlign="center"
+                              {user?.role === "A"
+                                ? "Admin Controls"
+                                : "House Coordinator Controls"}
+                            </Text>
+                          </CardHeader>
+                          <CardBody pt={0}>
+                            <HStack spacing={3}>
+                              <Button
+                                leftIcon={<CheckCircle size={16} />}
+                                colorScheme="green"
+                                size="sm"
+                                flex="1"
+                                onClick={() => handleStatusChange("approve")}
+                                isLoading={state.buttonLoading.approve}
+                                loadingText="Approving..."
                               >
-                                Approved certificates cannot be modified
-                              </Text>
-                            )}
-                          </VStack>
-                        </CardBody>
-                      </Card>
-                    </ScaleFade>
-                  )}
-                </VStack>
-              </CardBody>
-            </Card>
-          </Flex>
+                                Approve
+                              </Button>
+                              <Button
+                                leftIcon={<XCircle size={16} />}
+                                colorScheme="red"
+                                size="sm"
+                                flex="1"
+                                onClick={() => handleStatusChange("reject")}
+                                isLoading={state.buttonLoading.reject}
+                                loadingText="Rejecting..."
+                              >
+                                Reject
+                              </Button>
+                            </HStack>
+                          </CardBody>
+                        </Card>
+                      </ScaleFade>
+                    )}
 
-          {/* Comments Section */}
-          <Fade in={true} style={{ transitionDelay: "0.3s" }}>
-            <CommentSection
-              certificate={state.certificate}
-              onCommentAdd={addComment}
-            />
-          </Fade>
+                    {state.editPrivilege && (
+                      <ScaleFade initialScale={0.9} in={true}>
+                        <Card
+                          variant="outline"
+                          borderColor="blue.200"
+                          bg="transparent"
+                          boxShadow="none"
+                        >
+                          <CardHeader pb={2}>
+                            <Text
+                              fontSize="sm"
+                              fontWeight="bold"
+                              color="blue.600"
+                            >
+                              Certificate Controls
+                            </Text>
+                          </CardHeader>
+                          <CardBody pt={0}>
+                            <VStack spacing={3}>
+                              <Button
+                                leftIcon={<Edit size={16} />}
+                                colorScheme="blue"
+                                variant="outline"
+                                size="sm"
+                                w="full"
+                                isDisabled={!canEdit}
+                                onClick={() =>
+                                  dispatch({
+                                    type: "SET_MODAL_STATE",
+                                    payload: { isEditModalOpen: true },
+                                  })
+                                }
+                              >
+                                Edit Certificate
+                              </Button>
+                              <Button
+                                leftIcon={<Trash2 size={16} />}
+                                colorScheme="red"
+                                variant="outline"
+                                size="sm"
+                                w="full"
+                                isDisabled={!canEdit}
+                                onClick={() =>
+                                  dispatch({
+                                    type: "SET_MODAL_STATE",
+                                    payload: { isDeleteModalOpen: true },
+                                  })
+                                }
+                              >
+                                Delete Certificate
+                              </Button>
+                              {!canEdit && (
+                                <Text
+                                  fontSize="xs"
+                                  color="gray.500"
+                                  textAlign="center"
+                                >
+                                  Approved certificates cannot be modified
+                                </Text>
+                              )}
+                            </VStack>
+                          </CardBody>
+                        </Card>
+                      </ScaleFade>
+                    )}
+                  </VStack>
+                </CardBody>
+              </Card>
+            </Box>
+
+            {/* Comments Section */}
+            <Box flex="2" w="100%">
+              <Fade in={true} style={{ transitionDelay: "0.3s" }}>
+                <CommentSection
+                  certificate={state.certificate}
+                  onCommentAdd={addComment}
+                />
+              </Fade>
+            </Box>
+          </Flex>
         </VStack>
       </Container>
 
@@ -845,7 +810,7 @@ const Certificate: React.FC = () => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={6} align="stretch">
-              <Alert status="info" borderRadius="md">
+              <Alert status="info" borderRadius="md" colorScheme="blue">
                 <AlertIcon />
                 <Box>
                   <AlertTitle fontSize="sm">
@@ -1012,7 +977,7 @@ const Certificate: React.FC = () => {
                 </List>
               </Box>
 
-              <Alert status="success" borderRadius="md">
+              <Alert status="success" borderRadius="md" color={"green"}>
                 <AlertIcon />
                 <Box>
                   <AlertTitle fontSize="sm">Verification Success</AlertTitle>

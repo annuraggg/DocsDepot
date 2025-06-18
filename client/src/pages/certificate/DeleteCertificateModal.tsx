@@ -109,6 +109,7 @@ export const DeleteCertificateModal: React.FC<DeleteModalProps> = ({
             mr={3} 
             onClick={onClose}
             isDisabled={isDeleting}
+            colorScheme="red"
           >
             Cancel
           </Button>

@@ -140,7 +140,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
               ))}
             </VStack>
           ) : (
-            <Alert status="info" borderRadius="md">
+            <Alert status="info" borderRadius="md" colorScheme="blue">
               <AlertIcon />
               No comments yet. {user?._id === certificate?.user?._id ? "" : "Be the first to comment!"}
             </Alert>
