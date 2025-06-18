@@ -31,7 +31,6 @@ import {
   Text,
   Heading,
   useToast,
-  useColorMode,
   useColorModeValue,
   Badge,
   Flex,
@@ -51,8 +50,6 @@ import {
   CircularProgressLabel,
 } from "@chakra-ui/react";
 import {
-  Moon,
-  Sun,
   Eye,
   EyeOff,
   Save,
@@ -363,7 +360,7 @@ const Settings: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const axios = useAxios();
-  const { colorMode, toggleColorMode } = useColorMode();
+  // const { colorMode, toggleColorMode } = useColorMode();
   const {
     isOpen: isMaintenanceModalOpen,
     onOpen: onMaintenanceModalOpen,
@@ -638,27 +635,27 @@ const Settings: React.FC = () => {
     [axios, toast, onMaintenanceModalClose]
   );
 
-  const toggleTheme = useCallback(async () => {
-    const newColorMode = colorMode === "dark" ? "light" : "dark";
+  // const toggleTheme = useCallback(async () => {
+  //   const newColorMode = colorMode === "dark" ? "light" : "dark";
 
-    toggleColorMode();
+  //   toggleColorMode();
 
-    try {
-      const response = await axios.post("/auth/profile/theme", {
-        colorMode: newColorMode,
-      });
+  //   try {
+  //     const response = await axios.post("/auth/profile/theme", {
+  //       colorMode: newColorMode,
+  //     });
 
-      const token = response.data.data;
-      if (token) {
-        Cookies.set("token", token);
-      }
-    } catch (err: any) {
-      console.error(
-        "Theme toggle error:",
-        err.response?.data?.message || "Failed to update theme"
-      );
-    }
-  }, [colorMode, toggleColorMode, axios]);
+  //     const token = response.data.data;
+  //     if (token) {
+  //       Cookies.set("token", token);
+  //     }
+  //   } catch (err: any) {
+  //     console.error(
+  //       "Theme toggle error:",
+  //       err.response?.data?.message || "Failed to update theme"
+  //     );
+  //   }
+  // }, [colorMode, toggleColorMode, axios]);
 
   const updateCertificateTheme = useCallback(
     async (theme: string) => {
@@ -779,7 +776,7 @@ const Settings: React.FC = () => {
                   <Heading size="lg">Settings</Heading>
                 </HStack>
 
-                <HStack spacing={3}>
+                {/* <HStack spacing={3}>
                   <IconButton
                     aria-label="Toggle color mode"
                     icon={
@@ -809,7 +806,7 @@ const Settings: React.FC = () => {
                       </HStack>
                     </Badge>
                   )}
-                </HStack>
+                </HStack> */}
               </Flex>
             </CardBody>
           </Card>

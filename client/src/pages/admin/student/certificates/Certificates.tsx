@@ -72,7 +72,6 @@ import {
   FileText,
   MoreVertical,
   RefreshCw,
-  Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import debounce from "lodash/debounce";
@@ -1066,19 +1065,11 @@ const StudentCertificates = () => {
                   </Heading>
                   <Text color="gray.500" textAlign="center">
                     {certificates.length === 0
-                      ? "Start building your certification portfolio by adding your first certificate."
+                      ? "Start by asking students to enhance their certification portfolio by adding their first certificate."
                       : "Try adjusting your search terms or filters to find what you're looking for."}
                   </Text>
                 </VStack>
-                {certificates.length === 0 ? (
-                  <Button
-                    leftIcon={<Plus size={16} />}
-                    colorScheme="blue"
-                    onClick={() => navigate("/certificates/add")}
-                  >
-                    Add First Certificate
-                  </Button>
-                ) : (
+                {certificates.length === 0 ? null : (
                   <Button onClick={clearFilters} variant="outline">
                     Clear Filters
                   </Button>

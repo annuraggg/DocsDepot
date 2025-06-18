@@ -358,6 +358,7 @@ const Students = () => {
       setEmail(student.social.email);
       setHouse(student.house?._id || "");
       setGender(student.gender);
+      console.log(student.gender);
       onEditOpen();
     }
   };
@@ -845,7 +846,11 @@ const Students = () => {
                               py={1}
                               borderRadius="md"
                             >
-                              {student.gender === "M" ? "Male" : "Female"}
+                              {student.gender === "M"
+                                ? "Male"
+                                : student.gender === "F"
+                                ? "Female"
+                                : "Other"}
                             </Badge>
                           </Flex>
                           <Text fontSize="sm" color="gray.600" noOfLines={1}>
@@ -1005,7 +1010,6 @@ const Students = () => {
                               </Td>
                               <Td borderColor={borderColor}>
                                 <Badge colorScheme="green" borderRadius="md">
-                                  Year{" "}
                                   {getAcademicYear(
                                     student.academicDetails.admissionYear,
                                     student.academicDetails.isDSE,
@@ -1024,11 +1028,15 @@ const Students = () => {
                               <Td borderColor={borderColor}>
                                 <Badge
                                   colorScheme={
-                                    student.gender === "M" ? "blue" : "pink"
+                                    student.gender === "M" ? "blue" : student.gender === "F" ? "pink" : "green"
                                   }
                                   borderRadius="md"
                                 >
-                                  {student.gender === "M" ? "Male" : "Female"}
+                                  {student.gender === "M"
+                                    ? "Male"
+                                    : student.gender === "F"
+                                    ? "Female"
+                                    : "Other"}
                                 </Badge>
                               </Td>
                               <Td borderColor={borderColor} textAlign="center">
@@ -1165,6 +1173,9 @@ const Students = () => {
                         <Radio value="F" colorScheme="pink">
                           Female
                         </Radio>
+                        <Radio value="O" colorScheme="green">
+                          Other
+                        </Radio>
                       </Stack>
                     </RadioGroup>
                   </FormControl>
@@ -1217,6 +1228,9 @@ const Students = () => {
                           Male
                         </Checkbox>
                         <Checkbox value="F" colorScheme="pink">
+                          Female
+                        </Checkbox>
+                        <Checkbox value="O" colorScheme="pink">
                           Female
                         </Checkbox>
                       </Stack>

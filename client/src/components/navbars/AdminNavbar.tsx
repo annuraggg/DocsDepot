@@ -105,6 +105,17 @@ const AdminNavbar = () => {
   };
 
   const resetPassword = async () => {
+    if (!resetMoodleId) {
+      toast({
+        title: "Error",
+        description: "Please enter a Moodle ID",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
     setResetLoading(true);
     try {
       await axios.post("/user/reset", { mid: resetMoodleId });

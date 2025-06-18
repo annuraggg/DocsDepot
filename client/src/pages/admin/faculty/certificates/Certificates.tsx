@@ -84,7 +84,6 @@ import {
   FileText,
   MoreVertical,
   RefreshCw,
-  Plus,
   Settings,
   Shield,
 } from "lucide-react";
@@ -1349,19 +1348,11 @@ const FacultyCertificates: React.FC = () => {
                         </Heading>
                         <Text color="gray.500" textAlign="center">
                           {certificates.length === 0
-                            ? "Start by adding your first certificate to the system."
+                            ? "Start by asking faculty to add their first certificate to the system."
                             : "Try adjusting your search terms or filters."}
                         </Text>
                       </VStack>
-                      {certificates.length === 0 ? (
-                        <Button
-                          leftIcon={<Plus size={16} />}
-                          colorScheme="blue"
-                          onClick={() => navigate("/certificates/add")}
-                        >
-                          Add First Certificate
-                        </Button>
-                      ) : (
+                      {certificates.length === 0 ? null : (
                         <Button onClick={clearFilters} variant="outline">
                           Clear Filters
                         </Button>
