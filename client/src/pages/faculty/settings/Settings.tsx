@@ -10,8 +10,8 @@ import {
   Radio,
 } from "@chakra-ui/react";
 import {
-  Moon,
-  Sun,
+  // Moon,
+  // Sun,
   Eye,
   EyeOff,
   Save,
@@ -44,7 +44,7 @@ const Settings = () => {
   const [certificateTheme, setCertificateTheme] = React.useState("classic");
 
   const axios = useAxios();
-  const { colorMode, toggleColorMode } = useColorMode();
+  const { colorMode/*, toggleColorMode*/ } = useColorMode();
 
   // Rest of the validation and password change logic remains exactly the same
   const validatePassMatch = (pass: string) => {
@@ -122,6 +122,8 @@ const Settings = () => {
     }
   };
 
+  // Remove or comment out the setDark function and dark mode toggle button
+  /*
   const setDark = () => {
     toggleColorMode();
 
@@ -151,6 +153,7 @@ const Settings = () => {
         setIsButtonLoading(false);
       });
   };
+  */
 
   useEffect(() => {
     const initializeSettings = async () => {
@@ -250,6 +253,7 @@ const Settings = () => {
                 >
                   Settings
                 </h1>
+                {/*
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -265,6 +269,7 @@ const Settings = () => {
                     <Moon className="w-6 h-6 text-gray-600" />
                   )}
                 </motion.button>
+                */}
               </div>
 
               <div className="space-y-6">

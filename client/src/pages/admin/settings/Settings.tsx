@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  useColorMode,
+  // useColorMode,
   useToast,
   Card,
   CardBody,
@@ -25,8 +25,8 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import {
-  Moon,
-  Sun,
+  // Moon,
+  // Sun,
   Eye,
   EyeOff,
   Save,
@@ -65,7 +65,7 @@ const Settings = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const axios = useAxios();
 
-  const { colorMode, toggleColorMode } = useColorMode();
+  // const { colorMode, toggleColorMode } = useColorMode();
 
   const sendNewPass = () => {
     if (oldPass === "" || newPass === "" || confirmPass === "") {
@@ -275,25 +275,25 @@ const Settings = () => {
       });
   };
 
-  const setDark = () => {
-    toggleColorMode();
+  // const setDark = () => {
+  //   toggleColorMode();
 
-    axios
-      .post("/auth/profile/theme", {
-        colorMode: colorMode === "dark" ? "light" : "dark",
-      })
-      .then((res) => {
-        const token = res.data.data;
-        if (!token) return;
+  //   axios
+  //     .post("/auth/profile/theme", {
+  //       colorMode: colorMode === "dark" ? "light" : "dark",
+  //     })
+  //     .then((res) => {
+  //       const token = res.data.data;
+  //       if (!token) return;
 
-        Cookies.set("token", token);
-      })
-      .catch((err) => {
-        const errorMessage =
-          err?.response?.data?.message || "Something went wrong";
-        console.error("Theme toggle error:", errorMessage);
-      });
-  };
+  //       Cookies.set("token", token);
+  //     })
+  //     .catch((err) => {
+  //       const errorMessage =
+  //         err?.response?.data?.message || "Something went wrong";
+  //       console.error("Theme toggle error:", errorMessage);
+  //     });
+  // };
 
   useEffect(() => {
     setLoading(false);
@@ -380,7 +380,7 @@ const Settings = () => {
                 <Settings2 className="w-6 h-6 text-blue-500" />
                 <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
               </div>
-              <motion.button
+              {/* <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="self-start p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -391,7 +391,7 @@ const Settings = () => {
                 ) : (
                   <Moon className="w-6 h-6 text-gray-600" />
                 )}
-              </motion.button>
+              </motion.button> */}
             </Stack>
 
             <Tabs variant="enclosed" isFitted={isMobile}>
