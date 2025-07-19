@@ -29,6 +29,7 @@ import {
   Settings,
   UserCircle,
   MessageSquare,
+  Info,
 } from "lucide-react";
 import { Notification } from "@shared-types/Notification";
 import { Token } from "@shared-types/Token";
@@ -96,7 +97,7 @@ const StudentNavbar = ({ notifications = [] }: StudentNavbarProps) => {
     ].forEach((domain) => {
       Cookies.remove("token", { path: "/", domain });
     });
-    navigate("/auth")
+    navigate("/auth");
   };
 
   return (
@@ -167,6 +168,12 @@ const StudentNavbar = ({ notifications = [] }: StudentNavbarProps) => {
                   <MenuItem value="settings">
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
+                  </MenuItem>
+                </Link>
+                <Link to="/about">
+                  <MenuItem value="about">
+                    <Info className="w-4 h-4 mr-2" />
+                    About
                   </MenuItem>
                 </Link>
                 <Link to={`/profile/${user?.mid}`}>

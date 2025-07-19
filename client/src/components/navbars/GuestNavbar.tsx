@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import Logo from "../../assets/img/logo.png";
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Menu, MenuItem, MenuList } from "@chakra-ui/react";
+import { Info } from "lucide-react";
 
 const GuestGuestNavbar = () => {
   const navigate = useNavigate();
@@ -19,6 +20,14 @@ const GuestGuestNavbar = () => {
       </div>
 
       <Box className="flex items-center gap-5">
+        <Menu>
+          <MenuList>
+            <MenuItem onClick={() => navigate("/about")}>
+              <Info className="w-4 h-4 mr-2" />
+              About
+            </MenuItem>
+          </MenuList>
+        </Menu>
         <Button
           colorScheme="green"
           variant="link"

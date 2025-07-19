@@ -25,11 +25,32 @@ const getAllStudents = async (c: Context) => {
   }
 };
 
+const getAllStudentsWithDefaultPassword = async (c: Context) => {
+  try {
+    const students = await User.find({ role: "S" }).populate("house").lean();
+    const defaultPassword = process.env["DEFAULT_STUDENT_PASSWORD"];
+    return sendSuccess(c, 200, "Success", { students, defaultPassword });
+  } catch (err) {
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
 const getAllFaculty = async (c: Context) => {
   try {
     const faculty = await User.find({ role: "F" }).lean();
     const houses = await House.find().lean();
     return sendSuccess(c, 200, "Success", { faculty, houses });
+  } catch {
+    return sendError(c, 500, "Internal Server Error");
+  }
+};
+
+const getAllFacultyWithDefaultPassword = async (c: Context) => {
+  try {
+    const faculty = await User.find({ role: "F" }).lean();
+    const houses = await House.find().lean();
+    const defaultPassword = process.env["DEFAULT_FACULTY_PASSWORD"];
+    return sendSuccess(c, 200, "Success", { faculty, defaultPassword, houses });
   } catch {
     return sendError(c, 500, "Internal Server Error");
   }
@@ -365,16 +386,27 @@ const resetPassword = async (c: Context) => {
     const gate = new UserKeeper(token, user as unknown as IUser);
     await gate.reset();
 
-    const password = bcrypt.hashSync(
-      process.env["DEFAULT_STUDENT_PASSWORD"]!,
-      10
-    );
-    user.password = password;
+    let password = null;
+    if (user.role === "S") {
+      password = process.env["DEFAULT_STUDENT_PASSWORD"];
+    } else if (user.role === "F") {
+      password = process.env["DEFAULT_FACULTY_PASSWORD"];
+    } else {
+      return sendError(c, 400, "Invalid user role for password reset");
+    }
+
+    if (!password) {
+      return sendError(c, 500, "Default password not set in environment");
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    user.password = hashedPassword;
+
     user.onboarding = user?.onboarding
       ? { ...user.onboarding, defaultPW: true }
       : { defaultPW: true, firstTime: true, approved: false };
     await user.save();
-    return sendSuccess(c, 200, "Password reset", user);
+    return sendSuccess(c, 200, "Password reset", { user, password });
   } catch (err) {
     console.log(err);
 
@@ -407,4 +439,6 @@ export default {
   bulkDeleteUsers,
   resetPassword,
   getNotAllotedUsers,
+  getAllStudentsWithDefaultPassword,
+  getAllFacultyWithDefaultPassword,
 };

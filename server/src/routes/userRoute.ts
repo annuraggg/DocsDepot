@@ -6,6 +6,8 @@ const app = new Hono();
 app.get("/all", userController.getAllUsers);
 app.get("/students", userController.getAllStudents);
 app.get("/faculty", userController.getAllFaculty);
+app.get("/students/withPassword", userController.getAllStudentsWithDefaultPassword);
+app.get("/faculty/withPassword", userController.getAllFacultyWithDefaultPassword);
 app.get("/admins", userController.getAllAdmins);
 app.post("/reset", userController.resetPassword);
 app.post("/student", userController.createStudent);

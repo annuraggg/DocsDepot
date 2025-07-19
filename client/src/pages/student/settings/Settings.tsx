@@ -10,8 +10,6 @@ import {
   Radio,
 } from "@chakra-ui/react";
 import {
-  Moon,
-  Sun,
   Eye,
   EyeOff,
   Save,
@@ -44,7 +42,7 @@ const Settings = () => {
   const [certificateTheme, setCertificateTheme] = React.useState("classic");
 
   const axios = useAxios();
-  const { colorMode, toggleColorMode } = useColorMode();
+  const { colorMode } = useColorMode();
 
   // Rest of the validation and password change logic remains exactly the same
   const validatePassMatch = (pass: string) => {
@@ -122,24 +120,6 @@ const Settings = () => {
     }
   };
 
-  const setDark = () => {
-    toggleColorMode();
-
-    axios
-      .post("/auth/profile/theme", {
-        colorMode: colorMode === "dark" ? "light" : "dark",
-      })
-      .then((res) => {
-        const token = res.data.data;
-        if (!token) return;
-
-        Cookies.set("token", token);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
   useEffect(() => {
     setCertificateTheme(user?.certificateTheme || "classic");
     setLoading(false);
@@ -205,22 +185,6 @@ const Settings = () => {
                 >
                   Settings
                 </h1>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`p-2 rounded-lg ${
-                    colorMode === "dark"
-                      ? "bg-gray-700 hover:bg-gray-600"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
-                  onClick={setDark}
-                >
-                  {colorMode === "dark" ? (
-                    <Sun className="w-6 h-6 text-yellow-500" />
-                  ) : (
-                    <Moon className="w-6 h-6 text-gray-600" />
-                  )}
-                </motion.button>
               </div>
 
               <div className="space-y-6">

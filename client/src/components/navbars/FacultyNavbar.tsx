@@ -42,6 +42,7 @@ import {
   FileText,
   UserCheck,
   Menu as MenuIcon,
+  Info,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
@@ -50,6 +51,7 @@ import useAxios from "@/config/axios";
 import { Notification } from "@shared-types/Notification";
 import { Token } from "@shared-types/Token";
 import Logo from "@/assets/img/logo.png";
+import { Link } from "react-router";
 
 interface NavLinkProps {
   icon: React.ReactNode;
@@ -150,10 +152,10 @@ const FacultyNavbar = () => {
   const resetPassword = async () => {
     setResetLoading(true);
     try {
-      await axios.post("/user/reset", { mid: resetMoodleId });
+      const res = await axios.post("/user/reset", { mid: resetMoodleId });
       toast({
         title: "Success",
-        description: "Password Reset Successfully",
+        description: `Password Reset Successfully. The new password is set to ${res.data.data.password}`,
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -300,6 +302,12 @@ const FacultyNavbar = () => {
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </MenuItem>
+                <Link to="/about">
+                  <MenuItem value="about">
+                    <Info className="w-4 h-4 mr-2" />
+                    About
+                  </MenuItem>
+                </Link>
                 <MenuItem onClick={() => navigate("/feedback")}>
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Feedback

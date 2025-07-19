@@ -237,6 +237,8 @@ const Faculty: React.FC = () => {
   const [selectedFaculty, setSelectedFaculty] = useState<string[]>([]);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
+  const [defaultPassword, setDefaultPassword] = useState<string>("");
+
   const [state, setState] = useState<FacultyState>({
     _id: "",
     delItem: "",
@@ -329,12 +331,17 @@ const Faculty: React.FC = () => {
         if (showRefreshToast) setIsRefreshing(true);
         else setLoading(true);
 
-        const response = await axios.get("/user/faculty");
-        const { faculty: facultyData, houses: housesData } = response.data.data;
+        const response = await axios.get("/user/faculty/withPassword");
+        const {
+          faculty: facultyData,
+          houses: housesData,
+          defaultPassword: defPass,
+        } = response.data.data;
 
         setFaculty(facultyData);
         setHouses(housesData);
         setFilteredFaculty(facultyData);
+        setDefaultPassword(defPass);
 
         if (showRefreshToast) {
           toast({
@@ -739,6 +746,14 @@ const Faculty: React.FC = () => {
               </Button>
             </HStack>
           </Flex>
+
+          <Alert status="info" className="mb-5">
+            <AlertIcon />
+            <p>
+              The Default Faculty Password is:{" "}
+              <strong>{defaultPassword}</strong>.
+            </p>
+          </Alert>
 
           {/* Statistics */}
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4}>

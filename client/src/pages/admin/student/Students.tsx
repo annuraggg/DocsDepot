@@ -55,6 +55,8 @@ import {
   Spinner,
   Center,
   Icon,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -150,6 +152,7 @@ const Students = () => {
   const [update, setUpdate] = useState(false);
   const [studentId, setStudentId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [defaultPassword, setDefaultPassword] = useState("");
 
   const toast = useToast();
   const axios = useAxios();
@@ -189,8 +192,9 @@ const Students = () => {
       if (showRefreshToast) setIsRefreshing(true);
       else setLoading(true);
 
-      const res = await axios.get("/user/students");
-      setStudents(res.data.data);
+      const res = await axios.get("/user/students/withPassword");
+      setStudents(res.data.data.students);
+      setDefaultPassword(res.data.data.defaultPassword || "12345678");
 
       if (showRefreshToast) {
         toast({
@@ -512,6 +516,11 @@ const Students = () => {
               </Flex>
             </CardHeader>
           </Card>
+
+          <Alert status="info" className="mb-5">
+            <AlertIcon />
+            <p>The Default Student Password is:  <strong>{defaultPassword}</strong>.</p>
+          </Alert>
 
           {/* Statistics */}
           <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4} mb={6}>
@@ -1028,7 +1037,11 @@ const Students = () => {
                               <Td borderColor={borderColor}>
                                 <Badge
                                   colorScheme={
-                                    student.gender === "M" ? "blue" : student.gender === "F" ? "pink" : "green"
+                                    student.gender === "M"
+                                      ? "blue"
+                                      : student.gender === "F"
+                                      ? "pink"
+                                      : "green"
                                   }
                                   borderRadius="md"
                                 >

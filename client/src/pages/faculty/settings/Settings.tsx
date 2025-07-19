@@ -10,8 +10,6 @@ import {
   Radio,
 } from "@chakra-ui/react";
 import {
-  Moon,
-  Sun,
   Eye,
   EyeOff,
   Save,
@@ -44,7 +42,7 @@ const Settings = () => {
   const [certificateTheme, setCertificateTheme] = React.useState("classic");
 
   const axios = useAxios();
-  const { colorMode, toggleColorMode } = useColorMode();
+  const { colorMode } = useColorMode();
 
   // Rest of the validation and password change logic remains exactly the same
   const validatePassMatch = (pass: string) => {
@@ -122,35 +120,35 @@ const Settings = () => {
     }
   };
 
-  const setDark = () => {
-    toggleColorMode();
+  // const setDark = () => {
+  //   toggleColorMode();
 
-    setIsButtonLoading(true);
-    axios
-      .post("/auth/profile/theme", {
-        colorMode: colorMode === "dark" ? "light" : "dark",
-      })
-      .then((res) => {
-        const token = res.data.data;
-        if (!token) {
-          throw new Error("No token received");
-        }
-        Cookies.set("token", token);
-      })
-      .catch((err) => {
-        console.error("Error updating theme:", err);
-        toast({
-          title: "Theme Update Failed",
-          description: err?.response?.data?.message || "Failed to update theme preferences",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      })
-      .finally(() => {
-        setIsButtonLoading(false);
-      });
-  };
+  //   setIsButtonLoading(true);
+  //   axios
+  //     .post("/auth/profile/theme", {
+  //       colorMode: colorMode === "dark" ? "light" : "dark",
+  //     })
+  //     .then((res) => {
+  //       const token = res.data.data;
+  //       if (!token) {
+  //         throw new Error("No token received");
+  //       }
+  //       Cookies.set("token", token);
+  //     })
+  //     .catch((err) => {
+  //       console.error("Error updating theme:", err);
+  //       toast({
+  //         title: "Theme Update Failed",
+  //         description: err?.response?.data?.message || "Failed to update theme preferences",
+  //         status: "error",
+  //         duration: 3000,
+  //         isClosable: true,
+  //       });
+  //     })
+  //     .finally(() => {
+  //       setIsButtonLoading(false);
+  //     });
+  // };
 
   useEffect(() => {
     const initializeSettings = async () => {
@@ -250,7 +248,7 @@ const Settings = () => {
                 >
                   Settings
                 </h1>
-                <motion.button
+                {/* <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={`p-2 rounded-lg ${colorMode === "dark"
@@ -264,7 +262,7 @@ const Settings = () => {
                   ) : (
                     <Moon className="w-6 h-6 text-gray-600" />
                   )}
-                </motion.button>
+                </motion.button> */}
               </div>
 
               <div className="space-y-6">

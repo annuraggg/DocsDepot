@@ -118,10 +118,10 @@ const AdminNavbar = () => {
 
     setResetLoading(true);
     try {
-      await axios.post("/user/reset", { mid: resetMoodleId });
+      const res = await axios.post("/user/reset", { mid: resetMoodleId });
       toast({
         title: "Success",
-        description: "Password Reset Successfully",
+        description: `Password Reset Successfully. The new password is set to ${res.data.data.password}`,
         status: "success",
         duration: 5000,
         isClosable: true,
