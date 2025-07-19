@@ -38,6 +38,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://docsdepot.anuragsawant.in",
+      "https://docsdepot.nagarji.in",
       "http://64.227.186.83:3000",
       "http://139.59.93.136:3000",
       "http://202.179.85.69:3000",
